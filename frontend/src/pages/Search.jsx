@@ -10,6 +10,7 @@ export default function Search() {
   const [source, setSource] = useState("all");
   const [resumeSkills, setResumeSkills] = useState([]);
   const [minScore, setMinScore] = useState(0);
+  const [trustFilter, setTrustFilter] = useState("all");
 
   const { data: resumes = [] } = useQuery({
     queryKey: ["resumes"],
@@ -66,6 +67,7 @@ export default function Search() {
   const filtered = results
     ? (source === "all" ? results : results.filter((j) => j.source === source))
         .filter((j) => (j.match_score ?? 0) >= minScore)
+        .filter((j) => trustFilter === "all" || j.trust_label === trustFilter)
     : null;
 
   const sources = results ? [...new Set(results.map((j) => j.source).filter(Boolean))] : [];
@@ -147,6 +149,18 @@ export default function Search() {
         <div className="portal-body">
           <aside className="portal-sidebar">
             <div className="sidebar-section">
+              <h3>Trust Filter</h3>
+              {["all", "Verified", "Suspicious", "Fake"].map((t) => (
+                <button key={t} className={`filter-btn ${trustFilter === t ? "active" : ""}`}
+                  onClick={() => setTrustFilter(t)}>
+                  {t === "all" ? "All Jobs" :
+                   t === "Verified" ? "✅ Verified" :
+                   t === "Suspicious" ? "⚠️ Suspicious" : "🚫 Fake"}
+                </button>
+              ))}
+            </div>
+
+            <div className="sidebar-section">
               <h3>Source</h3>
               {["all", ...sources].map((s) => (
                 <button key={s} className={`filter-btn ${source === s ? "active" : ""}`} onClick={() => setSource(s)}>
@@ -202,11 +216,23 @@ export default function Search() {
                         </div>
                       )}
                       {job.source && <span className="source-badge">{job.source}</span>}
+                      {job.trust_label && (
+                        <span className={`trust-badge trust-${job.trust_label.toLowerCase()}`}>
+                          {job.trust_label === "Verified" ? "✅" : job.trust_label === "Suspicious" ? "⚠️" : "🚫"} {job.trust_label}
+                        </span>
+                      )}
                     </div>
                   </div>
 
                   {job.description && (
                     <p className="job-desc">{job.description.slice(0, 200)}{job.description.length > 200 ? "…" : ""}</p>
+                  )}
+
+                  {job.red_flags?.length > 0 && (
+                    <div className="red-flags-row">
+                      <span className="flags-label">🚩 Red flags:</span>
+                      {job.red_flags.map((f) => <span key={f} className="flag-tag">{f}</span>)}
+                    </div>
                   )}
 
                   {job.matched_skills?.length > 0 && (

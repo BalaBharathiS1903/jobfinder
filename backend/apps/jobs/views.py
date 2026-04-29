@@ -6,6 +6,7 @@ from .models import JobSearch, SavedJob
 from .serializers import JobSearchSerializer, SavedJobSerializer
 from .linkedin import fetch_jobs
 from .matcher import rank_jobs
+from .trust import analyze_jobs_trust
 from apps.resume.models import Resume
 
 
@@ -21,6 +22,7 @@ def search_jobs(request):
         return Response({"error": "query is required."}, status=400)
 
     jobs = fetch_jobs(query, location, country)
+    jobs = analyze_jobs_trust(jobs)
 
     if resume_id:
         try:
@@ -64,6 +66,7 @@ def auto_search(request):
                 seen_ids.add(job["id"])
                 all_jobs.append(job)
 
+    all_jobs = analyze_jobs_trust(all_jobs)
     ranked = rank_jobs(all_jobs, resume)
     return Response({"results": ranked, "query": queries[0]})
 

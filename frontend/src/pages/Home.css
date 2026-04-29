@@ -1,23 +1,52 @@
-.home { max-width: 960px; margin: 0 auto; padding: 0 1.5rem; }
+.home { background: #f5f6fa; }
 
+/* Hero */
 .hero {
   text-align: center;
-  padding: 4rem 1rem 3rem;
+  padding: 5rem 1.5rem 4rem;
+  background: linear-gradient(160deg, #1a1a2e 0%, #2d2d5e 100%);
+  color: #fff;
+}
+
+.hero-badge {
+  display: inline-block;
+  background: rgba(124,131,253,0.2);
+  border: 1px solid rgba(124,131,253,0.4);
+  color: #aab0ff;
+  padding: 0.35rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
 }
 
 .hero h1 {
-  font-size: 2.5rem;
-  color: #1a1a2e;
-  margin-bottom: 1rem;
+  font-size: 2.8rem;
+  margin: 0 0 1rem;
   line-height: 1.2;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.hero p { font-size: 1.1rem; color: #666; margin-bottom: 2rem; }
+.hero-highlight { color: #7c83fd; }
 
-.hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.hero p {
+  font-size: 1.05rem;
+  color: #aab0ff;
+  margin: 0 auto 2rem;
+  max-width: 560px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2.5rem;
+}
 
 .btn-hero {
-  padding: 0.8rem 2rem;
+  padding: 0.85rem 2rem;
   background: #7c83fd;
   color: #fff;
   border-radius: 8px;
@@ -31,27 +60,115 @@
 
 .btn-hero-outline {
   background: transparent;
-  border: 2px solid #7c83fd;
-  color: #7c83fd;
+  border: 2px solid rgba(124,131,253,0.6);
+  color: #aab0ff;
 }
 
-.btn-hero-outline:hover { background: #eef0ff; }
+.btn-hero-outline:hover { background: rgba(124,131,253,0.1); color: #fff; }
 
+.hero-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.hstat { display: flex; flex-direction: column; align-items: center; }
+.hstat strong { font-size: 1rem; color: #fff; }
+.hstat span { font-size: 0.78rem; color: #7c83fd; margin-top: 0.1rem; }
+.hstat-div { width: 1px; height: 30px; background: rgba(255,255,255,0.15); }
+
+/* Sections */
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.section-heading {
+  text-align: center;
+  font-size: 1.8rem;
+  color: #1a1a2e;
+  margin: 0 0 0.5rem;
+}
+
+.section-sub {
+  text-align: center;
+  color: #888;
+  margin: 0 0 2.5rem;
+  font-size: 0.95rem;
+}
+
+/* Feature Cards */
 .features {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  padding-bottom: 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1.25rem;
 }
 
 .feature-card {
   background: #fff;
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: 14px;
+  padding: 1.75rem 1.25rem;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   text-align: center;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid transparent;
 }
 
-.feature-icon { font-size: 2rem; }
-.feature-card h3 { margin: 0.75rem 0 0.5rem; color: #1a1a2e; }
-.feature-card p { font-size: 0.9rem; color: #888; margin: 0; }
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(124,131,253,0.15);
+  border-color: #7c83fd;
+}
+
+.feature-icon { font-size: 2.2rem; display: block; margin-bottom: 0.75rem; }
+.feature-card h3 { margin: 0 0 0.5rem; color: #1a1a2e; font-size: 1rem; }
+.feature-card p { font-size: 0.85rem; color: #888; margin: 0; line-height: 1.5; }
+
+/* How it works */
+.how-section { background: #fff; border-radius: 16px; max-width: 1100px; }
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  position: relative;
+}
+
+.step {
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+
+.step-num {
+  width: 48px;
+  height: 48px;
+  background: #7c83fd;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.step h4 { margin: 0 0 0.4rem; color: #1a1a2e; font-size: 1rem; }
+.step p { font-size: 0.85rem; color: #888; margin: 0; }
+
+/* CTA */
+.cta-section {
+  text-align: center;
+  background: linear-gradient(135deg, #1a1a2e, #2d2d5e);
+  color: #fff;
+  padding: 4rem 1.5rem;
+  margin-top: 2rem;
+}
+
+.cta-section h2 { font-size: 1.8rem; margin: 0 0 0.75rem; }
+.cta-section p { color: #aab0ff; margin: 0 0 2rem; }

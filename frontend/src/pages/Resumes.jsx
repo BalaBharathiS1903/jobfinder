@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
 import "./Resumes.css";
@@ -72,6 +73,7 @@ export default function Resumes() {
                 </div>
               )}
               <div className="resume-actions">
+                <Link to={`/resumes/${r.id}/profile`} className="btn-secondary">View Profile</Link>
                 <button className="btn-secondary" onClick={() => reparseMutation.mutate(r.id)}>Re-parse</button>
                 <button className="btn-danger" onClick={() => deleteMutation.mutate(r.id)}>Delete</button>
               </div>

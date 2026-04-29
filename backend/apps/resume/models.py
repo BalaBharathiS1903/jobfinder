@@ -7,7 +7,6 @@ class Resume(models.Model):
     filename = models.CharField(max_length=255)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
-    # Parsed fields
     name = models.CharField(max_length=255, blank=True)
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=50, blank=True)
@@ -15,6 +14,14 @@ class Resume(models.Model):
     job_titles = models.JSONField(default=list)
     keywords = models.JSONField(default=list)
     raw_text = models.TextField(blank=True)
+
+    languages = models.JSONField(default=list)
+    frameworks = models.JSONField(default=list)
+    tools = models.JSONField(default=list)
+    soft_skills = models.JSONField(default=list)
+    education = models.CharField(max_length=100, blank=True)
+    projects = models.JSONField(default=list)
+    years_exp = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.user.email} — {self.filename}"

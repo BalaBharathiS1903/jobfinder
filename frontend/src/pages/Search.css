@@ -441,6 +441,42 @@
   font-size: 0.9rem;
 }
 
+/* Trust badges */
+.trust-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.trust-verified { background: #e6f9ee; color: #1a7a3c; }
+.trust-suspicious { background: #fff8e1; color: #b45309; }
+.trust-fake { background: #fee; color: #c00; }
+
+/* Red flags */
+.red-flags-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #fff8f8;
+  border-radius: 6px;
+  border-left: 3px solid #f87171;
+}
+
+.flags-label { font-size: 0.8rem; color: #c00; font-weight: 600; }
+
+.flag-tag {
+  background: #fee;
+  color: #c00;
+  padding: 0.2rem 0.55rem;
+  border-radius: 5px;
+  font-size: 0.75rem;
+}
+
 /* Responsive */
 @media (max-width: 700px) {
   .portal-body { flex-direction: column; }

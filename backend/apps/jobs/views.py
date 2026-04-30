@@ -8,6 +8,7 @@ from .linkedin import fetch_jobs
 from .matcher import rank_jobs
 from .trust import analyze_jobs_trust
 from apps.resume.models import Resume
+from apps.profile.models import UserProfile
 
 
 @api_view(["POST"])
@@ -119,3 +120,38 @@ class SavedJobDestroyView(generics.DestroyAPIView):
 
     def get_queryset(self):
         return SavedJob.objects.filter(user=self.request.user)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def profile_search(request):
+    location = request.data.get("location", "")
+    country = request.data.get("country", "in")
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    skill_names = [s.get("name", "") if isinstance(s, dict) else str(s) for s in profile.skills]
+    skill_names = [s for s in skill_names if s]
+
+    if not skill_names and not profile.headline:
+        return Response({"error": "Add skills or a headline to your profile first."}, status=400)
+
+    query_parts = []
+    if profile.headline:
+        query_parts.append(profile.headline.split("|")[0].strip())
+    query_parts += skill_names[:4]
+    query = " ".join(query_parts[:5])
+
+    jobs = fetch_jobs(query, location, country)
+    jobs = analyze_jobs_trust(jobs)
+
+    # Score against profile skills inline (no Resume object needed)
+    skill_set = set(s.lower() for s in skill_names)
+    scored = []
+    for job in jobs:
+        job_text = (job.get("title", "") + " " + job.get("description", "")).lower()
+        matched = {s for s in skill_set if s in job_text}
+        score = min(round((len(matched) / max(len(skill_set), 1)) * 100), 100)
+        scored.append({**job, "match_score": score, "matched_skills": sorted(matched),
+                       "missing_skills": sorted(skill_set - matched)})
+    scored.sort(key=lambda x: -x["match_score"])
+    return Response({"results": scored, "query": query})

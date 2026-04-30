@@ -45,6 +45,8 @@ export default function Navbar() {
             <Link to="/resumes">Resumes</Link>
             <Link to="/search">Search Jobs</Link>
             <Link to="/saved">Saved Jobs</Link>
+            <Link to="/resume-analyzer">Resume Analyzer</Link>
+            <Link to="/my-profile">My Profile</Link>
 
             {/* User avatar dropdown */}
             <div className="nav-user-wrap" ref={dropRef}>

@@ -3,12 +3,14 @@ import { useAuth } from "../context/AuthContext";
 import "./Home.css";
 
 const FEATURES = [
-  { icon: "📄", title: "Upload Resume",      desc: "PDF, DOCX, or TXT — skills auto-extracted instantly",   link: "/resumes", accent: false },
-  { icon: "🔍", title: "Search Jobs",         desc: "Real jobs from Adzuna API ranked by relevance",         link: "/search",  accent: true  },
-  { icon: "🎯", title: "Skill Matching",      desc: "Every job scored 0–100% against your resume skills",    link: "/search",  accent: false },
-  { icon: "🧑💼", title: "Candidate Profile", desc: "Auto-generated profile card from your resume data",     link: "/resumes", accent: true  },
-  { icon: "🚫", title: "Ghost Job Detection", desc: "AI flags fake, suspicious & scam job postings",         link: "/search",  accent: false },
-  { icon: "🔖", title: "Save Jobs",           desc: "Bookmark verified jobs and apply when you're ready",    link: "/saved",   accent: true  },
+  { icon: "📄", title: "Upload Resume",      desc: "PDF, DOCX, or TXT — skills auto-extracted instantly",   link: "/resumes",         accent: false },
+  { icon: "🔍", title: "Search Jobs",         desc: "Real jobs from Adzuna API ranked by relevance",         link: "/search",          accent: true  },
+  { icon: "🎯", title: "Skill Matching",      desc: "Every job scored 0–100% against your resume skills",    link: "/search",          accent: false },
+  { icon: "📊", title: "Resume Analyzer",     desc: "Get a score and improvement tips for your resume",      link: "/resume-analyzer", accent: true  },
+  { icon: "🏗️", title: "Resume Builder",      desc: "Build a professional resume using ready templates",     link: "/resume-builder",  accent: false },
+  { icon: "🚫", title: "Ghost Job Detection", desc: "AI flags fake, suspicious & scam job postings",         link: "/search",          accent: true  },
+  { icon: "🧑💼", title: "Candidate Profile", desc: "Auto-generated profile card from your resume data",     link: "/resumes",         accent: false },
+  { icon: "🔖", title: "Save Jobs",           desc: "Bookmark verified jobs and apply when you're ready",    link: "/saved",           accent: true  },
 ];
 
 const TIPS = [

@@ -12,7 +12,7 @@ ADZUNA_COUNTRIES = {
 
 def fetch_jobs(query, location="", country="in"):
     """Try Adzuna first, then JSearch, then mock data."""
-    if settings.ADZUNA_APP_ID and settings.ADZUNA_APP_KEY not in ("", "your_adzuna_app_key_here"):
+    if settings.ADZUNA_APP_ID not in ("", "your_adzuna_app_id_here") and settings.ADZUNA_APP_KEY not in ("", "your_adzuna_app_key_here"):
         results = _fetch_adzuna(query, location, country)
         logger.info(f"Adzuna returned {len(results)} results for '{query}'")
         if results:

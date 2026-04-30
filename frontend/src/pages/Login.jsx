@@ -16,7 +16,7 @@ export default function Login() {
     setLoading(true);
     try {
       await login(form.email, form.password);
-      navigate("/resumes");
+      navigate("/");
     } catch {
       setError("Invalid email or password.");
     } finally {

@@ -20,7 +20,7 @@
 
 .navbar-links {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.25rem;
   align-items: center;
 }
 
@@ -33,6 +33,34 @@
 
 .navbar-links a:hover { color: #fff; }
 
+.nav-user {
+  color: #aab0ff;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.75rem;
+  background: rgba(124,131,253,0.15);
+  border-radius: 20px;
+}
+
+.btn-nav {
+  padding: 0.35rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #ccc;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-nav:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.btn-nav-primary {
+  background: #7c83fd;
+  border-color: #7c83fd;
+  color: #fff !important;
+}
+
+.btn-nav-primary:hover { background: #5c63e0; }
+
 .btn-link {
   background: none;
   border: none;
@@ -43,3 +71,115 @@
 }
 
 .btn-link:hover { color: #fff; }
+
+/* User avatar dropdown */
+.nav-user-wrap { position: relative; }
+
+.nav-avatar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(124,131,253,0.2);
+  border: 1px solid rgba(124,131,253,0.4);
+  color: #fff;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  transition: background 0.2s;
+}
+
+.nav-avatar:hover { background: rgba(124,131,253,0.35); }
+
+.nav-username { font-weight: 600; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-caret { font-size: 0.65rem; color: #aab0ff; }
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 280px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  z-index: 999;
+  overflow: hidden;
+}
+
+.drop-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #f8f8ff;
+}
+
+.drop-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #1a1a2e;
+  color: #f59e0b;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.drop-name { margin: 0; font-weight: 700; font-size: 0.95rem; color: #1a1a2e; }
+.drop-email { margin: 0; font-size: 0.78rem; color: #888; }
+
+.drop-divider { height: 1px; background: #f0f0f0; margin: 0; }
+
+.drop-resume-info {
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.drop-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #aaa; font-weight: 600; }
+.drop-filename { font-size: 0.82rem; color: #555; }
+.drop-rname { font-size: 0.82rem; color: #666; }
+
+.drop-skills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.25rem; }
+
+.drop-skill-tag {
+  background: #eef0ff;
+  color: #5c63e0;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+}
+
+.drop-skill-more { font-size: 0.72rem; color: #aaa; padding: 0.15rem 0.3rem; }
+
+.drop-links { padding: 0.5rem 0; }
+
+.drop-link {
+  display: block;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.88rem;
+  color: #333 !important;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.drop-link:hover { background: #f5f5ff; color: #5c63e0 !important; }
+
+.drop-logout {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 1.25rem;
+  background: none;
+  border: none;
+  font-size: 0.88rem;
+  color: #c00;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.drop-logout:hover { background: #fff0f0; }

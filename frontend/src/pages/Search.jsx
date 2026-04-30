@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import api from "../lib/api";
+import LocationInput from "../components/LocationInput";
 import "./Search.css";
 
 export default function Search() {
@@ -88,14 +89,11 @@ export default function Search() {
               required
             />
           </div>
-          <div className="search-input-wrap">
-            <span className="search-icon">📍</span>
-            <input
-              placeholder="Location (e.g. Chennai)"
-              value={form.location}
-              onChange={(e) => setForm({ ...form, location: e.target.value })}
-            />
-          </div>
+          <LocationInput
+            value={form.location}
+            onChange={(val) => setForm({ ...form, location: val })}
+            country={form.country}
+          />
           <select value={form.resume_id} onChange={handleResumeChange}>
             <option value="">Select resume</option>
             {resumes.map((r) => <option key={r.id} value={r.id}>📄 {r.filename}</option>)}

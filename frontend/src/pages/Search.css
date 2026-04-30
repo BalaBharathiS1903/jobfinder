@@ -352,6 +352,58 @@
 .portal-empty h2 { color: #555; margin-bottom: 0.5rem; }
 .portal-empty p { font-size: 0.95rem; max-width: 400px; margin: 0 auto; }
 
+/* Location autocomplete */
+.location-wrap {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0 0.75rem;
+  background: #fafafa;
+  position: relative;
+}
+
+.location-wrap:focus-within {
+  border-color: #7c83fd;
+  background: #fff;
+}
+
+.location-wrap input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  padding: 0.65rem 0;
+  width: 100%;
+}
+
+.city-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem 0;
+  z-index: 999;
+}
+
+.city-dropdown li {
+  padding: 0.55rem 1rem;
+  font-size: 0.9rem;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.city-dropdown li:hover { background: #f0f0ff; color: #5c63e0; }
+
 /* Auto match row */
 .auto-row {
   display: flex;

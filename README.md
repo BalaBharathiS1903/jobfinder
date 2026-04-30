@@ -1,4 +1,4 @@
-# ResumeMatch — Django + React Job Matcher
+# VDart Academy — Django + React Job Matcher
 
 A full-stack web app that parses your resume, extracts skills, and finds matching jobs via Adzuna API ranked by relevance.
 

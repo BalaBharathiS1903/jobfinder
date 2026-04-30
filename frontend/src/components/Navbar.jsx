@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
+import Logo from "./Logo";
 import "./Navbar.css";
 
 export default function Navbar() {
@@ -34,7 +35,10 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-brand">ResumeMatch</Link>
+      <Link to="/" className="navbar-brand">
+        <Logo size={32} />
+        <span>VDart Academy</span>
+      </Link>
       <div className="navbar-links">
         {user ? (
           <>

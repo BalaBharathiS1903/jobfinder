@@ -1,0 +1,20 @@
+/* ===== VDart Academy — Professional Light Theme =====
+   Primary:   #2563EB  (professional blue)
+   Accent:    #4F46E5  (indigo)
+   Light:     #F8FAFC  (clean white-grey bg)
+   Dark:      #0F172A  (rich dark text)
+   Surface:   #FFFFFF  (card white)
+   Muted:     #64748B  (secondary text)
+   Border:    #E2E8F0  (subtle borders)
+====================================================== */
+:root {
+  --primary:  #2563EB;
+  --accent:   #4F46E5;
+  --light:    #F8FAFC;
+  --dark:     #0F172A;
+  --surface:  #FFFFFF;
+  --muted:    #64748B;
+  --border:   #E2E8F0;
+  --primary-light: #EFF6FF;
+  --accent-light:  #EEF2FF;
+}

@@ -2,23 +2,31 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 56px);
-  background: #f5f6fa;
+  min-height: calc(100vh - 62px);
+  background: var(--light);
 }
 
 .auth-card {
-  background: #fff;
+  background: var(--surface);
   padding: 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
 }
 
 .auth-card h2 {
-  margin: 0 0 1.5rem;
+  margin: 0 0 0.4rem;
   font-size: 1.5rem;
-  color: #1a1a2e;
+  font-weight: 800;
+  color: var(--dark);
+}
+
+.auth-card .auth-sub {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 1.75rem;
 }
 
 .auth-card form {
@@ -29,37 +37,42 @@
 
 .auth-card input {
   padding: 0.75rem 1rem;
-  border: 1px solid #ddd;
+  border: 1.5px solid var(--border);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.2s;
+  color: var(--dark);
+  background: var(--light);
+  transition: border-color 0.2s, background 0.2s;
 }
 
-.auth-card input:focus { border-color: #7c83fd; }
+.auth-card input:focus { border-color: var(--primary); background: #fff; }
 
 .auth-card button[type="submit"] {
-  padding: 0.75rem;
-  background: #7c83fd;
+  padding: 0.8rem;
+  background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
 }
 
-.auth-card button[type="submit"]:hover { background: #5c63e0; }
+.auth-card button[type="submit"]:hover { background: #1D4ED8; }
 .auth-card button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.auth-card p { margin-top: 1rem; font-size: 0.9rem; color: #666; }
-.auth-card a { color: #7c83fd; text-decoration: none; }
+.auth-card p { margin-top: 1.25rem; font-size: 0.88rem; color: var(--muted); }
+.auth-card a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.auth-card a:hover { text-decoration: underline; }
 
 .error {
-  background: #fee;
-  color: #c00;
-  padding: 0.6rem 1rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  background: #FEF2F2;
+  color: #DC2626;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  border: 1px solid #FECACA;
   margin-bottom: 0.5rem;
 }

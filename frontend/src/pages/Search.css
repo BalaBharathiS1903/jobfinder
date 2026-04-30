@@ -181,6 +181,7 @@
 .company-name { color: var(--dark); font-weight: 500; }
 .dot { color: var(--border); }
 .job-location { color: var(--muted); }
+.job-posted { color: var(--primary); font-size: 0.8rem; font-weight: 600; }
 
 .job-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; flex-shrink: 0; }
 

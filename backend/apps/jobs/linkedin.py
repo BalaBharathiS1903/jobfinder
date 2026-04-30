@@ -37,6 +37,8 @@ def _fetch_adzuna(query, location, country="in"):
             "app_key": settings.ADZUNA_APP_KEY,
             "results_per_page": 20,
             "what": query,
+            "sort_by": "date",
+            "max_days_old": 30,
         }
         if location:
             params["where"] = location
@@ -56,6 +58,7 @@ def _fetch_adzuna(query, location, country="in"):
                 "url": j.get("redirect_url", ""),
                 "description": j.get("description", ""),
                 "source": "adzuna",
+                "posted_at": j.get("created", ""),
             }
             for i, j in enumerate(data)
         ]
@@ -81,7 +84,7 @@ def _fetch_jsearch(query, location, country="in"):
                 "X-RapidAPI-Key": settings.JSEARCH_API_KEY,
                 "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
             },
-            params={"query": query_str, "page": "1", "num_pages": "1"},
+            params={"query": query_str, "page": "1", "num_pages": "1", "date_posted": "month"},
             timeout=10,
         )
         resp.raise_for_status()
@@ -95,6 +98,7 @@ def _fetch_jsearch(query, location, country="in"):
                 "url": j.get("job_apply_link", ""),
                 "description": (j.get("job_description", "") or "")[:500],
                 "source": "jsearch",
+                "posted_at": j.get("job_posted_at_datetime_utc", ""),
             }
             for i, j in enumerate(data)
         ]

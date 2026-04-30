@@ -4,6 +4,15 @@ import api from "../lib/api";
 import LocationInput from "../components/LocationInput";
 import "./Search.css";
 
+function timeAgo(dateStr) {
+  if (!dateStr) return "";
+  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+  return `${Math.floor(diff / 604800)}w ago`;
+}
+
 export default function Search() {
   const [form, setForm] = useState({ query: "", location: "", resume_id: "", country: "in" });
   const [results, setResults] = useState(null);
@@ -12,6 +21,7 @@ export default function Search() {
   const [resumeSkills, setResumeSkills] = useState([]);
   const [minScore, setMinScore] = useState(0);
   const [trustFilter, setTrustFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
 
   const { data: resumes = [] } = useQuery({
     queryKey: ["resumes"],
@@ -69,6 +79,14 @@ export default function Search() {
     ? (source === "all" ? results : results.filter((j) => j.source === source))
         .filter((j) => (j.match_score ?? 0) >= minScore)
         .filter((j) => trustFilter === "all" || j.trust_label === trustFilter)
+        .filter((j) => {
+          if (dateFilter === "all" || !j.posted_at) return true;
+          const days = (Date.now() - new Date(j.posted_at)) / 86400000;
+          if (dateFilter === "today")  return days <= 1;
+          if (dateFilter === "week")   return days <= 7;
+          if (dateFilter === "month")  return days <= 30;
+          return true;
+        })
     : null;
 
   const sources = results ? [...new Set(results.map((j) => j.source).filter(Boolean))] : [];
@@ -147,6 +165,15 @@ export default function Search() {
         <div className="portal-body">
           <aside className="portal-sidebar">
             <div className="sidebar-section">
+              <h3>Date Posted</h3>
+              {[["all","Any time"],["today","Today"],["week","This week"],["month","This month"]].map(([val, label]) => (
+                <button key={val} className={`filter-btn ${dateFilter === val ? "active" : ""}`}
+                  onClick={() => setDateFilter(val)}>{label}
+                </button>
+              ))}
+            </div>
+
+            <div className="sidebar-section">
               <h3>Trust Filter</h3>
               {["all", "Verified", "Suspicious", "Fake"].map((t) => (
                 <button key={t} className={`filter-btn ${trustFilter === t ? "active" : ""}`}
@@ -205,6 +232,7 @@ export default function Search() {
                       <p className="job-company">
                         <span className="company-name">{job.company}</span>
                         {job.location && <><span className="dot">·</span><span className="job-location">📍 {job.location}</span></>}
+                        {job.posted_at && <><span className="dot">·</span><span className="job-posted">🕐 {timeAgo(job.posted_at)}</span></>}
                       </p>
                     </div>
                     <div className="job-card-right">

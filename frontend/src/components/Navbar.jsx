@@ -36,8 +36,7 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-brand">
-        <Logo size={32} />
-        <span>VDart Academy</span>
+        <Logo size={36} />
       </Link>
       <div className="navbar-links">
         {user ? (

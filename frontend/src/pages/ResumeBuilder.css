@@ -97,19 +97,157 @@
 .rb-field textarea { resize: vertical; }
 
 .rb-item { background: var(--light); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem; margin-bottom: 0.75rem; border-left: 3px solid var(--primary); }
-.rb-item-top { display: flex; justify-content: flex-end; margin-bottom: 0.75rem; }
+.rb-item-saved { background: #F0FDF4; border-left-color: #059669; border-color: #A7F3D0; }
+.rb-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.rb-item-label { font-size: 0.88rem; font-weight: 700; color: var(--dark); flex: 1; }
+.rb-item-actions { display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0; }
+.rb-saved-tick { color: #059669; font-weight: 900; margin-right: 0.25rem; }
+
+.rb-btn-save-entry {
+  padding: 0.35rem 0.9rem; background: #059669; color: #fff;
+  border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; transition: background 0.2s;
+}
+.rb-btn-save-entry:hover { background: #047857; }
+.rb-btn-save-bottom {
+  display: block; width: 100%; margin-top: 0.75rem;
+  padding: 0.65rem; font-size: 0.88rem; text-align: center;
+}
+.rb-btn-edit {
+  padding: 0.35rem 0.75rem; background: var(--primary-light); color: var(--primary);
+  border: 1px solid #BFDBFE; border-radius: 6px; font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; transition: background 0.15s;
+}
+.rb-btn-edit:hover { background: #DBEAFE; }
+
+/* Empty state */
+.rb-empty-state {
+  text-align: center; padding: 2.5rem 1.5rem;
+  background: var(--light); border: 2px dashed #BFDBFE;
+  border-radius: 12px; margin-bottom: 0.5rem;
+}
+.rb-empty-icon  { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+.rb-empty-title { font-size: 1rem; font-weight: 700; color: var(--dark); margin: 0 0 0.35rem; }
+.rb-empty-sub   { font-size: 0.85rem; color: var(--muted); margin: 0 0 1.25rem; line-height: 1.6; max-width: 360px; margin-left: auto; margin-right: auto; }
+.rb-empty-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.65rem 1.75rem; background: var(--primary); color: #fff;
+  border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; transition: background 0.2s, transform 0.15s;
+}
+.rb-empty-btn:hover { background: #1D4ED8; transform: translateY(-1px); }
 
 .rb-btn-remove { background: none; color: #DC2626; border: 1px solid #FECACA; padding: 0.25rem 0.65rem; border-radius: 5px; font-size: 0.78rem; cursor: pointer; font-weight: 600; }
 .rb-btn-remove:hover { background: #FEF2F2; }
 
-/* Skills chips */
-.rb-skills-input { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
-.rb-skill-chip { display: flex; align-items: center; gap: 0.3rem; background: var(--primary-light); border: 1px solid #BFDBFE; border-radius: 20px; padding: 0.2rem 0.3rem 0.2rem 0.75rem; }
-.rb-skill-chip input { border: none; background: transparent; outline: none; font-size: 0.82rem; color: var(--primary); width: 80px; }
-.rb-skill-chip button { width: 18px; height: 18px; border-radius: 50%; background: var(--primary); color: #fff; border: none; cursor: pointer; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
+/* Skill selector dropdown */
+.rb-skill-selector { display: flex; flex-direction: column; gap: 0.75rem; }
+.rb-skill-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.rb-skill-tag {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  background: var(--primary-light); color: var(--primary);
+  border: 1px solid #BFDBFE; border-radius: 20px;
+  padding: 0.28rem 0.5rem 0.28rem 0.85rem;
+  font-size: 0.82rem; font-weight: 600;
+}
+.rb-skill-tag button {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--primary); color: #fff; border: none;
+  cursor: pointer; font-size: 0.72rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; padding: 0;
+}
+.rb-skill-tag button:hover { background: #1D4ED8; }
+.rb-skill-input-wrap {
+  position: relative; display: flex; align-items: center;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  background: var(--light); transition: border-color 0.2s;
+}
+.rb-skill-input-wrap:focus-within { border-color: var(--primary); background: #fff; }
+.rb-skill-input {
+  flex: 1; border: none; outline: none; background: transparent;
+  padding: 0.65rem 0.9rem; font-size: 0.88rem; color: var(--dark); font-family: inherit;
+}
+.rb-skill-arrow { padding-right: 0.75rem; font-size: 0.6rem; color: var(--muted); pointer-events: none; }
+.rb-skill-dropdown {
+  border: 1.5px solid var(--primary); border-radius: 8px;
+  background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  overflow: hidden; max-height: 220px; overflow-y: auto;
+}
+.rb-skill-option {
+  display: block; width: 100%; text-align: left;
+  padding: 0.55rem 1rem; background: none; border: none; border-bottom: 1px solid var(--border);
+  font-size: 0.88rem; color: var(--dark); cursor: pointer; font-family: inherit; transition: background 0.12s;
+}
+.rb-skill-option:last-child { border-bottom: none; }
+.rb-skill-option:hover { background: var(--primary-light); color: var(--primary); }
+.rb-skill-custom { color: var(--primary); font-weight: 700; }
+.rb-skill-empty { font-size: 0.82rem; color: var(--muted); padding: 0.75rem 1rem; margin: 0; }
 
-.rb-btn-add { width: 100%; padding: 0.55rem; background: var(--primary-light); color: var(--primary); border: 1.5px dashed #BFDBFE; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-.rb-btn-add:hover { background: #DBEAFE; border-color: var(--primary); }
+.rb-btn-add {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 2px dashed #93C5FD;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  letter-spacing: 0.01em;
+}
+.rb-btn-add:hover {
+  background: #DBEAFE;
+  border-color: var(--primary);
+  border-style: solid;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37,99,235,0.15);
+}
+.rb-btn-add-icon { font-size: 1rem; }
+
+/* Profile photo upload */
+.rb-photo-row { display: flex; gap: 1.5rem; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; }
+.rb-photo-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.rb-photo-img {
+  width: 90px; height: 90px; border-radius: 50%;
+  object-fit: cover; border: 3px solid var(--primary);
+}
+.rb-photo-placeholder {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: var(--primary-light); border: 2px dashed #BFDBFE;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; color: var(--primary); font-weight: 800;
+}
+.rb-photo-btn {
+  padding: 0.35rem 0.9rem; background: var(--primary); color: #fff;
+  border-radius: 6px; font-size: 0.78rem; font-weight: 700;
+  cursor: pointer; transition: background 0.2s; white-space: nowrap;
+}
+.rb-photo-btn:hover { background: #1D4ED8; }
+.rb-photo-remove {
+  background: none; border: none; color: #DC2626;
+  font-size: 0.75rem; cursor: pointer; font-weight: 600;
+}
+.rb-photo-remove:hover { text-decoration: underline; }
+
+/* Keyword banner */
+.rb-kw-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  background: #FFF7ED; border: 1px solid #FED7AA;
+  border-radius: 8px; padding: 0.65rem 1rem;
+  font-size: 0.85rem; color: #92400E; margin-bottom: 1rem;
+}
+.rb-kw-banner strong { color: #C2410C; }
+.rb-kw-dismiss {
+  background: none; border: none; cursor: pointer;
+  font-size: 1rem; color: #92400E; flex-shrink: 0; padding: 0;
+}
+.rb-kw-dismiss:hover { color: #C2410C; }
 
 .rb-btn-primary { padding: 0.7rem 1.75rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
 .rb-btn-primary:hover { background: #1D4ED8; }
@@ -141,6 +279,11 @@
   line-height: 1.4;
 }
 .rp-header { text-align: center; margin-bottom: 0.75rem; border-bottom: 1.5px solid #000; padding-bottom: 0.5rem; }
+.rp-photo {
+  width: 80px; height: 80px; border-radius: 50%;
+  object-fit: cover; border: 2px solid #000;
+  display: block; margin: 0 auto 0.5rem;
+}
 .rp-header h1 { margin: 0 0 0.2rem; font-size: 16pt; font-weight: bold; color: #000; text-transform: uppercase; letter-spacing: 0.05em; }
 .rp-headline { margin: 0 0 0.3rem; font-size: 10pt; color: #000; }
 .rp-contact { font-size: 9.5pt; color: #000; margin: 0; }
@@ -168,3 +311,52 @@
   body { background: white; }
   * { color: #000 !important; background: transparent !important; }
 }
+
+.rb-item-saved { background: #F0FDF4; border-left-color: #059669 !important; border-color: #A7F3D0; }
+.rb-item-label { font-size: 0.88rem; font-weight: 600; color: var(--dark); flex: 1; }
+.rb-item-actions { display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0; }
+.rb-saved-tick { color: #059669; font-weight: 900; margin-right: 0.3rem; }
+
+.rb-btn-save-entry {
+  padding: 0.38rem 0.9rem; background: #059669; color: #fff;
+  border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+}
+.rb-btn-save-entry:hover { background: #047857; }
+.rb-btn-save-bottom { display: block; width: 100%; margin-top: 0.75rem; padding: 0.65rem; font-size: 0.88rem; }
+
+.rb-btn-edit {
+  padding: 0.38rem 0.75rem; background: var(--primary-light); color: var(--primary);
+  border: 1px solid #BFDBFE; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+}
+.rb-btn-edit:hover { background: #DBEAFE; }
+
+/* Add Custom Section button */
+.rb-btn-add-section {
+  width: 100%; padding: 0.85rem 1rem; margin-bottom: 1.25rem;
+  background: #F5F3FF; color: #7C3AED;
+  border: 2px dashed #C4B5FD; border-radius: 10px;
+  font-size: 0.92rem; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  transition: all 0.2s;
+}
+.rb-btn-add-section:hover { background: #EDE9FE; border-color: #7C3AED; border-style: solid; }
+
+/* Custom section card inputs */
+.rb-custom-header {
+  display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;
+}
+.rb-custom-title-input {
+  flex: 1; padding: 0.6rem 0.85rem;
+  border: 1.5px solid var(--border); border-radius: 7px;
+  font-size: 0.95rem; font-weight: 700; color: var(--dark);
+  background: var(--light); outline: none; font-family: inherit;
+}
+.rb-custom-title-input:focus { border-color: #7C3AED; background: #fff; }
+.rb-custom-body {
+  width: 100%; padding: 0.65rem 0.85rem;
+  border: 1.5px solid var(--border); border-radius: 7px;
+  font-size: 0.88rem; color: var(--dark);
+  background: var(--light); outline: none; resize: vertical;
+  font-family: inherit; line-height: 1.6;
+}
+.rb-custom-body:focus { border-color: #7C3AED; background: #fff; }

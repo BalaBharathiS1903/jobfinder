@@ -106,7 +106,43 @@
   border: 1px dashed var(--border);
 }
 
-.loading { color: var(--muted); text-align: center; padding: 2rem; }
+.page-sub { font-size: 0.82rem; color: var(--muted); margin: 0.15rem 0 0; }
+
+.btn-disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+
+.limit-banner {
+  background: #FFFBEB; border: 1px solid #FCD34D; border-radius: 8px;
+  padding: 0.75rem 1rem; font-size: 0.85rem; color: #92400E;
+  margin-bottom: 1rem;
+}
+
+.resume-card-title { display: flex; align-items: center; gap: 0.5rem; }
+.resume-version-badge {
+  font-size: 0.68rem; font-weight: 700; background: var(--primary); color: #fff;
+  padding: 0.1rem 0.45rem; border-radius: 20px;
+}
+.resume-details {
+  display: flex; flex-wrap: wrap; gap: 0.75rem;
+  font-size: 0.82rem; color: var(--muted); margin-bottom: 0.6rem;
+}
+.tag-more { background: var(--border); color: var(--muted); }
+.tag-sm { font-size: 0.72rem; padding: 0.12rem 0.5rem; }
+
+.version-section { margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.6rem; }
+.version-toggle {
+  background: none; border: none; font-size: 0.8rem; color: var(--primary);
+  cursor: pointer; font-weight: 600; padding: 0;
+}
+.version-list { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.version-item {
+  background: var(--light); border: 1px solid var(--border);
+  border-radius: 7px; padding: 0.6rem 0.85rem;
+}
+.version-item-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.3rem; }
+.version-num { font-size: 0.72rem; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 0.1rem 0.45rem; border-radius: 20px; }
+.version-file { font-size: 0.8rem; color: var(--dark); font-weight: 600; flex: 1; }
+.version-date { font-size: 0.75rem; color: var(--muted); }
+.version-skills { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 
 .error {
   background: #FEF2F2;

@@ -263,11 +263,12 @@ const getResourceLinks = (courseId, lessonTitle) => {
 
   return links;
 };
+
+const TYPE_META = {
   reading: { label: "Reading", color: "#2563EB", bg: "#EFF6FF", icon: "📖" },
   coding:  { label: "Coding",  color: "#059669", bg: "#ECFDF5", icon: "💻" },
   setup:   { label: "Setup",   color: "#D97706", bg: "#FFFBEB", icon: "⚙️" },
 };
-
 export default function LearningPath() {
   const { courseId } = useParams();
   const { user } = useAuth();

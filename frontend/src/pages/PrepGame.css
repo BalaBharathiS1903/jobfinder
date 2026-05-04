@@ -138,3 +138,63 @@
 .pg-review-num  { font-weight: 800; flex-shrink: 0; min-width: 28px; }
 .pg-review-q    { flex: 1; }
 .pg-review-ans  { font-weight: 700; flex-shrink: 0; }
+
+/* Pause card */
+.pg-paused-card {
+  background: var(--surface); border: 2px solid #7C3AED;
+  border-radius: 16px; padding: 3rem 2rem; text-align: center;
+  max-width: 420px; margin: 4rem auto;
+}
+.pg-paused-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+.pg-paused-card h2 { font-size: 1.5rem; font-weight: 800; color: var(--dark); margin: 0 0 0.5rem; }
+.pg-paused-card p  { font-size: 0.9rem; color: var(--muted); margin: 0 0 1.5rem; }
+
+/* Pause button in header */
+.pg-btn-pause {
+  padding: 0.35rem 0.85rem; background: var(--light); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 6px;
+  font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+  transition: all 0.15s;
+}
+.pg-btn-pause:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Quit / secondary button */
+.pg-btn-quit {
+  display: block; width: 100%; padding: 0.65rem;
+  background: var(--light); color: var(--muted);
+  border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 0.88rem; font-weight: 600; cursor: pointer;
+  transition: all 0.15s; margin-top: 0.5rem;
+}
+.pg-btn-quit:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Mock interview feedback */
+.pg-interview-feedback { margin-top: 1.25rem; }
+.pg-feedback-badge {
+  display: inline-block; font-size: 0.88rem; font-weight: 800;
+  padding: 0.3rem 1rem; border-radius: 20px; margin-bottom: 0.75rem;
+}
+.pg-feedback-badge.correct { background: #D1FAE5; color: #065F46; }
+.pg-feedback-badge.wrong   { background: #FEE2E2; color: #991B1B; }
+
+.pg-btn-next {
+  display: block; width: 100%; margin-top: 1rem;
+  padding: 0.7rem; background: #2563EB; color: #fff;
+  border: none; border-radius: 8px; font-size: 0.92rem;
+  font-weight: 700; cursor: pointer; transition: background 0.2s;
+}
+.pg-btn-next:hover { background: #1D4ED8; }
+
+/* Interview result review */
+.pg-interview-review { text-align: left; margin-bottom: 1.5rem; }
+.pg-review-item { flex-direction: column; align-items: flex-start; gap: 0.4rem; padding: 0.75rem; }
+.pg-review-q-full { display: flex; gap: 0.5rem; align-items: flex-start; width: 100%; }
+.pg-review-detail { display: flex; flex-direction: column; gap: 0.3rem; padding-left: 1.75rem; width: 100%; }
+.pg-review-opt { font-size: 0.82rem; font-weight: 600; }
+.opt-correct { color: #065F46; }
+.opt-wrong   { color: #991B1B; }
+.pg-review-explanation {
+  font-size: 0.8rem; color: var(--muted); line-height: 1.5;
+  background: #fff; border-left: 3px solid #93C5FD;
+  padding: 0.5rem 0.75rem; border-radius: 0 6px 6px 0; margin-top: 0.25rem;
+}

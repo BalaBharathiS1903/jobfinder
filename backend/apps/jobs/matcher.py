@@ -19,7 +19,7 @@ def score_job(job, resume):
 
     total = min(round(skill_score + keyword_score + title_score), 100)
 
-    missing_skills = list(resume_skills - job_skills)
+    missing_skills = sorted(list(resume_skills - job_skills))[:5]
 
     return {
         **job,

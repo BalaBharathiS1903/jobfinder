@@ -227,6 +227,14 @@
 .btn-save:hover { background: #DBEAFE; }
 .btn-save.saved { background: #ECFDF5; color: #059669; border-color: #6EE7B7; cursor: default; }
 
+.btn-build-kw {
+  padding: 0.28rem 0.85rem; background: #FFF7ED; color: #C2410C;
+  border: 1.5px solid #FED7AA; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 700; cursor: pointer;
+  transition: all 0.15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem;
+}
+.btn-build-kw:hover { background: #C2410C; color: #fff; border-color: #C2410C; }
+
 /* Empty */
 .portal-empty { text-align: center; padding: 5rem 2rem; color: var(--muted); }
 .empty-icon { font-size: 3rem; margin-bottom: 1rem; }

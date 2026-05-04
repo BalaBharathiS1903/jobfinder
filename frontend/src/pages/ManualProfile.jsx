@@ -38,7 +38,7 @@ export default function ManualProfile() {
 
   const [form, setForm] = useState({
     full_name:"", headline:"", email:"", phone:"", location:"",
-    website:"", linkedin:"", github:"", summary:"",
+    website:"", linkedin:"", github:"", summary:"", photo:"",
     skills:[], experience:[], education:[], certifications:[],
     projects:[], languages:[], achievements:[],
   });
@@ -75,7 +75,25 @@ export default function ManualProfile() {
       </div>
 
       <div className="mp-card mp-profile-card">
-        <div className="mp-avatar">{form.full_name ? form.full_name.slice(0,2).toUpperCase() : "—"}</div>
+        <div className="mp-photo-wrap">
+          {form.photo
+            ? <img src={form.photo} alt="Profile" className="mp-photo-img" />
+            : <div className="mp-avatar">{form.full_name ? form.full_name.slice(0,2).toUpperCase() : "—"}</div>
+          }
+          <label className="mp-photo-btn">
+            {form.photo ? "📷 Change" : "📷 Add Photo"}
+            <input type="file" accept="image/*" hidden onChange={e => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = ev => set("photo", ev.target.result);
+              reader.readAsDataURL(file);
+            }} />
+          </label>
+          {form.photo && (
+            <button className="mp-photo-remove" onClick={() => set("photo", "")}>Remove</button>
+          )}
+        </div>
         <div className="mp-profile-info">
           <h2>{form.full_name || "Your Name"}</h2>
           <p className="mp-profile-headline">{form.headline || "Professional Headline"}</p>

@@ -28,11 +28,30 @@
 }
 
 .mp-avatar {
-  width: 64px; height: 64px; border-radius: 50%;
+  width: 72px; height: 72px; border-radius: 50%;
   background: var(--primary); color: #fff;
   font-size: 1.3rem; font-weight: 800;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
+
+/* Profile photo */
+.mp-photo-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+.mp-photo-img {
+  width: 72px; height: 72px; border-radius: 50%;
+  object-fit: cover; border: 3px solid var(--primary);
+}
+.mp-photo-btn {
+  font-size: 0.72rem; font-weight: 700; color: var(--primary);
+  background: var(--primary-light); border: 1px solid #BFDBFE;
+  border-radius: 20px; padding: 0.2rem 0.65rem;
+  cursor: pointer; white-space: nowrap; transition: background 0.15s;
+}
+.mp-photo-btn:hover { background: #DBEAFE; }
+.mp-photo-remove {
+  background: none; border: none; color: #DC2626;
+  font-size: 0.7rem; cursor: pointer; font-weight: 600; padding: 0;
+}
+.mp-photo-remove:hover { text-decoration: underline; }
 
 .mp-profile-info { flex: 1; min-width: 180px; }
 .mp-profile-info h2 { margin: 0 0 0.2rem; font-size: 1.15rem; font-weight: 800; color: var(--dark); }
@@ -136,12 +155,14 @@
 .mp-lang-row select:focus { border-color: var(--primary); }
 
 .mp-btn-add {
-  width: 100%; padding: 0.6rem; background: var(--primary-light);
-  color: var(--primary); border: 1.5px dashed #BFDBFE;
-  border-radius: 8px; font-size: 0.85rem; font-weight: 700;
-  cursor: pointer; transition: all 0.2s; margin-top: 0.25rem;
+  width: 100%; padding: 0.65rem; margin-top: 0.5rem;
+  background: var(--primary-light); color: var(--primary);
+  border: 1.5px dashed #BFDBFE; border-radius: 8px;
+  font-size: 0.88rem; font-weight: 700; cursor: pointer;
+  transition: all 0.2s; display: flex; align-items: center;
+  justify-content: center; gap: 0.4rem;
 }
-.mp-btn-add:hover { background: #DBEAFE; border-color: var(--primary); }
+.mp-btn-add:hover { background: #DBEAFE; border-color: var(--primary); border-style: solid; }
 
 .mp-footer-save { display: flex; justify-content: flex-end; margin-top: 1.5rem; }
 

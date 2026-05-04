@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import LocationInput from "../components/LocationInput";
 import "./Search.css";
@@ -14,6 +15,7 @@ function timeAgo(dateStr) {
 }
 
 export default function Search() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ query: "", location: "", resume_id: "", country: "in" });
   const [results, setResults] = useState(null);
   const [savedIds, setSavedIds] = useState(new Set());
@@ -271,6 +273,15 @@ export default function Search() {
                     <div className="skills-row">
                       <span className="skills-label">❌ Missing:</span>
                       {job.missing_skills.slice(0, 5).map((s) => <span key={s} className="tag tag-miss">{s}</span>)}
+                      <button
+                        className="btn-build-kw"
+                        title="Go to Resume Builder and add these missing skills"
+                        onClick={() => navigate("/resume-builder", {
+                          state: { missingSkills: job.missing_skills, jobTitle: job.title }
+                        })}
+                      >
+                        🏗️ Build Resume with Keywords
+                      </button>
                     </div>
                   )}
 

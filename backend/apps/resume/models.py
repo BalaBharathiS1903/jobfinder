@@ -6,6 +6,7 @@ class Resume(models.Model):
     file = models.FileField(upload_to="resumes/")
     filename = models.CharField(max_length=255)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    version = models.PositiveIntegerField(default=1)
 
     name = models.CharField(max_length=255, blank=True)
     email = models.EmailField(blank=True)
@@ -24,4 +25,24 @@ class Resume(models.Model):
     years_exp = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"{self.user.email} — {self.filename}"
+        return f"{self.user.email} — {self.filename} (v{self.version})"
+
+
+class ResumeVersion(models.Model):
+    """Snapshot saved before each re-parse or replace."""
+    resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name="versions")
+    version = models.PositiveIntegerField()
+    filename = models.CharField(max_length=255)
+    skills = models.JSONField(default=list)
+    keywords = models.JSONField(default=list)
+    job_titles = models.JSONField(default=list)
+    name = models.CharField(max_length=255, blank=True)
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=50, blank=True)
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-version"]
+
+    def __str__(self):
+        return f"{self.resume.filename} v{self.version}"

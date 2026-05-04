@@ -3,18 +3,12 @@ import { useAuth } from "../context/AuthContext";
 import "./Home.css";
 
 const FEATURES = [
-  { icon: "📄", title: "Resume Upload & Parsing",  desc: "Upload PDF, DOCX or TXT. Skills, education, projects and keywords auto-extracted instantly.",  link: "/resumes",          accent: false },
-  { icon: "🔍", title: "Smart Job Search",          desc: "Real jobs from Adzuna API. Search by role, location and country — updated daily.",              link: "/search",           accent: true  },
-  { icon: "🎯", title: "Skill Match Scoring",       desc: "Every job scored 0–100% against your resume skills so you apply to the right roles first.",     link: "/search",           accent: false },
-  { icon: "📊", title: "Resume Analyzer",           desc: "Get an instant score, section-by-section feedback and actionable improvement tips.",             link: "/resume-analyzer",  accent: true  },
-  { icon: "🏗️", title: "Resume Builder",            desc: "ATS-friendly templates. Fill details or import from your profile and download as PDF.",          link: "/resume-builder",   accent: false },
-  { icon: "🧑💼", title: "Professional Profile",   desc: "Build a rich career profile with skills, experience, certifications and social links.",           link: "/my-profile",       accent: true  },
-  { icon: "🚫", title: "Ghost Job Detection",       desc: "AI trust scoring flags fake, suspicious and scam postings before you waste time applying.",       link: "/search",           accent: false },
-  { icon: "🔖", title: "Save Jobs",                 desc: "Bookmark verified jobs and revisit them anytime from your saved jobs dashboard.",                 link: "/saved",            accent: true  },
-  { icon: "🧠", title: "IQ Level Game",             desc: "25 timed questions — logical reasoning, patterns and math. Discover your IQ band.",              link: "/prep/iq",          accent: false },
-  { icon: "🎤", title: "Mock Interview",            desc: "Role-based interview Q&A with ideal answers revealed. Rate yourself and track weak spots.",       link: "/prep/interview",   accent: true  },
-  { icon: "📝", title: "Skill Test",                desc: "Timed MCQ tests on JavaScript, Python, Django, React and SQL. Graded with pass/fail result.",    link: "/prep/test",        accent: false },
-  { icon: "🤖", title: "Profile Job Matching",      desc: "Matches jobs directly from your profile skills — no resume upload needed.",                      link: "/my-profile",       accent: true  },
+  { icon: "📄", title: "Resume Upload & Parsing", desc: "Upload PDF, DOCX or TXT. Skills, education, projects and keywords auto-extracted instantly.", link: "/resumes",         accent: false },
+  { icon: "🔍", title: "Job Search & Matching",   desc: "Real Adzuna jobs scored 0–100% against your skills with built-in ghost job detection.",      link: "/search",          accent: true  },
+  { icon: "📊", title: "Resume Analyzer",         desc: "Instant score, section-by-section feedback and actionable improvement tips.",                link: "/resume-analyzer", accent: false },
+  { icon: "🏗️", title: "Resume Builder",          desc: "ATS-friendly templates. Import from your profile and download as PDF.",                      link: "/resume-builder",  accent: true  },
+  { icon: "🧑💼", title: "Professional Profile",  desc: "Build your career profile with skills, experience, certifications and social links.",         link: "/my-profile",      accent: false },
+  { icon: "🔖", title: "Saved Jobs",              desc: "Bookmark verified jobs and revisit them anytime from your saved jobs dashboard.",              link: "/saved",           accent: true  },
 ];
 
 const STEPS = [

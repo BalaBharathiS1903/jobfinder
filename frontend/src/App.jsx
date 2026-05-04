@@ -15,6 +15,8 @@ import PrepHub from "./pages/PrepHub";
 import IQGame from "./pages/IQGame";
 import MockInterview from "./pages/MockInterview";
 import TestPage from "./pages/TestPage";
+import LearningPath from "./pages/LearningPath";
+import Certificate from "./pages/Certificate";
 
 export default function App() {
   return (
@@ -35,6 +37,8 @@ export default function App() {
         <Route path="/prep/iq" element={<ProtectedRoute><IQGame /></ProtectedRoute>} />
         <Route path="/prep/interview" element={<ProtectedRoute><MockInterview /></ProtectedRoute>} />
         <Route path="/prep/test" element={<ProtectedRoute><TestPage /></ProtectedRoute>} />
+        <Route path="/prep/course/:courseId" element={<ProtectedRoute><LearningPath /></ProtectedRoute>} />
+        <Route path="/prep/certificate/:courseId" element={<ProtectedRoute><Certificate /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

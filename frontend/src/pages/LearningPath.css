@@ -1,0 +1,163 @@
+.lp-page { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+.lp-back { display: inline-block; font-size: 0.85rem; color: var(--muted); text-decoration: none; font-weight: 600; margin-bottom: 1.5rem; }
+.lp-back:hover { color: var(--primary); }
+.lp-not-found, .lp-loading { text-align: center; padding: 4rem; color: var(--muted); font-size: 0.95rem; }
+
+/* ── Header ── */
+.lp-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1.5rem; flex-wrap: wrap;
+  background: var(--ll); border: 2px solid var(--lc);
+  border-radius: 16px; padding: 2rem; margin-bottom: 1.25rem;
+}
+.lp-header-left { display: flex; gap: 1.25rem; align-items: flex-start; flex: 1; min-width: 0; }
+.lp-icon { font-size: 3rem; flex-shrink: 0; line-height: 1; }
+.lp-header-left h1 { font-size: 1.5rem; font-weight: 800; color: var(--dark); margin: 0 0 0.3rem; }
+.lp-header-left p  { font-size: 0.88rem; color: var(--muted); margin: 0; line-height: 1.5; }
+.lp-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.lp-level {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; background: var(--lc); color: #fff;
+  padding: 0.15rem 0.6rem; border-radius: 20px;
+}
+.lp-dur { font-size: 0.75rem; color: var(--muted); font-weight: 600; background: #fff; padding: 0.15rem 0.55rem; border-radius: 20px; border: 1px solid var(--border); }
+
+/* Progress ring */
+.lp-progress-box { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+.lp-ring-wrap { position: relative; width: 80px; height: 80px; }
+.lp-ring-label {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.lp-ring-label strong { font-size: 1rem; font-weight: 800; line-height: 1; }
+.lp-ring-label span   { font-size: 0.6rem; color: var(--muted); }
+.lp-btn-cert {
+  display: inline-block; padding: 0.5rem 1.1rem; color: #fff;
+  border-radius: 7px; font-size: 0.8rem; font-weight: 700;
+  text-decoration: none; transition: opacity 0.2s; white-space: nowrap;
+}
+.lp-btn-cert:hover { opacity: 0.85; }
+.lp-ring-hint { font-size: 0.72rem; color: var(--muted); font-weight: 600; margin: 0; text-align: center; }
+
+/* Progress bar */
+.lp-prog-bar-wrap {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.lp-prog-bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.lp-prog-bar-fill  { height: 100%; border-radius: 4px; transition: width 0.4s; }
+.lp-prog-bar-wrap span { font-size: 0.78rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+
+/* ── Modules ── */
+.lp-modules { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.lp-module {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.lp-module.open { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+
+.lp-module-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 1.25rem; cursor: pointer;
+  background: var(--light); transition: background 0.15s;
+  user-select: none;
+}
+.lp-module-header:hover { background: #F1F5F9; }
+.lp-module-left { display: flex; flex-direction: column; gap: 0.15rem; }
+.lp-module-num  { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.lp-module-left h3 { font-size: 0.95rem; font-weight: 700; color: var(--dark); margin: 0; }
+
+.lp-module-right { display: flex; align-items: center; gap: 0.75rem; }
+.lp-mod-prog-bar {
+  width: 80px; height: 5px; background: var(--border);
+  border-radius: 3px; overflow: hidden;
+}
+.lp-mod-prog-bar div { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.lp-module-count { font-size: 0.78rem; font-weight: 800; min-width: 28px; text-align: right; }
+.lp-chevron { font-size: 0.65rem; color: var(--muted); }
+
+/* ── Lessons ── */
+.lp-lessons { border-top: 1px solid var(--border); }
+
+.lp-lesson-wrap { border-bottom: 1px solid var(--border); }
+.lp-lesson-wrap:last-child { border-bottom: none; }
+.lp-lesson-wrap.done { background: #F0FDF4; }
+.lp-lesson-wrap.active { background: var(--primary-light); }
+
+.lp-lesson {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.85rem 1.25rem; cursor: pointer;
+  transition: background 0.12s;
+}
+.lp-lesson:hover { background: rgba(0,0,0,0.02); }
+
+.lp-check-btn {
+  width: 22px; height: 22px; border-radius: 50%; border: 2px solid;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; background: transparent; transition: all 0.15s; padding: 0;
+}
+.lp-check-btn span { font-size: 0.65rem; font-weight: 900; color: #fff; }
+
+.lp-lesson-info { flex: 1; min-width: 0; }
+.lp-lesson-title {
+  display: block; font-size: 0.9rem; font-weight: 600; color: var(--dark);
+  margin-bottom: 0.25rem;
+}
+.lp-lesson-wrap.done .lp-lesson-title { text-decoration: line-through; color: var(--muted); }
+.lp-lesson-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.lp-type-badge {
+  font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.5rem;
+  border-radius: 20px; display: inline-flex; align-items: center; gap: 0.2rem;
+}
+.lp-lesson-dur { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+.lp-expand-icon { font-size: 0.6rem; color: var(--muted); flex-shrink: 0; }
+
+/* ── Lesson content panel ── */
+.lp-lesson-content {
+  padding: 1rem 1.25rem 1.25rem 3.5rem;
+  border-top: 1px dashed var(--border);
+  background: #fff;
+}
+.lp-content-note {
+  font-size: 0.88rem; color: var(--muted); line-height: 1.65;
+  margin: 0 0 1rem; padding: 0.75rem 1rem;
+  background: var(--light); border-left: 3px solid var(--primary);
+  border-radius: 0 6px 6px 0;
+}
+.lp-content-note strong { color: var(--dark); }
+.lp-content-note em     { color: var(--primary); font-style: normal; font-weight: 600; }
+
+.lp-content-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; }
+.lp-ref-btn {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.45rem 1rem; border-radius: 7px;
+  font-size: 0.8rem; font-weight: 700; text-decoration: none;
+  transition: opacity 0.15s;
+}
+.lp-ref-btn:hover { opacity: 0.82; }
+
+.lp-mark-btn {
+  padding: 0.55rem 1.25rem; color: #fff; border: none;
+  border-radius: 7px; font-size: 0.85rem; font-weight: 700;
+  cursor: pointer; transition: opacity 0.2s;
+}
+.lp-mark-btn:hover { opacity: 0.85; }
+
+/* ── Complete banner ── */
+.lp-complete-banner {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  border: 2px solid; border-radius: 12px;
+  padding: 1.25rem 1.5rem; margin-top: 1.5rem;
+}
+.lp-complete-banner > span { font-size: 2rem; }
+.lp-complete-banner > div  { flex: 1; }
+.lp-complete-banner strong { font-size: 1rem; font-weight: 800; color: var(--dark); display: block; }
+.lp-complete-banner p      { font-size: 0.85rem; color: var(--muted); margin: 0.15rem 0 0; }
+
+@media (max-width: 600px) {
+  .lp-header { flex-direction: column; }
+  .lp-progress-box { flex-direction: row; align-self: stretch; justify-content: space-between; }
+  .lp-lesson-content { padding-left: 1.25rem; }
+}

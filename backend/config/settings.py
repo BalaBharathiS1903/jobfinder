@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "apps.resume",
     "apps.jobs",
     "apps.profile",
+    "apps.courses",
 ]
 
 MIDDLEWARE = [

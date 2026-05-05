@@ -24,6 +24,7 @@ export default function Search() {
   const [minScore, setMinScore] = useState(0);
   const [trustFilter, setTrustFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
+  const [autoError, setAutoError] = useState("");
 
   const { data: resumes = [] } = useQuery({
     queryKey: ["resumes"],
@@ -71,7 +72,12 @@ export default function Search() {
   };
 
   const handleAutoSearch = () => {
-    if (!form.resume_id) return alert("Please select a resume first.");
+    if (!form.resume_id) {
+      setAutoError("Please select a resume first.");
+      setTimeout(() => setAutoError(""), 3000);
+      return;
+    }
+    setAutoError("");
     autoMutation.mutate({ resume_id: form.resume_id, location: form.location, country: form.country });
   };
 
@@ -141,6 +147,7 @@ export default function Search() {
           </button>
           <span className="auto-hint">Automatically finds jobs matching your resume skills</span>
         </div>
+        {autoError && <p className="search-error" style={{ marginTop: "0.5rem" }}>{autoError}</p>}
 
         {/* Skill chips */}
         {resumeSkills.length > 0 && (

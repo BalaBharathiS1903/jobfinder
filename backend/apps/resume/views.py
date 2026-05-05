@@ -49,6 +49,9 @@ def upload_resume(request):
     if not any(file.name.lower().endswith(ext) for ext in allowed):
         return Response({"error": "Unsupported file type. Use PDF, DOCX or TXT."}, status=400)
 
+    if file.size > 5 * 1024 * 1024:
+        return Response({"error": "File too large. Maximum size is 5 MB."}, status=400)
+
     count = Resume.objects.filter(user=request.user).count()
     if count >= MAX_RESUMES:
         return Response(
@@ -80,6 +83,9 @@ def replace_resume(request, pk):
     allowed = (".pdf", ".docx", ".txt")
     if not any(file.name.lower().endswith(ext) for ext in allowed):
         return Response({"error": "Unsupported file type."}, status=400)
+
+    if file.size > 5 * 1024 * 1024:
+        return Response({"error": "File too large. Maximum size is 5 MB."}, status=400)
 
     # Save snapshot of current state
     _save_version(resume)

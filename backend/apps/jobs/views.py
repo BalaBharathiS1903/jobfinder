@@ -32,7 +32,7 @@ def search_jobs(request):
         except Resume.DoesNotExist:
             pass
 
-    JobSearch.objects.create(user=request.user, query=query, location=location, results=jobs)
+    JobSearch.objects.create(user=request.user, query=query, location=location, results=[])
     return Response({"results": jobs})
 
 

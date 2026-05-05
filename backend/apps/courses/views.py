@@ -7,13 +7,29 @@ import uuid
 from .models import CourseProgress, CourseCertificate
 from .serializers import CourseProgressSerializer, CourseCertificateSerializer
 
-VALID_COURSES = {"python-basics", "web-dev", "data-science", "django-rest"}
+VALID_COURSES = {
+    "python-basics", "web-dev", "data-science", "django-rest",
+    "javascript-advanced", "sql-databases", "git-devops", "java-basics",
+    "typescript", "golang", "rust-lang", "kotlin", "cpp", "php", "ruby", "swift",
+}
 
 COURSE_TOTALS = {
-    "python-basics": 20,
-    "web-dev":       20,
-    "data-science":  20,
-    "django-rest":   20,
+    "python-basics":       20,
+    "web-dev":             20,
+    "data-science":        20,
+    "django-rest":         20,
+    "javascript-advanced": 20,
+    "sql-databases":       20,
+    "git-devops":          20,
+    "java-basics":         20,
+    "typescript":          20,
+    "golang":              20,
+    "rust-lang":           20,
+    "kotlin":              20,
+    "cpp":                 20,
+    "php":                 20,
+    "ruby":                20,
+    "swift":               20,
 }
 
 
@@ -35,12 +51,20 @@ def course_progress(request, course_id):
     if not isinstance(completed, dict):
         return Response({"error": "completed must be an object."}, status=400)
 
-    progress.completed = completed
-    progress.save()
+    # Validate keys are legitimate lesson keys (format: "mi-li")
+    import re as _re
+    for key in completed:
+        if not _re.match(r'^\d+-\d+$', str(key)):
+            return Response({"error": f"Invalid lesson key: {key}"}, status=400)
 
-    # Auto-issue certificate when all lessons done
+    # Only count keys that are True
     total    = COURSE_TOTALS.get(course_id, 0)
     done     = sum(1 for v in completed.values() if v)
+    if done > total:
+        return Response({"error": "Completed count exceeds course total."}, status=400)
+
+    progress.completed = completed
+    progress.save()
     cert_data = None
 
     if done >= total and total > 0:

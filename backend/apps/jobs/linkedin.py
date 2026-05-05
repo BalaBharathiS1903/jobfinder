@@ -10,15 +10,19 @@ ADZUNA_COUNTRIES = {
 }
 
 
+def _is_set(val):
+    return bool(val) and not val.startswith("your_")
+
+
 def fetch_jobs(query, location="", country="in"):
     """Try Adzuna first, then JSearch, then mock data."""
-    if settings.ADZUNA_APP_ID not in ("", "your_adzuna_app_id_here") and settings.ADZUNA_APP_KEY not in ("", "your_adzuna_app_key_here"):
+    if _is_set(settings.ADZUNA_APP_ID) and _is_set(settings.ADZUNA_APP_KEY):
         results = _fetch_adzuna(query, location, country)
         logger.info(f"Adzuna returned {len(results)} results for '{query}'")
         if results:
             return results
 
-    if settings.JSEARCH_API_KEY not in ("", "your_jsearch_rapidapi_key_here"):
+    if _is_set(settings.JSEARCH_API_KEY):
         results = _fetch_jsearch(query, location, country)
         logger.info(f"JSearch returned {len(results)} results for '{query}'")
         if results:

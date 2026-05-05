@@ -16,15 +16,10 @@ export default function Certificate() {
 
   useEffect(() => {
     if (!course) { setLoading(false); return; }
-    // Load progress to show how many lessons done
-    api.get(`/courses/progress/${courseId}/`)
-      .then(r => setProgress(r.data))
-      .catch(() => {});
-    // Load certificate
-    api.get(`/courses/certificate/${courseId}/`)
-      .then(r => setCert(r.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      api.get(`/courses/progress/${courseId}/`).then(r => setProgress(r.data)).catch(() => {}),
+      api.get(`/courses/certificate/${courseId}/`).then(r => setCert(r.data)).catch(() => {}),
+    ]).finally(() => setLoading(false));
   }, [courseId, course]);
 
   if (!course) return <div className="cert-error">Course not found. <Link to="/prep">← Back</Link></div>;

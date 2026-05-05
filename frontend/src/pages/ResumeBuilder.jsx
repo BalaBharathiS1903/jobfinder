@@ -2,15 +2,8 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import api from "../lib/api";
+import { SKILL_LIST } from "../lib/skills";
 import "./ResumeBuilder.css";
-
-const SKILL_LIST = [
-  "Python","JavaScript","TypeScript","Java","C++","C#","Go","Rust","Ruby","PHP","Swift","Kotlin","Scala","R","SQL","Bash","HTML","CSS","Dart",
-  "React","Vue","Angular","Next.js","Node.js","Express","Django","Flask","FastAPI","Spring Boot","Laravel","Flutter","Tailwind CSS","Bootstrap","GraphQL","REST API","Svelte",
-  "Git","GitHub","GitLab","Docker","Kubernetes","AWS","Azure","GCP","Terraform","Linux","MySQL","PostgreSQL","MongoDB","Redis","SQLite","Figma","Jira","Jenkins","Nginx","Postman","Elasticsearch","Kafka","Celery","Webpack","Vite",
-  "NumPy","Pandas","Matplotlib","Seaborn","Scikit-learn","TensorFlow","PyTorch","Power BI","Tableau","Excel",
-  "Communication","Leadership","Teamwork","Problem Solving","Agile","Scrum","Time Management","Critical Thinking",
-];
 
 const TEMPLATES = [
   { id: "modern",   name: "Modern",   desc: "Clean two-column layout with accent color",      color: "#2563EB" },

@@ -13,6 +13,7 @@ export default function Resumes() {
   const [replaceId, setReplaceId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [replacing, setReplacing] = useState(false);
+  const [reparsingId, setReparsingId] = useState(null);
   const [error, setError] = useState("");
   const [expandedVersions, setExpandedVersions] = useState({});
 
@@ -28,7 +29,8 @@ export default function Resumes() {
 
   const reparseMutation = useMutation({
     mutationFn: (id) => api.post(`/resume/${id}/reparse/`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["resumes"] }),
+    onMutate: (id) => setReparsingId(id),
+    onSettled: () => { setReparsingId(null); qc.invalidateQueries({ queryKey: ["resumes"] }); },
   });
 
   const handleUpload = async (e) => {
@@ -138,8 +140,8 @@ export default function Resumes() {
                   {replacing && replaceId === r.id ? "Replacing…" : "🔄 Replace"}
                 </button>
                 <button className="btn-secondary" onClick={() => reparseMutation.mutate(r.id)}
-                  disabled={reparseMutation.isPending}>
-                  {reparseMutation.isPending ? "Re-parsing…" : "⚙️ Re-parse"}
+                  disabled={reparsingId === r.id}>
+                  {reparsingId === r.id ? "Re-parsing…" : "⚙️ Re-parse"}
                 </button>
                 <button className="btn-danger" onClick={() => deleteMutation.mutate(r.id)}>Delete</button>
               </div>

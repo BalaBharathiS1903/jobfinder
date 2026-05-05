@@ -2,20 +2,62 @@ import re
 import io
 
 LANGUAGES = [
-    "python", "javascript", "typescript", "java", "c++", "c#", "go", "rust",
-    "ruby", "php", "swift", "kotlin", "scala", "r", "sql", "bash", "shell",
-    "html", "css", "dart", "matlab", "perl",
+    # General purpose
+    "python", "javascript", "typescript", "java", "c", "c++", "c#", "go", "rust",
+    "ruby", "php", "swift", "kotlin", "scala", "r", "dart", "lua", "perl",
+    "haskell", "erlang", "elixir", "clojure", "f#", "ocaml", "julia", "zig",
+    "ada", "fortran", "matlab", "sas", "objective-c", "assembly", "groovy",
+    "crystal", "nim", "cobol", "vba",
+    # Web / Markup
+    "html", "css", "sql", "graphql", "xml", "yaml", "markdown", "sass", "less",
+    # Shell / Scripting
+    "bash", "shell", "powershell", "zsh",
 ]
 FRAMEWORKS = [
-    "react", "vue", "angular", "next.js", "node.js", "express", "django",
-    "flask", "fastapi", "spring", "laravel", "rails", "flutter", "tailwind",
-    "bootstrap", "svelte", "nuxt", "gatsby", "graphql", "rest api",
+    # Frontend
+    "react", "vue", "angular", "next.js", "nuxt", "svelte", "gatsby", "astro", "remix",
+    "tailwind", "bootstrap", "material ui", "chakra ui", "ant design",
+    "redux", "zustand", "mobx",
+    # Backend
+    "node.js", "express", "fastify", "nestjs",
+    "django", "flask", "fastapi", "celery", "sqlalchemy",
+    "spring", "spring boot", "hibernate",
+    "laravel", "symfony", "rails", "sinatra",
+    "asp.net", "entity framework",
+    "gin", "echo", "fiber",
+    # Mobile
+    "flutter", "react native", "ionic", "swiftui", "jetpack compose",
+    # Data / ML
+    "numpy", "pandas", "matplotlib", "seaborn", "plotly",
+    "scikit-learn", "tensorflow", "pytorch", "keras", "xgboost", "lightgbm",
+    "spark", "hadoop", "airflow", "dbt",
+    "opencv", "nltk", "spacy", "hugging face", "langchain",
+    # APIs
+    "rest api", "grpc", "websockets", "oauth2", "jwt", "graphql",
 ]
 TOOLS_CLOUD = [
-    "git", "github", "gitlab", "docker", "kubernetes", "aws", "azure", "gcp",
-    "terraform", "ansible", "linux", "mysql", "postgresql", "mongodb", "redis",
-    "sqlite", "figma", "jira", "jenkins", "nginx", "apache", "elasticsearch",
-    "kafka", "rabbitmq", "celery", "webpack", "vite", "postman",
+    # Cloud
+    "aws", "azure", "gcp", "heroku", "vercel", "netlify", "railway", "digitalocean", "cloudflare",
+    # DevOps
+    "docker", "kubernetes", "helm", "terraform", "ansible", "pulumi",
+    "jenkins", "github actions", "gitlab ci", "circleci", "argocd",
+    "nginx", "apache", "caddy",
+    "prometheus", "grafana", "datadog", "sentry",
+    "kafka", "rabbitmq", "redis",
+    # Databases
+    "mysql", "postgresql", "sqlite", "mongodb", "cassandra",
+    "dynamodb", "elasticsearch", "neo4j", "influxdb", "firebase", "supabase",
+    "oracle", "ms sql server", "mariadb",
+    # Tools
+    "git", "github", "gitlab", "bitbucket",
+    "linux", "ubuntu",
+    "figma", "adobe xd", "sketch",
+    "jira", "confluence", "notion", "trello",
+    "postman", "swagger",
+    "webpack", "vite", "babel",
+    "jest", "pytest", "cypress", "selenium", "playwright",
+    # BI / Data
+    "power bi", "tableau", "looker", "excel",
 ]
 SOFT_SKILLS = [
     "communication", "leadership", "teamwork", "problem solving",
@@ -47,15 +89,21 @@ STOPWORDS = {
 
 
 def extract_text_from_pdf(file_bytes):
-    import PyPDF2
-    reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
-    return "\n".join(page.extract_text() or "" for page in reader.pages)
+    try:
+        import PyPDF2
+        reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
+        return "\n".join(page.extract_text() or "" for page in reader.pages)
+    except Exception:
+        return ""
 
 
 def extract_text_from_docx(file_bytes):
-    import docx
-    doc = docx.Document(io.BytesIO(file_bytes))
-    return "\n".join(p.text for p in doc.paragraphs)
+    try:
+        import docx
+        doc = docx.Document(io.BytesIO(file_bytes))
+        return "\n".join(p.text for p in doc.paragraphs)
+    except Exception:
+        return ""
 
 
 def extract_text(file_bytes, filename):

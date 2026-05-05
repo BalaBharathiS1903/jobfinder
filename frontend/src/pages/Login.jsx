@@ -10,6 +10,11 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const set = (field, value) => {
+    setForm((f) => ({ ...f, [field]: value }));
+    setError("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -17,8 +22,9 @@ export default function Login() {
     try {
       await login(form.email, form.password);
       navigate("/");
-    } catch {
-      setError("Invalid email or password.");
+    } catch (err) {
+      const data = err.response?.data;
+      setError(data?.error || data?.detail || "Invalid email or password.");
     } finally {
       setLoading(false);
     }
@@ -28,19 +34,39 @@ export default function Login() {
     <div className="auth-container">
       <div className="auth-card">
         <h2>Sign In</h2>
-        {error && <p className="error">{error}</p>}
+        <p className="auth-sub">Welcome back to VDart Academy</p>
+
+        {error && <div className="auth-error">{error}</div>}
+
         <form onSubmit={handleSubmit}>
-          <input
-            type="email" placeholder="Email" required
-            value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-          />
-          <input
-            type="password" placeholder="Password" required
-            value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
-          />
-          <button type="submit" disabled={loading}>{loading ? "Signing in…" : "Sign In"}</button>
+          <div className="auth-field">
+            <label>Email</label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              required
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+            />
+          </div>
+
+          <div className="auth-field">
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="Your password"
+              required
+              value={form.password}
+              onChange={(e) => set("password", e.target.value)}
+            />
+          </div>
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Signing in…" : "Sign In"}
+          </button>
         </form>
-        <p>Don't have an account? <Link to="/register">Register</Link></p>
+
+        <p>Don't have an account? <Link to="/register">Create one</Link></p>
       </div>
     </div>
   );

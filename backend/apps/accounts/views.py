@@ -38,16 +38,10 @@ def _set_auth_cookies(response, access, refresh):
 @permission_classes([AllowAny])
 def login_view(request):
     from django.contrib.auth import authenticate
-    from apps.accounts.models import User
-    email = request.data.get("email", "")
+    email = request.data.get("email", "").strip()
     password = request.data.get("password", "")
-    try:
-        user_obj = User.objects.get(email=email)
-        user = authenticate(request, username=user_obj.username, password=password)
-    except User.DoesNotExist:
-        # Still run a dummy check to prevent timing-based email enumeration
-        User().check_password(password)
-        user = None
+    # USERNAME_FIELD is email, so authenticate with email directly
+    user = authenticate(request, email=email, password=password)
     if not user:
         return Response({"error": "Invalid credentials."}, status=401)
     refresh = RefreshToken.for_user(user)
@@ -63,13 +57,15 @@ def login_view(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def refresh_view(request):
-    token = request.COOKIES.get("refresh")
+    # Accept token from cookie OR request body (frontend uses localStorage)
+    token = request.COOKIES.get("refresh") or request.data.get("refresh", "")
     if not token:
         return Response({"error": "No refresh token."}, status=401)
     try:
         refresh = RefreshToken(token)
-        resp = Response({"detail": "Refreshed."})
-        _set_auth_cookies(resp, str(refresh.access_token), str(refresh))
+        access = str(refresh.access_token)
+        resp = Response({"detail": "Refreshed.", "access": access})
+        _set_auth_cookies(resp, access, str(refresh))
         return resp
     except TokenError:
         return Response({"error": "Invalid or expired refresh token."}, status=401)

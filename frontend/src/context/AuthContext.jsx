@@ -25,8 +25,14 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (username, email, password) => {
+    // Throws with response.data on validation errors (400)
     await api.post("/auth/register/", { username, email, password });
-    await login(email, password);
+    // Auto-login after successful registration
+    try {
+      await login(email, password);
+    } catch {
+      // login failed after register — not a registration error, ignore
+    }
   };
 
   const logout = () => {

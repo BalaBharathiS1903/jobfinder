@@ -7,13 +7,23 @@
 .lp-header {
   display: flex; align-items: flex-start; justify-content: space-between;
   gap: 1.5rem; flex-wrap: wrap;
-  background: var(--ll); border: 2px solid var(--lc);
+  background: #fff; border: 1px solid var(--border);
   border-radius: 16px; padding: 2rem; margin-bottom: 1.25rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  border-top: 4px solid var(--lc);
 }
 .lp-header-left { display: flex; gap: 1.25rem; align-items: flex-start; flex: 1; min-width: 0; }
-.lp-icon { font-size: 3rem; flex-shrink: 0; line-height: 1; }
-.lp-header-left h1 { font-size: 1.5rem; font-weight: 800; color: var(--dark); margin: 0 0 0.3rem; }
-.lp-header-left p  { font-size: 0.88rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+/* Course icon box */
+.lp-icon-box {
+  width: 52px; height: 52px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; opacity: 0.92;
+}
+.lp-icon { font-size: 1.6rem; line-height: 1; }
+
+.lp-header-left h1 { font-size: 1.45rem; font-weight: 800; color: var(--dark); margin: 0 0 0.3rem; }
+.lp-header-left p  { font-size: 0.87rem; color: var(--muted); margin: 0; line-height: 1.5; }
 .lp-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
 .lp-level {
   font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
@@ -52,16 +62,16 @@
 .lp-modules { display: flex; flex-direction: column; gap: 0.75rem; }
 
 .lp-module {
-  background: var(--surface); border: 1px solid var(--border);
+  background: #fff; border: 1px solid var(--border);
   border-radius: 12px; overflow: hidden;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, border-color 0.2s;
 }
-.lp-module.open { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.lp-module.open { box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-color: #CBD5E1; }
 
 .lp-module-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 1rem 1.25rem; cursor: pointer;
-  background: var(--light); transition: background 0.15s;
+  background: #F8FAFC; transition: background 0.15s;
   user-select: none;
 }
 .lp-module-header:hover { background: #F1F5F9; }
@@ -148,10 +158,14 @@
 /* ── Complete banner ── */
 .lp-complete-banner {
   display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-  border: 2px solid; border-radius: 12px;
+  border: 1px solid; border-radius: 12px;
   padding: 1.25rem 1.5rem; margin-top: 1.5rem;
+  background: #fff;
 }
-.lp-complete-banner > span { font-size: 2rem; }
+.lp-complete-icon {
+  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
 .lp-complete-banner > div  { flex: 1; }
 .lp-complete-banner strong { font-size: 1rem; font-weight: 800; color: var(--dark); display: block; }
 .lp-complete-banner p      { font-size: 0.85rem; color: var(--muted); margin: 0.15rem 0 0; }

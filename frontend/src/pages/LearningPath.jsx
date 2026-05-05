@@ -763,42 +763,42 @@ const getResourceLinks = (courseId, lessonTitle) => {
     const ns = t.includes("html") || t.includes("document") || t.includes("semantic") || t.includes("form") || t.includes("accessibility") ? "html"
              : t.includes("css") || t.includes("box") || t.includes("flex") || t.includes("grid") || t.includes("responsive") ? "css"
              : t.includes("react") ? "reactjs" : "javascript";
-    links.push({ label: "📗 GeeksforGeeks", url: `https://www.geeksforgeeks.org/${ns}/${slug}/`, color: "#2E7D32", bg: "#E7F3E8" });
+    links.push({ label: "GeeksforGeeks", url: `https://www.geeksforgeeks.org/${ns}/${slug}/`, color: "#2E7D32", bg: "#E7F3E8" });
   } else if (gfgBase[courseId]) {
-    links.push({ label: "📗 GeeksforGeeks", url: `https://www.geeksforgeeks.org/${gfgBase[courseId]}/${slug}/`, color: "#2E7D32", bg: "#E7F3E8" });
+    links.push({ label: "GeeksforGeeks", url: `https://www.geeksforgeeks.org/${gfgBase[courseId]}/${slug}/`, color: "#2E7D32", bg: "#E7F3E8" });
   }
 
   // MDN / W3Schools
   if (courseId === "web-dev") {
-    links.push({ label: "🌐 MDN Web Docs", url: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(lessonTitle)}`, color: "#1565C0", bg: "#E3F2FD" });
+    links.push({ label: "MDN Web Docs", url: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(lessonTitle)}`, color: "#1565C0", bg: "#E3F2FD" });
   } else if (courseId === "javascript-advanced") {
-    links.push({ label: "🌐 MDN Web Docs", url: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(lessonTitle)}`, color: "#1565C0", bg: "#E3F2FD" });
+    links.push({ label: "MDN Web Docs", url: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(lessonTitle)}`, color: "#1565C0", bg: "#E3F2FD" });
   } else if (courseId === "sql-databases") {
-    links.push({ label: "🌐 W3Schools SQL", url: `https://www.w3schools.com/sql/`, color: "#1565C0", bg: "#E3F2FD" });
+    links.push({ label: "W3Schools SQL", url: `https://www.w3schools.com/sql/`, color: "#1565C0", bg: "#E3F2FD" });
   } else if (courseId === "java-basics") {
-    links.push({ label: "🌐 W3Schools Java", url: `https://www.w3schools.com/java/`, color: "#1565C0", bg: "#E3F2FD" });
+    links.push({ label: "W3Schools Java", url: `https://www.w3schools.com/java/`, color: "#1565C0", bg: "#E3F2FD" });
   } else {
-    links.push({ label: "🌐 W3Schools", url: `https://www.w3schools.com/python/`, color: "#1565C0", bg: "#E3F2FD" });
+    links.push({ label: "W3Schools", url: `https://www.w3schools.com/python/`, color: "#1565C0", bg: "#E3F2FD" });
   }
 
   // Official Docs
   const officialDocs = {
-    "python-basics":       { label: "📘 Python Docs",     url: `https://docs.python.org/3/search.html?q=${encodeURIComponent(lessonTitle)}` },
-    "data-science":        { label: "📘 Python Docs",     url: `https://docs.python.org/3/search.html?q=${encodeURIComponent(lessonTitle)}` },
-    "django-rest":         { label: "📘 Django Docs",     url: `https://docs.djangoproject.com/en/stable/search/?q=${encodeURIComponent(lessonTitle)}` },
-    "web-dev":             { label: "📘 React Docs",      url: "https://react.dev/learn" },
-    "javascript-advanced": { label: "📘 Node.js Docs",    url: "https://nodejs.org/en/docs" },
-    "sql-databases":       { label: "📘 PostgreSQL Docs", url: `https://www.postgresql.org/search/?q=${encodeURIComponent(lessonTitle)}` },
-    "git-devops":          { label: "📘 Git Docs",        url: "https://git-scm.com/doc" },
-    "java-basics":         { label: "📘 Java Docs",       url: "https://docs.oracle.com/en/java/" },
-    "typescript":          { label: "📘 TS Docs",         url: "https://www.typescriptlang.org/docs/" },
-    "golang":              { label: "📘 Go Docs",         url: `https://pkg.go.dev/search?q=${encodeURIComponent(lessonTitle)}` },
-    "rust-lang":           { label: "📘 Rust Docs",       url: "https://doc.rust-lang.org/book/" },
-    "kotlin":              { label: "📘 Kotlin Docs",     url: "https://kotlinlang.org/docs/" },
-    "cpp":                 { label: "📘 cppreference",    url: `https://en.cppreference.com/mwiki/index.php?search=${encodeURIComponent(lessonTitle)}` },
-    "php":                 { label: "📘 PHP Docs",        url: `https://www.php.net/search.php?show=quickref&pattern=${encodeURIComponent(lessonTitle)}` },
-    "ruby":                { label: "📘 Ruby Docs",       url: "https://ruby-doc.org/" },
-    "swift":               { label: "📘 Swift Docs",      url: "https://developer.apple.com/documentation/swift" },
+    "python-basics":       { label: "Python Docs",     url: `https://docs.python.org/3/search.html?q=${encodeURIComponent(lessonTitle)}` },
+    "data-science":        { label: "Python Docs",     url: `https://docs.python.org/3/search.html?q=${encodeURIComponent(lessonTitle)}` },
+    "django-rest":         { label: "Django Docs",     url: `https://docs.djangoproject.com/en/stable/search/?q=${encodeURIComponent(lessonTitle)}` },
+    "web-dev":             { label: "React Docs",      url: "https://react.dev/learn" },
+    "javascript-advanced": { label: "Node.js Docs",    url: "https://nodejs.org/en/docs" },
+    "sql-databases":       { label: "PostgreSQL Docs", url: `https://www.postgresql.org/search/?q=${encodeURIComponent(lessonTitle)}` },
+    "git-devops":          { label: "Git Docs",        url: "https://git-scm.com/doc" },
+    "java-basics":         { label: "Java Docs",       url: "https://docs.oracle.com/en/java/" },
+    "typescript":          { label: "TS Docs",         url: "https://www.typescriptlang.org/docs/" },
+    "golang":              { label: "Go Docs",         url: `https://pkg.go.dev/search?q=${encodeURIComponent(lessonTitle)}` },
+    "rust-lang":           { label: "Rust Docs",       url: "https://doc.rust-lang.org/book/" },
+    "kotlin":              { label: "Kotlin Docs",     url: "https://kotlinlang.org/docs/" },
+    "cpp":                 { label: "cppreference",    url: `https://en.cppreference.com/mwiki/index.php?search=${encodeURIComponent(lessonTitle)}` },
+    "php":                 { label: "PHP Docs",        url: `https://www.php.net/search.php?show=quickref&pattern=${encodeURIComponent(lessonTitle)}` },
+    "ruby":                { label: "Ruby Docs",       url: "https://ruby-doc.org/" },
+    "swift":               { label: "Swift Docs",      url: "https://developer.apple.com/documentation/swift" },
   };
   if (officialDocs[courseId]) {
     links.push({ ...officialDocs[courseId], color: "#E65100", bg: "#FFF3E0" });
@@ -808,9 +808,9 @@ const getResourceLinks = (courseId, lessonTitle) => {
 };
 
 const TYPE_META = {
-  reading: { label: "Reading", color: "#2563EB", bg: "#EFF6FF", icon: "📖" },
-  coding:  { label: "Coding",  color: "#059669", bg: "#ECFDF5", icon: "💻" },
-  setup:   { label: "Setup",   color: "#D97706", bg: "#FFFBEB", icon: "⚙️" },
+  reading: { label: "Reading", color: "#2563EB", bg: "#EFF6FF" },
+  coding:  { label: "Coding",  color: "#059669", bg: "#ECFDF5" },
+  setup:   { label: "Setup",   color: "#D97706", bg: "#FFFBEB" },
 };
 export default function LearningPath() {
   const { courseId } = useParams();
@@ -873,13 +873,15 @@ export default function LearningPath() {
       {/* ── Course Header ── */}
       <div className="lp-header" style={{ "--lc": course.color, "--ll": course.light }}>
         <div className="lp-header-left">
-          <span className="lp-icon">{course.icon}</span>
+          <div className="lp-icon-box" style={{ background: course.color }}>
+            <span className="lp-icon">{course.icon}</span>
+          </div>
           <div>
             <div className="lp-meta">
               <span className="lp-level">{course.level}</span>
-              <span className="lp-dur">⏱ {course.duration}</span>
-              <span className="lp-dur">📚 {totalLessons} lessons</span>
-              <span className="lp-dur">📦 {course.modules.length} modules</span>
+              <span className="lp-dur">{course.duration}</span>
+              <span className="lp-dur">{totalLessons} lessons</span>
+              <span className="lp-dur">{course.modules.length} modules</span>
             </div>
             <h1>{course.title}</h1>
             <p>{course.desc}</p>
@@ -901,7 +903,7 @@ export default function LearningPath() {
             </div>
           </div>
           {allDone
-            ? <Link to={`/prep/certificate/${courseId}`} className="lp-btn-cert" style={{ background: course.color }}>🎓 Get Certificate</Link>
+            ? <Link to={`/prep/certificate/${courseId}`} className="lp-btn-cert" style={{ background: course.color }}>Get Certificate</Link>
             : <p className="lp-ring-hint">{totalLessons - doneCount} lessons left</p>
           }
         </div>
@@ -966,9 +968,9 @@ export default function LearningPath() {
                             <span className="lp-lesson-title">{lesson.title}</span>
                             <div className="lp-lesson-meta">
                               <span className="lp-type-badge" style={{ color: meta.color, background: meta.bg }}>
-                                {meta.icon} {meta.label}
+                                {meta.label}
                               </span>
-                              <span className="lp-lesson-dur">⏱ {lesson.duration}</span>
+                              <span className="lp-lesson-dur">{lesson.duration}</span>
                             </div>
                           </div>
                           <span className="lp-expand-icon">{isActive ? "▲" : "▼"}</span>
@@ -978,7 +980,7 @@ export default function LearningPath() {
                         {isActive && (
                           <div className="lp-lesson-content">
                             <p className="lp-content-note">
-                              📌 This lesson covers <strong>{lesson.title}</strong> — part of the <em>{mod.title}</em> module.
+                              This lesson covers <strong>{lesson.title}</strong> — part of the <em>{mod.title}</em> module.
                               Study the concept, practice the examples, then mark it complete.
                             </p>
                             <div className="lp-content-actions">
@@ -996,7 +998,7 @@ export default function LearningPath() {
                                 style={{ background: course.color }}
                                 onClick={() => toggle(key)}
                               >
-                                ✓ Mark as Complete
+                                Mark as Complete
                               </button>
                             )}
                           </div>
@@ -1014,7 +1016,9 @@ export default function LearningPath() {
       {/* ── Completion banner ── */}
       {allDone && (
         <div className="lp-complete-banner" style={{ borderColor: course.color, background: course.light }}>
-          <span>🎉</span>
+          <div className="lp-complete-icon" style={{ background: course.color }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+          </div>
           <div>
             <strong>Course Complete!</strong>
             <p>You've finished all {totalLessons} lessons. Claim your certificate now.</p>

@@ -78,3 +78,50 @@ def logout_view(request):
     resp.delete_cookie("access")
     resp.delete_cookie("refresh")
     return resp
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def forgot_password_view(request):
+    from apps.accounts.models import User, PasswordResetToken
+    email = request.data.get("email", "").strip().lower()
+    if not email:
+        return Response({"error": "Email is required."}, status=400)
+    try:
+        user = User.objects.get(email__iexact=email)
+        # Invalidate old tokens
+        PasswordResetToken.objects.filter(user=user, used=False).update(used=True)
+        # Create new token
+        token_obj = PasswordResetToken.objects.create(user=user)
+        return Response({
+            "detail": "Reset token generated.",
+            "token": str(token_obj.token),
+            "email": user.email,
+        })
+    except User.DoesNotExist:
+        # Don't reveal if email exists — return success anyway
+        return Response({"detail": "If that email exists, a reset token has been generated."}, status=200)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def reset_password_view(request):
+    from apps.accounts.models import PasswordResetToken
+    token_str = request.data.get("token", "").strip()
+    new_password = request.data.get("password", "")
+    if not token_str or not new_password:
+        return Response({"error": "Token and password are required."}, status=400)
+    if len(new_password) < 8:
+        return Response({"error": "Password must be at least 8 characters."}, status=400)
+    try:
+        token_obj = PasswordResetToken.objects.get(token=token_str)
+        if not token_obj.is_valid():
+            return Response({"error": "Token is invalid or expired."}, status=400)
+        user = token_obj.user
+        user.set_password(new_password)
+        user.save()
+        token_obj.used = True
+        token_obj.save()
+        return Response({"detail": "Password reset successful. You can now log in."})
+    except PasswordResetToken.DoesNotExist:
+        return Response({"error": "Invalid token."}, status=400)

@@ -110,3 +110,82 @@
   border: 1px solid #FECACA;
   margin-bottom: 0.5rem;
 }
+
+/* Forgot password link row */
+.auth-field-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.forgot-link {
+  font-size: 0.78rem;
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.forgot-link:hover { text-decoration: underline; }
+
+/* Success state */
+.auth-success {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+}
+.success-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #059669;
+  margin: 0;
+}
+.success-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* Token display box */
+.token-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #F1F5F9;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+}
+.token-box code {
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--dark);
+  word-break: break-all;
+  font-family: monospace;
+}
+.btn-copy {
+  padding: 0.3rem 0.75rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-copy:hover { background: #1D4ED8; }
+
+/* Primary action button (non-submit) */
+.btn-primary {
+  display: block;
+  text-align: center;
+  padding: 0.75rem;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.93rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: #1D4ED8; }

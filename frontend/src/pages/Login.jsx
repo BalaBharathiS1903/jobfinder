@@ -51,7 +51,10 @@ export default function Login() {
           </div>
 
           <div className="auth-field">
-            <label>Password</label>
+            <div className="auth-field-row">
+              <label>Password</label>
+              <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
+            </div>
             <input
               type="password"
               placeholder="Your password"

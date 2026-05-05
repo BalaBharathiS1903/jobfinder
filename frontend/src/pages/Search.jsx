@@ -7,11 +7,19 @@ import "./Search.css";
 
 function timeAgo(dateStr) {
   if (!dateStr) return "";
-  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
-  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-  return `${Math.floor(diff / 604800)}w ago`;
+  try {
+    const iso = dateStr.toString().replace(" ", "T");
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const diff = Math.floor((Date.now() - d) / 1000);
+    if (diff < 60)    return "just now";
+    if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+    return `${Math.floor(diff / 604800)}w ago`;
+  } catch {
+    return "";
+  }
 }
 
 export default function Search() {
@@ -25,6 +33,8 @@ export default function Search() {
   const [trustFilter, setTrustFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [autoError, setAutoError] = useState("");
+  const [autoLabel, setAutoLabel] = useState("");
+  const [skillsUsed, setSkillsUsed] = useState([]);
 
   const { data: resumes = [] } = useQuery({
     queryKey: ["resumes"],
@@ -33,23 +43,31 @@ export default function Search() {
 
   const searchMutation = useMutation({
     mutationFn: (data) => api.post("/jobs/search/", data).then((r) => r.data),
-    onSuccess: (data) => { setResults(data.results); setSavedIds(new Set()); setSource("all"); },
+    onSuccess: (data) => { setResults(data.results ?? []); setSavedIds(new Set()); setSource("all"); setAutoLabel(""); setSkillsUsed([]); },
   });
 
   const autoMutation = useMutation({
     mutationFn: (data) => api.post("/jobs/auto-search/", data).then((r) => r.data),
     onSuccess: (data) => {
-      setResults(data.results);
-      setForm((f) => ({ ...f, query: data.query }));
+      setResults(data.results ?? []);
+      setAutoLabel(data.query ?? "");
+      setSkillsUsed(data.skills_used ?? []);
+      setForm((f) => ({ ...f, query: data.query ?? f.query }));
       setSavedIds(new Set());
       setSource("all");
+      setMinScore(0);
+    },
+    onError: (err) => {
+      const msg = err.response?.data?.error || "Auto match failed. Please try again.";
+      setAutoError(msg);
+      setTimeout(() => setAutoError(""), 5000);
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: (job) => api.post("/jobs/saved/", {
-      job_id: job.id, title: job.title, company: job.company,
-      location: job.location, url: job.url,
+      job_id: job.id, title: job.title ?? "", company: job.company ?? "",
+      location: job.location ?? "", url: job.url ?? "",
     }),
     onSuccess: (_, job) => setSavedIds((prev) => new Set([...prev, job.id])),
   });
@@ -71,6 +89,8 @@ export default function Search() {
     searchMutation.mutate(form);
   };
 
+  const isLoading = searchMutation.isPending || autoMutation.isPending;
+
   const handleAutoSearch = () => {
     if (!form.resume_id) {
       setAutoError("Please select a resume first.");
@@ -78,10 +98,11 @@ export default function Search() {
       return;
     }
     setAutoError("");
+    setAutoLabel("");
+    setSkillsUsed([]);
+    setMinScore(0);
     autoMutation.mutate({ resume_id: form.resume_id, location: form.location, country: form.country });
   };
-
-  const isLoading = searchMutation.isPending || autoMutation.isPending;
 
   const filtered = results
     ? (source === "all" ? results : results.filter((j) => j.source === source))
@@ -89,7 +110,10 @@ export default function Search() {
         .filter((j) => trustFilter === "all" || j.trust_label === trustFilter)
         .filter((j) => {
           if (dateFilter === "all" || !j.posted_at) return true;
-          const days = (Date.now() - new Date(j.posted_at)) / 86400000;
+          const iso = j.posted_at.toString().replace(" ", "T");
+          const d = new Date(iso);
+          if (isNaN(d.getTime())) return true;
+          const days = (Date.now() - d) / 86400000;
           if (dateFilter === "today")  return days <= 1;
           if (dateFilter === "week")   return days <= 7;
           if (dateFilter === "month")  return days <= 30;
@@ -149,16 +173,27 @@ export default function Search() {
         </div>
         {autoError && <p className="search-error" style={{ marginTop: "0.5rem" }}>{autoError}</p>}
 
-        {/* Skill chips */}
+        {skillsUsed.length > 0 && (
+          <div className="skill-chips" style={{ marginTop: "0.5rem" }}>
+            <span className="chips-label">⚡ Auto matched using:</span>
+            {skillsUsed.map((s) => (
+              <span key={s} className="chip chip-active">{s}</span>
+            ))}
+          </div>
+        )}
+
         {resumeSkills.length > 0 && (
           <div className="skill-chips">
-            <span className="chips-label">Your skills — click to add:</span>
+            <span className="chips-label">Your skills — click to add to search:</span>
             {resumeSkills.map((s) => (
               <button
                 key={s} type="button"
-                className={`chip ${form.query.toLowerCase().includes(s) ? "chip-active" : ""}`}
+                className={`chip ${form.query.toLowerCase().includes(s.toLowerCase()) ? "chip-active" : ""}`}
                 onClick={() => setForm((f) => ({
-                  ...f, query: f.query.toLowerCase().includes(s) ? f.query : `${f.query} ${s}`.trim()
+                  ...f,
+                  query: f.query.toLowerCase().includes(s.toLowerCase())
+                    ? f.query
+                    : `${f.query} ${s}`.trim()
                 }))}
               >{s}</button>
             ))}
@@ -166,7 +201,7 @@ export default function Search() {
         )}
       </div>
 
-      {(searchMutation.isError || autoMutation.isError) && (
+      {searchMutation.isError && (
         <p className="search-error">Search failed. Please try again.</p>
       )}
 
@@ -227,7 +262,9 @@ export default function Search() {
             <p className="results-count">
               <strong>{filtered.length}</strong> job{filtered.length !== 1 ? "s" : ""} found
               {form.location && <> in <em>{form.location}</em></>}
-              {form.query && <> for <em>"{form.query}"</em></>}
+              {autoLabel
+                ? <> — <em>⚡ matched by skills: {autoLabel}</em></>
+                : form.query && <> for <em>"{form.query}"</em></>}
             </p>
 
             {filtered.length === 0 ? (

@@ -15,6 +15,7 @@ class Resume(models.Model):
     job_titles = models.JSONField(default=list)
     keywords = models.JSONField(default=list)
     raw_text = models.TextField(blank=True)
+    summary = models.TextField(blank=True)
 
     languages = models.JSONField(default=list)
     frameworks = models.JSONField(default=list)

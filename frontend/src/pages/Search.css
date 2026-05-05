@@ -111,6 +111,15 @@
 }
 .chip:hover { background: rgba(255,255,255,0.2); }
 .chip-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip-search-all {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #fff;
+  font-weight: 700;
+  padding: 0.25rem 0.85rem;
+}
+.chip-search-all:hover { background: #1D4ED8; border-color: #1D4ED8; }
+.chip-search-all:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* Body */
 .portal-body {

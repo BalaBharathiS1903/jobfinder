@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
+import { fmtDate } from "../lib/date";
 import "./Saved.css";
 
 export default function SavedJobs() {
@@ -29,7 +30,7 @@ export default function SavedJobs() {
               <div className="saved-info">
                 <h3>{job.title}</h3>
                 <p>{job.company} · {job.location}</p>
-                <p className="saved-date">Saved {new Date(job.saved_at).toLocaleDateString()}</p>
+                <p className="saved-date">Saved {fmtDate(job.saved_at)}</p>
               </div>
               <div className="saved-actions">
                 {job.url && <a href={job.url} target="_blank" rel="noreferrer" className="btn-secondary">View</a>}

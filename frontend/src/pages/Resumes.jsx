@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
+import { fmtDate } from "../lib/date";
 import "./Resumes.css";
 
 const MAX = 5;
@@ -116,7 +117,7 @@ export default function Resumes() {
                   <span className="resume-filename">📄 {r.filename}</span>
                   <span className="resume-version-badge">v{r.version}</span>
                 </div>
-                <span className="resume-date">{new Date(r.uploaded_at).toLocaleDateString()}</span>
+                <span className="resume-date">{fmtDate(r.uploaded_at)}</span>
               </div>
 
               <div className="resume-details">
@@ -160,7 +161,7 @@ export default function Resumes() {
                           <div className="version-item-header">
                             <span className="version-num">v{v.version}</span>
                             <span className="version-file">{v.filename}</span>
-                            <span className="version-date">{new Date(v.saved_at).toLocaleDateString()}</span>
+                            <span className="version-date">{fmtDate(v.saved_at)}</span>
                           </div>
                           {v.skills?.length > 0 && (
                             <div className="version-skills">

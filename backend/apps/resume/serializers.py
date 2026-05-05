@@ -15,7 +15,7 @@ class ResumeSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Resume
         fields = ("id", "filename", "uploaded_at", "version",
-                  "name", "email", "phone",
+                  "name", "email", "phone", "summary",
                   "skills", "job_titles", "keywords",
                   "languages", "frameworks", "tools", "soft_skills",
                   "education", "projects", "years_exp", "versions")

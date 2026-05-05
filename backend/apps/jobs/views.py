@@ -40,8 +40,8 @@ def search_jobs(request):
 @permission_classes([IsAuthenticated])
 def auto_search(request):
     resume_id = request.data.get("resume_id")
-    location = request.data.get("location", "")
-    country = request.data.get("country", "in")
+    location  = request.data.get("location", "")
+    country   = request.data.get("country", "in")
 
     if not resume_id:
         return Response({"error": "resume_id is required."}, status=400)
@@ -51,25 +51,49 @@ def auto_search(request):
     except Resume.DoesNotExist:
         return Response(status=404)
 
-    queries = []
-    if resume.job_titles:
-        queries.append(resume.job_titles[0])
-    if resume.skills:
-        queries.append(" ".join(resume.skills[:3]))
-    if not queries:
-        queries = [" ".join(resume.keywords[:3])]
+    # Priority-ordered skills — best Adzuna search terms first
+    PRIORITY = [
+        "java", "python", "javascript", "typescript", "react", "angular", "vue",
+        "node.js", "spring boot", "django", "flask", "fastapi",
+        "sql", "mysql", "postgresql", "mongodb", "aws", "docker", "kubernetes",
+        "machine learning", "data science", "flutter", "kotlin", "swift",
+        "c++", "c#", "go", "rust", "php", "ruby", "spring", "hibernate",
+    ]
 
-    seen_ids = set()
-    all_jobs = []
-    for q in queries:
-        for job in fetch_jobs(q, location, country):
-            if job["id"] not in seen_ids:
-                seen_ids.add(job["id"])
-                all_jobs.append(job)
+    skills = [s.lower() for s in (resume.skills or [])]
+    if not skills:
+        return Response({"error": "Resume has no skills. Please re-parse your resume."}, status=400)
+
+    # Order skills: priority list first, then remaining
+    ordered = [s for s in PRIORITY if s in skills]
+    ordered += [s for s in skills if s not in ordered]
+
+    # Search each top skill individually — collect & deduplicate all results
+    seen_ids  = set()
+    all_jobs  = []
+    used_skills = []
+
+    for skill in ordered[:5]:          # top 5 skills → up to 5 × 20 = 100 jobs
+        try:
+            jobs = fetch_jobs(skill, location, country)
+            new_jobs = [j for j in jobs if j["id"] not in seen_ids]
+            for j in new_jobs:
+                seen_ids.add(j["id"])
+            all_jobs.extend(new_jobs)
+            used_skills.append(skill)
+        except Exception:
+            continue
+
+    if not all_jobs:
+        return Response({"error": "No jobs found for your skills. Try again later."}, status=404)
 
     all_jobs = analyze_jobs_trust(all_jobs)
-    ranked = rank_jobs(all_jobs, resume)
-    return Response({"results": ranked, "query": queries[0]})
+    ranked   = rank_jobs(all_jobs, resume)
+    return Response({
+        "results":     ranked,
+        "query":       ", ".join(used_skills),
+        "skills_used": used_skills,
+    })
 
 
 @api_view(["GET"])
@@ -80,10 +104,29 @@ def resume_search_query(request, pk):
     except Resume.DoesNotExist:
         return Response(status=404)
 
-    titles = resume.job_titles[:1]
-    skills = resume.skills[:4]
-    parts = titles + [s for s in skills if s not in " ".join(titles).lower()]
-    query = " ".join(parts) if parts else " ".join(resume.keywords[:3])
+    skills = [s.lower() for s in (resume.skills or [])]
+    titles = [t.lower() for t in (resume.job_titles or [])]
+
+    # Build a smart query (same logic as auto_search) for the search box
+    ROLE_MAP = [
+        (["react", "javascript", "typescript", "vue", "angular"], "frontend developer"),
+        (["django", "flask", "fastapi", "spring", "spring boot", "node.js"], "backend developer"),
+        (["javascript", "java", "python", "sql"], "software developer"),
+        (["machine learning", "tensorflow", "pytorch", "scikit-learn"], "machine learning engineer"),
+        (["pandas", "numpy", "matplotlib"], "data analyst"),
+        (["docker", "kubernetes", "aws", "terraform"], "devops engineer"),
+        (["android", "kotlin", "swift", "flutter"], "mobile developer"),
+        (["sql", "postgresql", "mysql", "mongodb"], "database developer"),
+    ]
+    query = None
+    for role_skills, role_name in ROLE_MAP:
+        if any(s in skills for s in role_skills):
+            query = role_name
+            break
+    if not query:
+        non_generic = [t for t in titles if t not in ("intern", "trainee", "associate")]
+        query = non_generic[0] if non_generic else (f"{skills[0]} developer" if skills else (titles[0] if titles else ""))
+
     return Response({"query": query, "skills": resume.skills, "titles": resume.job_titles})
 
 
@@ -112,7 +155,12 @@ class SavedJobListCreateView(generics.ListCreateAPIView):
         return SavedJob.objects.filter(user=self.request.user).order_by("-saved_at")
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        from django.db import IntegrityError
+        try:
+            serializer.save(user=self.request.user)
+        except IntegrityError:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({"detail": "Job already saved."})
 
 
 class SavedJobDestroyView(generics.DestroyAPIView):

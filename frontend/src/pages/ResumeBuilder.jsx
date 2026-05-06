@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import { SKILL_LIST } from "../lib/skills";
 import "./ResumeBuilder.css";
@@ -24,10 +24,14 @@ export default function ResumeBuilder() {
   const [kwBanner, setKwBanner]       = useState(!!incoming.length);
   const [savedItems, setSavedItems]   = useState({});
   const [customSections, setCustomSections] = useState([]);
+  const [saving, setSaving] = useState(false);
+
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [data, setData] = useState({
     name: "", headline: incomingState.jobTitle || "", email: "", phone: "",
-    location: "", linkedin: "", github: "", summary: "", photo: "",
+    location: "", linkedin: "", github: "", leetcode: "", summary: "", photo: "",
     experience: [], education: [], skills: incoming, certifications: [], projects: [],
   });
 
@@ -56,7 +60,7 @@ export default function ResumeBuilder() {
         name: profile.full_name || "", headline: profile.headline || "",
         email: profile.email || "", phone: profile.phone || "",
         location: profile.location || "", linkedin: profile.linkedin || "",
-        github: profile.github || "", summary: profile.summary || "", photo: "",
+        github: profile.github || "", leetcode: profile.leetcode || "", summary: profile.summary || "", photo: "",
         experience: profile.experience || [], education: profile.education || [],
         skills: (profile.skills || []).map(s => s.name || s),
         certifications: profile.certifications || [], projects: profile.projects || [],
@@ -75,6 +79,78 @@ export default function ResumeBuilder() {
   const saveItem  = (f, i) => setSavedItems(p => ({ ...p, [`${f}-${i}`]: true }));
   const editItem  = (f, i) => setSavedItems(p => ({ ...p, [`${f}-${i}`]: false }));
   const isSaved   = (f, i) => !!savedItems[`${f}-${i}`];
+
+  const saveAsResume = async () => {
+    if (!data.name) {
+      alert("Please enter your name before saving.");
+      return;
+    }
+
+    // Check if user has existing resumes
+    if (resumes.length > 0) {
+      const replaceChoice = window.confirm(
+        `You have ${resumes.length} existing resume(s).\n\n` +
+        `Do you want to REPLACE an existing resume?\n\n` +
+        `• Click OK to replace the most recent resume\n` +
+        `• Click Cancel to save as a new resume`
+      );
+
+      if (replaceChoice) {
+        // User wants to replace - use the most recent resume ID
+        const mostRecentResume = resumes[0]; // Resumes are ordered by -uploaded_at
+        setSaving(true);
+        try {
+          const payload = {
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            headline: data.headline,
+            summary: data.summary,
+            skills: data.skills.filter(Boolean),
+            experience: data.experience,
+            education: data.education,
+            certifications: data.certifications,
+            projects: data.projects,
+            replace_id: mostRecentResume.id,
+          };
+          await api.post("/resume/save-from-builder/", payload);
+          await queryClient.invalidateQueries(["resumes"]);
+          alert("Resume replaced successfully!");
+          navigate("/resumes");
+        } catch (err) {
+          alert(err.response?.data?.error || "Failed to replace resume.");
+        } finally {
+          setSaving(false);
+        }
+        return;
+      }
+    }
+
+    // Save as new resume
+    setSaving(true);
+    try {
+      const payload = {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        headline: data.headline,
+        summary: data.summary,
+        skills: data.skills.filter(Boolean),
+        experience: data.experience,
+        education: data.education,
+        certifications: data.certifications,
+        projects: data.projects,
+      };
+      await api.post("/resume/save-from-builder/", payload);
+      await queryClient.invalidateQueries(["resumes"]);
+      alert("Resume saved successfully!");
+      navigate("/resumes");
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to save resume.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="rb-page">
@@ -165,21 +241,57 @@ export default function ResumeBuilder() {
                 <RF label="Phone"     value={data.phone}    onChange={v => set("phone", v)}    ph="+91 9999999999" />
                 <RF label="Location"  value={data.location} onChange={v => set("location", v)} ph="Chennai, India" />
                 <RF label="LinkedIn"  value={data.linkedin} onChange={v => set("linkedin", v)} ph="linkedin.com/in/username" />
+                <RF label="GitHub"    value={data.github}   onChange={v => set("github", v)}   ph="github.com/username" />
+                <RF label="LeetCode"  value={data.leetcode} onChange={v => set("leetcode", v)} ph="leetcode.com/u/username" />
               </div>
             </div>
             <RF label="Professional Summary" value={data.summary} onChange={v => set("summary", v)} ph="Brief professional summary…" area rows={4} />
           </div>
 
-          {/* Skills */}
+          {/* Projects */}
           <div className="rb-card">
-            <h3>Skills</h3>
-            {kwBanner && (
-              <div className="rb-kw-banner">
-                <span>🎯 <strong>{incoming.length} missing skill{incoming.length !== 1 ? "s" : ""}</strong> from <em>{incomingState.jobTitle || "your job match"}</em> pre-filled below.</span>
-                <button className="rb-kw-dismiss" onClick={() => setKwBanner(false)}>✕</button>
+            <h3>Projects</h3>
+            {data.projects.length === 0 ? (
+              <div className="rb-empty-state">
+                <span className="rb-empty-icon">🛠️</span>
+                <p className="rb-empty-title">No projects added</p>
+                <p className="rb-empty-sub">Showcase your personal or professional projects with tech stack and links.</p>
+                <button className="rb-empty-btn" onClick={() => addArr("projects",{name:"",tech:"",url:"",description:""})}>+ Add Project</button>
               </div>
+            ) : (
+              <>
+                {data.projects.map((p, i) => (
+                  <div key={i} className={`rb-item${isSaved("projects",i) ? " rb-item-saved" : ""}`}>
+                    <div className="rb-item-top">
+                      <span className="rb-item-label">
+                        {isSaved("projects",i)
+                          ? <><span className="rb-saved-tick">✓</span> {p.name||"Project"}{p.tech?` — ${p.tech}`:""}</>
+                          : "Filling details…"}
+                      </span>
+                      <div className="rb-item-actions">
+                        {isSaved("projects",i)
+                          ? <button className="rb-btn-edit" onClick={() => editItem("projects",i)}>✏️ Edit</button>
+                          : <button className="rb-btn-save-entry" onClick={() => saveItem("projects",i)}>✓ Save Entry</button>}
+                        <button className="rb-btn-remove" onClick={() => removeArr("projects",i)}>Remove</button>
+                      </div>
+                    </div>
+                    {!isSaved("projects",i) && (
+                      <>
+                        <div className="rb-grid2">
+                          <RF label="Project Name" value={p.name||""} onChange={v => updateArr("projects",i,{...p,name:v})} ph="Job Finder App" />
+                          <RF label="Tech Stack"   value={p.tech||""} onChange={v => updateArr("projects",i,{...p,tech:v})} ph="React, Django, PostgreSQL" />
+                          <RF label="Live URL"     value={p.url ||""} onChange={v => updateArr("projects",i,{...p,url:v})}  ph="https://yourproject.com" />
+                          <RF label="GitHub URL"   value={p.github||""} onChange={v => updateArr("projects",i,{...p,github:v})} ph="https://github.com/…" />
+                        </div>
+                        <RF label="Description" value={p.description||""} onChange={v => updateArr("projects",i,{...p,description:v})} ph="What the project does and your contribution…" area rows={3} />
+                        <button className="rb-btn-save-entry rb-btn-save-bottom" onClick={() => saveItem("projects",i)}>✓ Save Entry</button>
+                      </>
+                    )}
+                  </div>
+                ))}
+                <AddBtn onClick={() => addArr("projects",{name:"",tech:"",url:"",github:"",description:""})} label="Add Another Project" icon="🛠️" />
+              </>
             )}
-            <SkillSelector skills={data.skills.filter(Boolean)} onChange={v => set("skills", v)} />
           </div>
 
           {/* Work Experience */}
@@ -318,50 +430,16 @@ export default function ResumeBuilder() {
             )}
           </div>
 
-          {/* Projects */}
+          {/* Skills */}
           <div className="rb-card">
-            <h3>Projects</h3>
-            {data.projects.length === 0 ? (
-              <div className="rb-empty-state">
-                <span className="rb-empty-icon">🛠️</span>
-                <p className="rb-empty-title">No projects added</p>
-                <p className="rb-empty-sub">Showcase your personal or professional projects with tech stack and links.</p>
-                <button className="rb-empty-btn" onClick={() => addArr("projects",{name:"",tech:"",url:"",description:""})}>+ Add Project</button>
+            <h3>Skills</h3>
+            {kwBanner && (
+              <div className="rb-kw-banner">
+                <span>🎯 <strong>{incoming.length} missing skill{incoming.length !== 1 ? "s" : ""}</strong> from <em>{incomingState.jobTitle || "your job match"}</em> pre-filled below.</span>
+                <button className="rb-kw-dismiss" onClick={() => setKwBanner(false)}>✕</button>
               </div>
-            ) : (
-              <>
-                {data.projects.map((p, i) => (
-                  <div key={i} className={`rb-item${isSaved("projects",i) ? " rb-item-saved" : ""}`}>
-                    <div className="rb-item-top">
-                      <span className="rb-item-label">
-                        {isSaved("projects",i)
-                          ? <><span className="rb-saved-tick">✓</span> {p.name||"Project"}{p.tech?` — ${p.tech}`:""}</>
-                          : "Filling details…"}
-                      </span>
-                      <div className="rb-item-actions">
-                        {isSaved("projects",i)
-                          ? <button className="rb-btn-edit" onClick={() => editItem("projects",i)}>✏️ Edit</button>
-                          : <button className="rb-btn-save-entry" onClick={() => saveItem("projects",i)}>✓ Save Entry</button>}
-                        <button className="rb-btn-remove" onClick={() => removeArr("projects",i)}>Remove</button>
-                      </div>
-                    </div>
-                    {!isSaved("projects",i) && (
-                      <>
-                        <div className="rb-grid2">
-                          <RF label="Project Name" value={p.name||""} onChange={v => updateArr("projects",i,{...p,name:v})} ph="Job Finder App" />
-                          <RF label="Tech Stack"   value={p.tech||""} onChange={v => updateArr("projects",i,{...p,tech:v})} ph="React, Django, PostgreSQL" />
-                          <RF label="Live URL"     value={p.url ||""} onChange={v => updateArr("projects",i,{...p,url:v})}  ph="https://yourproject.com" />
-                          <RF label="GitHub URL"   value={p.github||""} onChange={v => updateArr("projects",i,{...p,github:v})} ph="https://github.com/…" />
-                        </div>
-                        <RF label="Description" value={p.description||""} onChange={v => updateArr("projects",i,{...p,description:v})} ph="What the project does and your contribution…" area rows={3} />
-                        <button className="rb-btn-save-entry rb-btn-save-bottom" onClick={() => saveItem("projects",i)}>✓ Save Entry</button>
-                      </>
-                    )}
-                  </div>
-                ))}
-                <AddBtn onClick={() => addArr("projects",{name:"",tech:"",url:"",github:"",description:""})} label="Add Another Project" icon="🛠️" />
-              </>
             )}
+            <SkillSelector skills={data.skills.filter(Boolean)} onChange={v => set("skills", v)} />
           </div>
 
           {/* Custom Sections */}
@@ -403,6 +481,9 @@ export default function ResumeBuilder() {
         <div>
           <div className="rb-preview-actions">
             <button className="rb-btn-outline" onClick={() => setStep(2)}>← Edit</button>
+            <button className="rb-btn-primary" onClick={saveAsResume} disabled={saving}>
+              {saving ? "Saving..." : "Save as Resume"}
+            </button>
             <button className="rb-btn-primary" onClick={() => window.print()}>Download / Print</button>
           </div>
           <div className={`rb-resume-preview rb-template-${template}`} id="resume-print">
@@ -455,7 +536,7 @@ function SkillSelector({ skills, onChange }) {
 }
 
 function ResumePreview({ data, customSections }) {
-  const contactParts = [data.email, data.phone, data.location, data.linkedin].filter(Boolean);
+  const contactParts = [data.email, data.phone, data.location, data.linkedin, data.github, data.leetcode].filter(Boolean);
   return (
     <div className="rp-wrap">
       <div className="rp-header">
@@ -465,8 +546,24 @@ function ResumePreview({ data, customSections }) {
         {contactParts.length > 0 && <p className="rp-contact">{contactParts.join(" | ")}</p>}
       </div>
       {data.summary && <Section title="Professional Summary"><p className="rp-summary">{data.summary}</p></Section>}
-      {data.skills?.filter(Boolean).length > 0 && (
-        <Section title="Skills"><p className="rp-skills-text">{data.skills.filter(Boolean).join(" • ")}</p></Section>
+      {data.projects?.length > 0 && (
+        <Section title="Projects">
+          {data.projects.map((p, i) => (
+            <div key={i} className="rp-item">
+              <div className="rp-item-header">
+                <strong>{p.name}</strong>
+                <span>{p.tech}</span>
+              </div>
+              {p.description && (
+                <ul className="rp-bullets">
+                  {p.description.split("\n").filter(Boolean).map((line, j) => (
+                    <li key={j}>{line.replace(/^[-•*]\s*/, "")}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </Section>
       )}
       {data.experience?.length > 0 && (
         <Section title="Work Experience">
@@ -511,25 +608,6 @@ function ResumePreview({ data, customSections }) {
           ))}
         </Section>
       )}
-      {data.projects?.length > 0 && (
-        <Section title="Projects">
-          {data.projects.map((p, i) => (
-            <div key={i} className="rp-item">
-              <div className="rp-item-header">
-                <strong>{p.name}</strong>
-                <span>{p.tech}</span>
-              </div>
-              {p.description && (
-                <ul className="rp-bullets">
-                  {p.description.split("\n").filter(Boolean).map((line, j) => (
-                    <li key={j}>{line.replace(/^[-•*]\s*/, "")}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
-        </Section>
-      )}
       {customSections?.filter(s => s.title || s.content).map((sec, i) => (
         <Section key={i} title={sec.title || "Custom Section"}>
           <ul className="rp-bullets">
@@ -539,6 +617,9 @@ function ResumePreview({ data, customSections }) {
           </ul>
         </Section>
       ))}
+      {data.skills?.filter(Boolean).length > 0 && (
+        <Section title="Skills"><p className="rp-skills-text">{data.skills.filter(Boolean).join(" • ")}</p></Section>
+      )}
     </div>
   );
 }

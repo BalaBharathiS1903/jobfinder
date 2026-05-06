@@ -86,3 +86,18 @@
 .ra-btn-primary:hover { background: #1D4ED8; }
 .ra-btn-outline { padding: 0.7rem 1.5rem; background: var(--surface); color: var(--primary); border: 1.5px solid var(--primary); border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 0.9rem; }
 .ra-btn-outline:hover { background: var(--primary-light); }
+
+/* Skill Gap Analysis */
+.ra-gap-desc { font-size: 0.88rem; color: var(--muted); margin: 0 0 1rem; }
+.ra-gap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+.ra-gap-item { background: var(--light); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+.ra-gap-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+.ra-gap-icon { font-size: 1.5rem; }
+.ra-gap-header strong { font-size: 0.9rem; color: var(--dark); }
+.ra-gap-skills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ra-gap-skill { background: #FEE2E2; color: #DC2626; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
+.ra-gap-more { font-size: 0.75rem; color: var(--muted); font-weight: 500; }
+.ra-btn-prep { width: 100%; padding: 0.8rem; background: #7C3AED; color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+.ra-btn-prep:hover { background: #6D28D9; }
+.ra-gap-btn { display: block; width: 100%; padding: 0.6rem; color: #fff; text-align: center; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 700; margin-top: 0.75rem; transition: opacity 0.2s; }
+.ra-gap-btn:hover { opacity: 0.9; }

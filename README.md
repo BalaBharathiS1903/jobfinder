@@ -73,6 +73,14 @@ Get free API keys:
 - Re-parse anytime to refresh extracted data
 - Candidate profile card auto-generated from resume data
 
+### Resume Analyzer
+- Upload and analyze resume for ATS compatibility
+- Score breakdown: Contact Info, Skills, Keywords, Job Titles, Content Depth
+- Strengths and improvement suggestions
+- **Skill Gap Analysis** — shows missing skills based on available courses
+- **Course Recommendations** — direct links to specific courses to learn missing skills
+- **Link to Prep Hub** — navigate to view all courses
+
 ### Job Search
 - Real jobs from Adzuna API ranked 0–100% by skill match
 - Ghost job detection — AI trust scoring flags Fake / Suspicious / Verified
@@ -95,9 +103,12 @@ Get free API keys:
 - **Skill dropdown** — search from 70+ predefined skills or add custom
 - **Save Entry** per section — collapse/expand Work Experience, Education, Certifications, Projects
 - **Custom Sections** — add any section with a title and free-text content
+- **Save as Resume** — save built resume to Resumes page, replaces old resume
 - Download / Print as PDF
 
 ### Interview Prep Hub (`/prep`)
+
+**All Courses** — Browse all 15 available courses categorized by Programming Languages, Web & Frameworks, Data & Databases, and DevOps & Tools
 
 #### IQ Level Game
 - 25 questions randomly shuffled from a pool of 30 each session
@@ -123,10 +134,12 @@ Get free API keys:
 - Score as correct/total + percentage
 
 ### Learning Paths (`/prep/course/:id`)
-- 4 courses: Python Basics · Web Development · Data Science · Django REST API
+- 15 courses: Python Basics · Web Development · Data Science · Django REST API · JavaScript Advanced · SQL & Databases · Git & DevOps · Java Fundamentals · TypeScript · Go (Golang) · Rust · Kotlin · C/C++ · PHP & Laravel · Ruby & Rails · Swift & iOS
 - 5 modules per course, 4 lessons each (20 lessons total)
 - Lesson types: 📖 Reading · 💻 Coding · ⚙️ Setup
-- Click lesson to expand — shows GeeksforGeeks, MDN/W3Schools, and official docs links
+- Click lesson to expand — shows **GeeksforGeeks**, **W3Schools**, and **Official Docs** links
+- **YouTube Tutorial Videos** — embedded playlist player for each course with best quality tutorials
+- Watch tutorials directly in the site without leaving
 - Progress saved to **backend database** (not localStorage)
 - Collapsible modules with per-module progress bar
 - **Certificate** auto-issued when all 20 lessons completed
@@ -148,6 +161,7 @@ Get free API keys:
 |---|---|---|
 | GET | `/api/resume/` | List resumes |
 | POST | `/api/resume/upload/` | Upload new resume |
+| POST | `/api/resume/save-from-builder/` | Save resume from Resume Builder |
 | GET/DELETE | `/api/resume/<id>/` | Get or delete resume |
 | POST | `/api/resume/<id>/reparse/` | Re-parse existing file |
 | POST | `/api/resume/<id>/replace/` | Replace file + re-parse (saves version) |
@@ -227,6 +241,7 @@ resume_project/
 | v1.6 | Resume version control (replace + history), 5-resume limit, improved parser |
 | v1.7 | Resume Builder overhaul — save/edit entries, custom sections, profile photo, skill dropdown |
 | v1.8 | IQ/Skill Test shuffle + pause/resume · Mock Interview MCQ + end validation · Profile photo in profile page |
+| v1.9 | Resume Builder save to Resumes · Resume Analyzer skill gap analysis · All Courses page with 15 courses |
 
 ---
 

@@ -11,7 +11,14 @@
   text-transform: uppercase; color: var(--muted);
   margin-bottom: 1rem; padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
 }
+.ph-all-courses-btn {
+  font-size: 0.8rem; font-weight: 700; color: var(--primary);
+  text-decoration: none; text-transform: none; letter-spacing: normal;
+  transition: color 0.2s;
+}
+.ph-all-courses-btn:hover { color: #1D4ED8; text-decoration: underline; }
 .ph-section-sub { font-size: 0.85rem; color: var(--muted); margin: -0.5rem 0 1.25rem; }
 
 /* ── Practice tool cards ── */

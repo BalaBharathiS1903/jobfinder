@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import ResumeListView, ResumeDetailView, upload_resume, reparse_resume, replace_resume
+from .views import ResumeListView, ResumeDetailView, upload_resume, reparse_resume, replace_resume, save_from_builder
 
 urlpatterns = [
     path("", ResumeListView.as_view()),
     path("upload/", upload_resume),
+    path("save-from-builder/", save_from_builder),
     path("<int:pk>/", ResumeDetailView.as_view()),
     path("<int:pk>/reparse/", reparse_resume),
     path("<int:pk>/replace/", replace_resume),

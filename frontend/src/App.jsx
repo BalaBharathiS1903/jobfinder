@@ -19,6 +19,7 @@ import MockInterview from "./pages/MockInterview";
 import TestPage from "./pages/TestPage";
 import LearningPath from "./pages/LearningPath";
 import Certificate from "./pages/Certificate";
+import AllCourses from "./pages/AllCourses";
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/resume-analyzer" element={<ProtectedRoute><ResumeAnalyzer /></ProtectedRoute>} />
         <Route path="/resume-builder" element={<ProtectedRoute><ResumeBuilder /></ProtectedRoute>} />
         <Route path="/prep" element={<ProtectedRoute><PrepHub /></ProtectedRoute>} />
+        <Route path="/prep/courses" element={<ProtectedRoute><AllCourses /></ProtectedRoute>} />
         <Route path="/prep/iq" element={<ProtectedRoute><IQGame /></ProtectedRoute>} />
         <Route path="/prep/interview" element={<ProtectedRoute><MockInterview /></ProtectedRoute>} />
         <Route path="/prep/test" element={<ProtectedRoute><TestPage /></ProtectedRoute>} />

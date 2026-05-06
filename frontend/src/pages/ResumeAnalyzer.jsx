@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../lib/api";
+import { COURSES } from "./LearningPath";
 import "./ResumeAnalyzer.css";
 
 export default function ResumeAnalyzer() {
   const [selectedId, setSelectedId] = useState("");
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const { data: resumes = [] } = useQuery({
     queryKey: ["resumes"],
@@ -122,6 +124,38 @@ export default function ResumeAnalyzer() {
             </div>
           </div>
 
+          {/* Skill Gap Analysis */}
+          {analysis.skillGaps && analysis.skillGaps.length > 0 && (
+            <div className="ra-card">
+              <h3 className="ra-red">Recommended Courses to Learn Missing Skills</h3>
+              <p className="ra-gap-desc">
+                Based on your resume analysis, here are courses we recommend to fill your skill gaps:
+              </p>
+              <div className="ra-gap-grid">
+                {analysis.skillGaps.map((gap, i) => (
+                  <div key={i} className="ra-gap-item">
+                    <div className="ra-gap-header">
+                      <span className="ra-gap-icon">{gap.icon}</span>
+                      <strong>{gap.course}</strong>
+                    </div>
+                    <div className="ra-gap-skills">
+                      {gap.missing.slice(0, 5).map(s => (
+                        <span key={s} className="ra-gap-skill">{s}</span>
+                      ))}
+                      {gap.missing.length > 5 && <span className="ra-gap-more">+{gap.missing.length - 5} more</span>}
+                    </div>
+                    <Link to={`/prep/course/${gap.courseId}`} className="ra-gap-btn" style={{ background: gap.color }}>
+                      Start Learning →
+                    </Link>
+                  </div>
+                ))}
+              </div>
+              <button className="ra-btn-prep" onClick={() => navigate("/prep")}>
+                View All Courses in Prep Hub →
+              </button>
+            </div>
+          )}
+
           {/* CTA */}
           <div className="ra-cta">
             <Link to="/resume-builder" className="ra-btn-primary">Build Better Resume</Link>
@@ -181,6 +215,28 @@ function buildAnalysis(resume) {
     { title: "Keep it to 1-2 Pages", desc: "Recruiters spend 6-7 seconds on a resume — keep it concise and relevant." },
   ];
 
+  // Skill gap analysis
+  const resumeSkills = skills.map(s => s.toLowerCase());
+  const skillGaps = [];
+  
+  Object.entries(COURSES).forEach(([id, course]) => {
+    if (!course.skills) return;
+    const missing = course.skills.filter(s => !resumeSkills.includes(s.toLowerCase()));
+    if (missing.length > 0) {
+      skillGaps.push({
+        courseId: id,
+        course: course.title,
+        icon: course.icon,
+        color: course.color,
+        missing,
+        total: course.skills.length,
+      });
+    }
+  });
+
+  // Sort by most missing skills
+  skillGaps.sort((a, b) => b.missing.length - a.missing.length);
+
   return {
     score: total,
     grade, gradeColor, summary,
@@ -195,5 +251,6 @@ function buildAnalysis(resume) {
     improvements,
     suggestions,
     skills,
+    skillGaps: skillGaps.slice(0, 6), // Top 6 courses with missing skills
   };
 }

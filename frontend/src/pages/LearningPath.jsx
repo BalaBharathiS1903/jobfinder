@@ -4,6 +4,26 @@ import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
 import "./LearningPath.css";
 
+// YouTube tutorial playlists for each course (best quality tutorials)
+const YOUTUBE_PLAYLISTS = {
+  "python-basics":       "PL-osiE80TeTskrapNbzXhwoFUiLCjGgY7",  // Corey Schafer Python
+  "web-dev":             "PL4cUxeGkcC9ivBf_eKCPIAYXWzLlPAm6G",  // Net Ninja React
+  "data-science":        "PLeo1K3hjS3us_ELKYSj_Fth2tIEkdKXvV",  // codebasics Data Science
+  "django-rest":         "PL-51WBLyFTg2vW-_6XBoUpE7vpmoR3ztO",  // Dennis Ivy Django
+  "javascript-advanced": "PLillGF-RfqbbnEGy3ROiLWk7JMCuSyQtX",  // Traversy Media JS
+  "sql-databases":       "PLxCzCOWd7aiHqU4HKL7-SITyuSIcD93id",  // Gate Smashers SQL
+  "git-devops":          "PLeo1K3hjS3uu7CxAacxVndI4bSk_-pBKU",  // codebasics Git
+  "java-basics":         "PLsyeobzWxl7pe_IiTfNyr55kwJPWbgxB5",  // Telusko Java
+  "typescript":          "PLqq-6Pq4lTTanfgsbnFzfWUhhAz3tIezU",  // Academind TypeScript
+  "golang":              "PL4cUxeGkcC9gC88BEo9czgyS72A3doDeM",  // Net Ninja Go
+  "rust-lang":           "PLai5B987bZ9CoVR-QEIN9foz4QCJ0H2Y8",  // Let's Get Rusty
+  "kotlin":              "PLlxmoA0rQ-LwgK1JsnMsakYNACYGa1cjR",  // Smartherd Kotlin
+  "cpp":                 "PLBlnK6fEyqRh6isJ01MBnbNpV3ZsktSyS",  // Neso Academy C++
+  "php":                 "PL0eyrZgxdwhwBToawjm9faF1ixePexft-",  // Dani Krossing PHP
+  "ruby":                "PLillGF-Rfqbaf3GLBQ1-KV7s36naI-B7O",  // Traversy Media Ruby
+  "swift":               "PLMRqhzcHGw1ZqzYnpIuQAn2rcjhOtbqGX",  // CodeWithChris Swift
+};
+
 export const COURSES = {
   "python-basics": {
     title: "Python Basics", icon: "🐍", color: "#2563EB", light: "#EFF6FF",
@@ -740,66 +760,76 @@ const getResourceLinks = (courseId, lessonTitle) => {
 
   const links = [];
 
-  // GeeksforGeeks
-  const gfgBase = {
-    "python-basics":       "python",
-    "data-science":        "python",
-    "django-rest":         "django",
+  // GeeksforGeeks - corrected URLs
+  const gfgTopics = {
+    "python-basics": "python-programming-language",
+    "data-science": "python-programming-language",
+    "django-rest": "django-tutorial",
     "javascript-advanced": "javascript",
-    "sql-databases":       "sql",
-    "git-devops":          "git",
-    "java-basics":         "java",
-    "typescript":          "typescript",
-    "golang":              "go",
-    "rust-lang":           "rust",
-    "kotlin":              "kotlin",
-    "cpp":                 "cpp",
-    "php":                 "php",
-    "ruby":                "ruby",
-    "swift":               "swift",
+    "web-dev": "web-development",
+    "sql-databases": "sql-tutorial",
+    "git-devops": "git-tutorial",
+    "java-basics": "java",
+    "typescript": "typescript",
+    "golang": "golang",
+    "rust-lang": "rust",
+    "kotlin": "kotlin",
+    "cpp": "c-plus-plus",
+    "php": "php",
+    "ruby": "ruby-programming-language",
+    "swift": "swift",
   };
-  if (courseId === "web-dev") {
-    const t = lessonTitle.toLowerCase();
-    const ns = t.includes("html") || t.includes("document") || t.includes("semantic") || t.includes("form") || t.includes("accessibility") ? "html"
-             : t.includes("css") || t.includes("box") || t.includes("flex") || t.includes("grid") || t.includes("responsive") ? "css"
-             : t.includes("react") ? "reactjs" : "javascript";
-    links.push({ label: "GeeksforGeeks", url: `https://www.geeksforgeeks.org/${ns}/${slug}/`, color: "#2E7D32", bg: "#E7F3E8" });
-  } else if (gfgBase[courseId]) {
-    links.push({ label: "GeeksforGeeks", url: `https://www.geeksforgeeks.org/${gfgBase[courseId]}/${slug}/`, color: "#2E7D32", bg: "#E7F3E8" });
+  
+  if (gfgTopics[courseId]) {
+    links.push({ 
+      label: "GeeksforGeeks", 
+      url: `https://www.geeksforgeeks.org/${gfgTopics[courseId]}/`, 
+      color: "#2E7D32", 
+      bg: "#E7F3E8" 
+    });
   }
 
-  // MDN / W3Schools
-  if (courseId === "web-dev") {
-    links.push({ label: "MDN Web Docs", url: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(lessonTitle)}`, color: "#1565C0", bg: "#E3F2FD" });
-  } else if (courseId === "javascript-advanced") {
-    links.push({ label: "MDN Web Docs", url: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(lessonTitle)}`, color: "#1565C0", bg: "#E3F2FD" });
-  } else if (courseId === "sql-databases") {
-    links.push({ label: "W3Schools SQL", url: `https://www.w3schools.com/sql/`, color: "#1565C0", bg: "#E3F2FD" });
-  } else if (courseId === "java-basics") {
-    links.push({ label: "W3Schools Java", url: `https://www.w3schools.com/java/`, color: "#1565C0", bg: "#E3F2FD" });
-  } else {
-    links.push({ label: "W3Schools", url: `https://www.w3schools.com/python/`, color: "#1565C0", bg: "#E3F2FD" });
+  // W3Schools - corrected URLs
+  const w3Topics = {
+    "python-basics": "python",
+    "javascript-advanced": "js",
+    "web-dev": "html",
+    "sql-databases": "sql",
+    "java-basics": "java",
+    "typescript": "typescript",
+    "cpp": "cpp",
+    "php": "php",
+  };
+  
+  if (w3Topics[courseId]) {
+    links.push({ 
+      label: "W3Schools", 
+      url: `https://www.w3schools.com/${w3Topics[courseId]}/`, 
+      color: "#1565C0", 
+      bg: "#E3F2FD" 
+    });
   }
 
   // Official Docs
   const officialDocs = {
-    "python-basics":       { label: "Python Docs",     url: `https://docs.python.org/3/search.html?q=${encodeURIComponent(lessonTitle)}` },
-    "data-science":        { label: "Python Docs",     url: `https://docs.python.org/3/search.html?q=${encodeURIComponent(lessonTitle)}` },
-    "django-rest":         { label: "Django Docs",     url: `https://docs.djangoproject.com/en/stable/search/?q=${encodeURIComponent(lessonTitle)}` },
+    "python-basics":       { label: "Python Docs",     url: "https://docs.python.org/3/tutorial/" },
+    "data-science":        { label: "Pandas Docs",     url: "https://pandas.pydata.org/docs/" },
+    "django-rest":         { label: "Django Docs",     url: "https://docs.djangoproject.com/" },
     "web-dev":             { label: "React Docs",      url: "https://react.dev/learn" },
-    "javascript-advanced": { label: "Node.js Docs",    url: "https://nodejs.org/en/docs" },
-    "sql-databases":       { label: "PostgreSQL Docs", url: `https://www.postgresql.org/search/?q=${encodeURIComponent(lessonTitle)}` },
+    "javascript-advanced": { label: "MDN JavaScript",  url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" },
+    "sql-databases":       { label: "PostgreSQL Docs", url: "https://www.postgresql.org/docs/" },
     "git-devops":          { label: "Git Docs",        url: "https://git-scm.com/doc" },
     "java-basics":         { label: "Java Docs",       url: "https://docs.oracle.com/en/java/" },
-    "typescript":          { label: "TS Docs",         url: "https://www.typescriptlang.org/docs/" },
-    "golang":              { label: "Go Docs",         url: `https://pkg.go.dev/search?q=${encodeURIComponent(lessonTitle)}` },
-    "rust-lang":           { label: "Rust Docs",       url: "https://doc.rust-lang.org/book/" },
-    "kotlin":              { label: "Kotlin Docs",     url: "https://kotlinlang.org/docs/" },
-    "cpp":                 { label: "cppreference",    url: `https://en.cppreference.com/mwiki/index.php?search=${encodeURIComponent(lessonTitle)}` },
-    "php":                 { label: "PHP Docs",        url: `https://www.php.net/search.php?show=quickref&pattern=${encodeURIComponent(lessonTitle)}` },
+    "typescript":          { label: "TypeScript Docs", url: "https://www.typescriptlang.org/docs/" },
+    "golang":              { label: "Go Docs",         url: "https://go.dev/doc/" },
+    "rust-lang":           { label: "Rust Book",       url: "https://doc.rust-lang.org/book/" },
+    "kotlin":              { label: "Kotlin Docs",     url: "https://kotlinlang.org/docs/home.html" },
+    "cpp":                 { label: "C++ Reference",   url: "https://en.cppreference.com/" },
+    "php":                 { label: "PHP Docs",        url: "https://www.php.net/manual/en/" },
     "ruby":                { label: "Ruby Docs",       url: "https://ruby-doc.org/" },
     "swift":               { label: "Swift Docs",      url: "https://developer.apple.com/documentation/swift" },
   };
+  
   if (officialDocs[courseId]) {
     links.push({ ...officialDocs[courseId], color: "#E65100", bg: "#FFF3E0" });
   }
@@ -822,6 +852,7 @@ export default function LearningPath() {
   const [loading, setLoading] = useState(true);
   const [activeLesson, setActiveLesson] = useState(null); // "mi-li"
   const [openModules, setOpenModules] = useState({ 0: true });
+  const [showVideo, setShowVideo] = useState(false);
 
   // Load progress from backend
   useEffect(() => {
@@ -991,7 +1022,29 @@ export default function LearningPath() {
                                   {link.label}
                                 </a>
                               ))}
+                              {YOUTUBE_PLAYLISTS[courseId] && (
+                                <button
+                                  className="lp-ref-btn lp-youtube-btn"
+                                  onClick={() => setShowVideo(!showVideo)}
+                                  style={{ background: "#FEE2E2", color: "#DC2626", border: "1px solid #DC262633" }}
+                                >
+                                  {showVideo ? "Hide Video" : "📺 Watch Tutorial"}
+                                </button>
+                              )}
                             </div>
+                            {showVideo && YOUTUBE_PLAYLISTS[courseId] && (
+                              <div className="lp-video-container">
+                                <iframe
+                                  width="100%"
+                                  height="400"
+                                  src={`https://www.youtube.com/embed/videoseries?list=${YOUTUBE_PLAYLISTS[courseId]}`}
+                                  title="YouTube Tutorial"
+                                  frameBorder="0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </div>
+                            )}
                             {!done && (
                               <button
                                 className="lp-mark-btn"

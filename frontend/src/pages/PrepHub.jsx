@@ -99,7 +99,10 @@ export default function PrepHub() {
       </div>
 
       {/* Learning Paths */}
-      <div className="ph-section-label" style={{ marginTop: "2.5rem" }}>LEARNING PATHS</div>
+      <div className="ph-section-label" style={{ marginTop: "2.5rem" }}>
+        <span>LEARNING PATHS</span>
+        <Link to="/prep/courses" className="ph-all-courses-btn">View All Courses →</Link>
+      </div>
 
       {hasResume ? (
         <p className="ph-section-sub">

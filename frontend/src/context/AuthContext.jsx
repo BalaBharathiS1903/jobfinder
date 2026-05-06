@@ -3,11 +3,16 @@ import api from "../lib/api";
 
 const AuthContext = createContext(null);
 
+const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined); // undefined = loading
 
   useEffect(() => {
-    // Always try to fetch user — cookie is sent automatically
+    if (PUBLIC_PATHS.some(p => window.location.pathname.startsWith(p))) {
+      setUser(null);
+      return;
+    }
     api.get("/auth/me/")
       .then((r) => setUser(r.data))
       .catch(() => setUser(null));

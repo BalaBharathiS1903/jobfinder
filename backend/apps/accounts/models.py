@@ -6,6 +6,7 @@ from datetime import timedelta
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
+    has_prep_access = models.BooleanField(default=False)  # Prep Hub permission
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 

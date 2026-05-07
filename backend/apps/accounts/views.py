@@ -125,3 +125,56 @@ def reset_password_view(request):
         return Response({"detail": "Password reset successful. You can now log in."})
     except PasswordResetToken.DoesNotExist:
         return Response({"error": "Invalid token."}, status=400)
+
+
+# ── Superadmin endpoints ──────────────────────────────────────────────────────
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def admin_users_list(request):
+    if not request.user.is_superuser:
+        return Response({"error": "Forbidden."}, status=403)
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    # Return ALL users including staff
+    users = User.objects.all().order_by("-date_joined")
+    return Response(UserSerializer(users, many=True).data)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def admin_user_update(request, pk):
+    if not request.user.is_superuser:
+        return Response({"error": "Forbidden."}, status=403)
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    try:
+        target = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response(status=404)
+    if target.is_superuser and target != request.user:
+        return Response({"error": "Cannot modify other superadmin accounts."}, status=400)
+    if target == request.user and "is_active" in request.data:
+        return Response({"error": "Cannot deactivate yourself."}, status=400)
+    for field in ("is_active", "has_prep_access"):
+        if field in request.data:
+            setattr(target, field, bool(request.data[field]))
+    target.save()
+    return Response(UserSerializer(target).data)
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def admin_user_delete(request, pk):
+    if not request.user.is_superuser:
+        return Response({"error": "Forbidden."}, status=403)
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    try:
+        target = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response(status=404)
+    if target.is_superuser:
+        return Response({"error": "Cannot delete superadmin accounts."}, status=400)
+    target.delete()
+    return Response(status=204)

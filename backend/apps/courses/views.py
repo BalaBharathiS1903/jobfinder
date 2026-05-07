@@ -36,6 +36,8 @@ COURSE_TOTALS = {
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def course_progress(request, course_id):
+    if not request.user.has_prep_access and not request.user.is_superuser:
+        return Response({"error": "Prep Hub access denied. Contact admin."}, status=403)
     if course_id not in VALID_COURSES:
         return Response({"error": "Invalid course."}, status=404)
 
@@ -99,7 +101,8 @@ def course_certificate(request, course_id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def all_progress(request):
-    """Return progress + certificate status for all courses."""
+    if not request.user.has_prep_access and not request.user.is_superuser:
+        return Response({"error": "Prep Hub access denied. Contact admin."}, status=403)
     result = {}
     for course_id in VALID_COURSES:
         progress = CourseProgress.objects.filter(

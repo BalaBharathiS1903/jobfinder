@@ -40,8 +40,8 @@ def upload_resume(request):
         return Response({"error": "Unsupported file type. Use PDF, DOCX or TXT."}, status=400)
     if file.size > 5 * 1024 * 1024:
         return Response({"error": "File too large. Maximum size is 5 MB."}, status=400)
-    if Resume.objects.filter(user=request.user).count() >= MAX_RESUMES:
-        return Response({"error": f"Maximum {MAX_RESUMES} resumes allowed. Delete or replace an existing one."}, status=400)
+    if Resume.objects.filter(user=request.user).count() >= request.user.resume_upload_limit:
+        return Response({"error": f"Maximum {request.user.resume_upload_limit} resumes allowed. Delete or replace an existing one."}, status=400)
     parsed = parse_resume(file.read(), file.name)
     resume = Resume.objects.create(user=request.user, file=file, filename=file.name, version=1, **parsed)
     return Response(ResumeSerializer(resume).data, status=201)
@@ -154,8 +154,8 @@ def save_from_builder(request):
         resume.save()
         return Response(ResumeSerializer(resume).data)
 
-    if Resume.objects.filter(user=request.user).count() >= MAX_RESUMES:
-        return Response({"error": f"Maximum {MAX_RESUMES} resumes allowed. Delete or replace one first."}, status=400)
+    if Resume.objects.filter(user=request.user).count() >= request.user.resume_upload_limit:
+        return Response({"error": f"Maximum {request.user.resume_upload_limit} resumes allowed. Delete or replace one first."}, status=400)
 
     resume = Resume.objects.create(
         user=request.user, file=file_obj, filename=filename, version=1, **fields

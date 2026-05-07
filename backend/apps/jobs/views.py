@@ -22,6 +22,14 @@ def search_jobs(request):
     if not query:
         return Response({"error": "query is required."}, status=400)
 
+    # Enforce job search limit
+    from django.utils import timezone
+    from datetime import timedelta
+    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    daily_count = JobSearch.objects.filter(user=request.user, searched_at__gte=today_start).count()
+    if daily_count >= request.user.job_search_limit:
+        return Response({"error": f"Daily job search limit of {request.user.job_search_limit} reached. Contact admin to increase your limit."}, status=429)
+
     jobs = fetch_jobs(query, location, country)
     jobs = analyze_jobs_trust(jobs)
 

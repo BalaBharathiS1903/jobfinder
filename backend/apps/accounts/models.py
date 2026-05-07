@@ -6,7 +6,9 @@ from datetime import timedelta
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
-    has_prep_access = models.BooleanField(default=False)  # Prep Hub permission
+    has_prep_access = models.BooleanField(default=False)
+    resume_upload_limit = models.PositiveIntegerField(default=5)
+    job_search_limit = models.PositiveIntegerField(default=15)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 

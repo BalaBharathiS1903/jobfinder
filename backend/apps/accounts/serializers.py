@@ -28,4 +28,5 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "username", "email", "is_staff", "is_superuser", "is_active", "has_prep_access", "date_joined")
+        fields = ("id", "username", "email", "is_staff", "is_superuser", "is_active",
+                  "has_prep_access", "resume_upload_limit", "job_search_limit", "date_joined")

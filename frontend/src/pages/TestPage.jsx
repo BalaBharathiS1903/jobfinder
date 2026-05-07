@@ -160,17 +160,25 @@ export default function TestPage() {
   if (phase === "select") return (
     <div className="pg-page">
       <Link to="/prep" className="pg-back">← Back to Prep Hub</Link>
-      <div className="pg-intro-card" style={{ "--c": "#059669", "--cl": "#ECFDF5" }}>
-        <div className="pg-intro-icon">📝</div>
+      <div className="pg-intro-card" style={{ "--c": "#2563EB", "--cl": "#EFF6FF" }}>
+        <div className="pg-intro-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
         <h1>Skill Test</h1>
         <p>10 randomly shuffled MCQ questions. 30 seconds per question. New questions every session.</p>
         <div className="pg-role-grid">
           {Object.keys(ALL_TOPICS).map(t => (
             <button key={t} className={`pg-role-btn ${topic === t ? "active" : ""}`}
-              style={{ "--c": "#059669" }} onClick={() => setTopic(t)}>{t}</button>
+              style={{ "--c": "#2563EB" }} onClick={() => setTopic(t)}>{t}</button>
           ))}
         </div>
-        <button className="pg-btn-start" style={{ background: "#059669" }} disabled={!topic}
+        <button className="pg-btn-start" style={{ background: "#2563EB" }} disabled={!topic}
           onClick={() => startTest(topic)}>Start Test →</button>
       </div>
     </div>
@@ -179,11 +187,25 @@ export default function TestPage() {
   if (phase === "paused") return (
     <div className="pg-page">
       <div className="pg-paused-card">
-        <div className="pg-paused-icon">⏸</div>
+        <div className="pg-paused-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+          </svg>
+        </div>
         <h2>Test Paused</h2>
         <p>Q {current + 1} of {questions.length} · {timeLeft}s remaining on this question</p>
-        <button className="pg-btn-start" style={{ background: "#059669" }} onClick={resume}>▶ Resume Test</button>
-        <button className="pg-btn-quit" onClick={restart}>↺ Choose New Topic</button>
+        <button className="pg-btn-start" style={{ background: "#2563EB" }} onClick={resume}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "4px" }}>
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Resume Test
+        </button>
+        <button className="pg-btn-quit" onClick={restart}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "4px" }}>
+            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+          Choose New Topic
+        </button>
       </div>
     </div>
   );
@@ -195,7 +217,15 @@ export default function TestPage() {
       <div className="pg-page">
         <Link to="/prep" className="pg-back">← Back to Prep Hub</Link>
         <div className="pg-result-card">
-          <div className="pg-result-icon">📝</div>
+          <div className="pg-result-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
           <h2>{topic} Test Result</h2>
           <div className={`pg-pass-badge ${passed ? "pass" : "fail"}`}>{passed ? "PASSED ✓" : "FAILED ✗"}</div>
           <div className="pg-iq-band" style={{ color: grade.color, borderColor: grade.color }}>{grade.label}</div>
@@ -213,7 +243,7 @@ export default function TestPage() {
               </div>
             ))}
           </div>
-          <button className="pg-btn-start" style={{ background: "#059669" }} onClick={() => startTest(topic)}>
+          <button className="pg-btn-start" style={{ background: "#2563EB" }} onClick={() => startTest(topic)}>
             Retry (New Questions)
           </button>
           <button className="pg-btn-quit" style={{ marginTop: "0.5rem" }} onClick={restart}>Choose Another Topic</button>
@@ -229,14 +259,19 @@ export default function TestPage() {
         <span className="pg-qcount">Q {current + 1} / {questions.length}</span>
         <div className="pg-timer-wrap">
           <div className="pg-timer-bar">
-            <div className="pg-timer-fill" style={{ width: `${timePct}%`, background: timePct < 30 ? "#DC2626" : "#059669" }} />
+            <div className="pg-timer-fill" style={{ width: `${timePct}%`, background: timePct < 30 ? "#DC2626" : "#2563EB" }} />
           </div>
           <span className="pg-timer-text" style={{ color: timePct < 30 ? "#DC2626" : "var(--dark)" }}>{timeLeft}s</span>
         </div>
         <span className="pg-role-tag">{topic}</span>
-        <button className="pg-btn-pause" onClick={pause}>⏸ Pause</button>
+        <button className="pg-btn-pause" onClick={pause}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "4px" }}>
+            <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+          </svg>
+          Pause
+        </button>
       </div>
-      <div className="pg-question-card" style={{ "--c": "#059669", "--cl": "#ECFDF5" }}>
+      <div className="pg-question-card" style={{ "--c": "#2563EB", "--cl": "#EFF6FF" }}>
         <p className="pg-question">{q.q}</p>
         <div className="pg-options">
           {q.opts.map((opt, i) => (

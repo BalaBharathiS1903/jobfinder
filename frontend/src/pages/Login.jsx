@@ -20,8 +20,8 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await login(form.email, form.password);
-      navigate("/");
+      const me = await login(form.email, form.password);
+      navigate(me?.is_superuser ? "/admin-dashboard" : "/home");
     } catch (err) {
       const data = err.response?.data;
       setError(data?.error || data?.detail || "Invalid email or password.");
@@ -69,7 +69,6 @@ export default function Login() {
           </button>
         </form>
 
-        <p>Don't have an account? <Link to="/register">Create one</Link></p>
       </div>
     </div>
   );

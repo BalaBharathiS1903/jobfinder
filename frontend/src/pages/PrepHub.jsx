@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { COURSES } from "./LearningPath";
 import api from "../lib/api";
@@ -33,23 +32,13 @@ const TOOLS = [
 ];
 
 export default function PrepHub() {
-  const { user } = useAuth();
-
-  const { data: allProgress = {} } = useQuery({
-    queryKey: ["courses-progress"],
-    queryFn: () => api.get("/courses/progress/").then(r => r.data),
-    enabled: !!user,
-  });
-
-  // Fetch latest resume to get skills
   const { data: resumes = [] } = useQuery({
     queryKey: ["resumes"],
     queryFn: () => api.get("/resume/").then(r => r.data),
-    enabled: !!user,
   });
 
-  // Compute recommended courses based on resume skill gaps
   const resumeSkills = (resumes[0]?.skills || []).map(s => s.toLowerCase());
+  const hasResume = resumes.length > 0;
 
   const getRecommendation = (courseId) => {
     const course = COURSES[courseId];
@@ -62,14 +51,10 @@ export default function PrepHub() {
     return { missing, matched, matchPct };
   };
 
-  // Sort courses: highest gap (most missing skills) first = most needed
-  const sortedCourses = Object.entries(COURSES).sort(([idA], [idB]) => {
-    const recA = getRecommendation(idA);
-    const recB = getRecommendation(idB);
-    return (recB?.missing.length || 0) - (recA?.missing.length || 0);
-  });
-
-  const hasResume = resumes.length > 0;
+  const skillGapCourses = Object.entries(COURSES)
+    .map(([id, course]) => ({ id, course, rec: getRecommendation(id) }))
+    .filter(({ rec }) => rec && rec.missing.length > 0)
+    .sort((a, b) => b.rec.missing.length - a.rec.missing.length);
 
   return (
     <div className="ph-page">
@@ -98,95 +83,72 @@ export default function PrepHub() {
         ))}
       </div>
 
-      {/* Learning Paths */}
+      {/* Skill Gap Recommendations */}
       <div className="ph-section-label" style={{ marginTop: "2.5rem" }}>
-        <span>LEARNING PATHS</span>
+        <span>SKILL GAP — COURSES TO IMPROVE</span>
         <Link to="/prep/courses" className="ph-all-courses-btn">View All Courses →</Link>
       </div>
 
-      {hasResume ? (
-        <p className="ph-section-sub">
-          Based on your resume skills — courses with the most missing skills are shown first.
-        </p>
-      ) : (
+      {!hasResume ? (
         <div className="ph-resume-hint">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
           <span>
-            <Link to="/resumes">Upload your resume</Link> to get personalised course recommendations based on your skill gaps.
+            <Link to="/resumes">Upload your resume</Link> to see which courses will improve your skill gaps.
           </span>
         </div>
-      )}
+      ) : skillGapCourses.length === 0 ? (
+        <div className="ph-skills-covered" style={{ display: "inline-block", marginBottom: "1rem" }}>
+          🎉 All course skills are already covered in your resume!
+        </div>
+      ) : (
+        <>
+          <p className="ph-section-sub">
+            Courses ranked by skill gap — learn what's missing from your resume first.
+          </p>
+          <div className="ph-courses-grid">
+            {skillGapCourses.map(({ id, course, rec }) => (
+              <div key={id} className="ph-course-card ph-course-recommended"
+                style={{ "--cc": course.color, "--cl": course.light }}>
 
-      <div className="ph-courses-grid">
-        {sortedCourses.map(([id, course]) => {
-          const p    = allProgress[id] || { done: 0, total: 0, pct: 0, certificate: null };
-          const rec  = getRecommendation(id);
-          const earned = !!p.certificate;
-
-          return (
-            <div key={id} className={`ph-course-card${rec?.missing.length > 0 && hasResume ? " ph-course-recommended" : ""}`}
-              style={{ "--cc": course.color, "--cl": course.light }}>
-
-              <div className="ph-course-top">
-                <div className="ph-course-icon-wrap" style={{ background: course.color }}>
-                  <span className="ph-course-icon">{course.icon}</span>
+                <div className="ph-course-top">
+                  <div className="ph-course-icon-wrap" style={{ background: course.color }}>
+                    <span className="ph-course-icon">{course.icon}</span>
+                  </div>
+                  <div className="ph-course-badges">
+                    <span className="ph-course-level">{course.level}</span>
+                    <span className="ph-course-dur">{course.duration}</span>
+                  </div>
                 </div>
-                <div className="ph-course-badges">
-                  <span className="ph-course-level">{course.level}</span>
-                  <span className="ph-course-dur">{course.duration}</span>
-                </div>
-              </div>
 
-              <h3>{course.title}</h3>
-              <p>{course.desc}</p>
+                <h3>{course.title}</h3>
+                <p>{course.desc}</p>
 
-              {/* Skill gap analysis */}
-              {hasResume && rec && (
                 <div className="ph-skill-gap">
-                  {rec.missing.length > 0 ? (
-                    <>
-                      <div className="ph-gap-bar-wrap">
-                        <div className="ph-gap-bar">
-                          <div className="ph-gap-fill" style={{ width: `${rec.matchPct}%`, background: course.color }} />
-                        </div>
-                        <span className="ph-gap-pct">{rec.matchPct}% match</span>
-                      </div>
-                      <div className="ph-missing-skills">
-                        <span className="ph-missing-label">Missing skills:</span>
-                        {rec.missing.slice(0, 4).map(s => (
-                          <span key={s} className="ph-missing-tag">{s}</span>
-                        ))}
-                        {rec.missing.length > 4 && <span className="ph-missing-more">+{rec.missing.length - 4}</span>}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="ph-skills-covered">
-                      All skills covered in your resume
+                  <div className="ph-gap-bar-wrap">
+                    <div className="ph-gap-bar">
+                      <div className="ph-gap-fill" style={{ width: `${rec.matchPct}%`, background: course.color }} />
                     </div>
-                  )}
+                    <span className="ph-gap-pct">{rec.matchPct}% match</span>
+                  </div>
+                  <div className="ph-missing-skills">
+                    <span className="ph-missing-label">Missing skills:</span>
+                    {rec.missing.slice(0, 4).map(s => (
+                      <span key={s} className="ph-missing-tag">{s}</span>
+                    ))}
+                    {rec.missing.length > 4 && <span className="ph-missing-more">+{rec.missing.length - 4}</span>}
+                  </div>
                 </div>
-              )}
 
-              {/* Course progress */}
-              <div className="ph-course-progress">
-                <div className="ph-prog-bar">
-                  <div className="ph-prog-fill" style={{ width: `${p.pct}%`, background: course.color }} />
+                <div className="ph-course-actions">
+                  <Link to={`/prep/course/${id}`} className="ph-btn-start" style={{ background: course.color }}>
+                    Start Learning →
+                  </Link>
                 </div>
-                <span>{p.pct}% · {p.done}/{p.total || 20} lessons</span>
               </div>
-
-              <div className="ph-course-actions">
-                <Link to={`/prep/course/${id}`} className="ph-btn-start" style={{ background: course.color }}>
-                  {p.done === 0 ? "Start Course" : p.done === p.total ? "Review Course" : "Continue →"}
-                </Link>
-                {earned && (
-                  <Link to={`/prep/certificate/${id}`} className="ph-btn-cert">Certificate</Link>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            ))}
+          </div>
+        </>
+      )}
 
     </div>
   );

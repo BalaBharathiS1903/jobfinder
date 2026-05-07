@@ -1,6 +1,23 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Home.css";
+
+function useReveal() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const nodes = el.querySelectorAll(".reveal");
+    const obs = new IntersectionObserver(
+      (entries) => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("revealed"); obs.unobserve(e.target); } }),
+      { threshold: 0.12 }
+    );
+    nodes.forEach(n => obs.observe(n));
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+}
 
 const FEATURES = [
   { icon: "📄", title: "Resume Upload & Parsing", desc: "Upload PDF, DOCX or TXT. Skills, education, projects and keywords auto-extracted instantly.", link: "/resumes",         accent: false },
@@ -16,12 +33,6 @@ const STEPS = [
   { num: "02", icon: "🧑💼", title: "Build Profile", desc: "Add experience, skills, certifications and social links" },
   { num: "03", icon: "🔍", title: "Match & Search",  desc: "Find jobs ranked by how well they match your exact skill set" },
   { num: "04", icon: "🧠", title: "Prep & Apply",    desc: "Sharpen skills with IQ tests and mock interviews, then apply safely" },
-];
-
-const PREP_TOOLS = [
-  { icon: "🧠", title: "IQ Level Game",  desc: "25 questions · Timed · IQ band result",   link: "/prep/iq",        color: "#7C3AED", light: "#F5F3FF" },
-  { icon: "🎤", title: "Mock Interview", desc: "5 roles · Reveal answers · Self-rate",     link: "/prep/interview", color: "#2563EB", light: "#EFF6FF" },
-  { icon: "📝", title: "Skill Test",     desc: "5 topics · MCQ · Pass/Fail grade",         link: "/prep/test",      color: "#059669", light: "#ECFDF5" },
 ];
 
 const STATS = [
@@ -42,35 +53,27 @@ const TIPS = [
 
 export default function Home() {
   const { user } = useAuth();
-
-
+  const pageRef = useReveal();
 
   return (
-    <div className="home">
+    <div className="home" ref={pageRef}>
 
       {/* ── Hero ── */}
       <section className="hero">
         <div className="hero-inner">
-          <span className="hero-badge">✦ AI-Powered Career Platform</span>
-          <h1>Your Complete <span className="hero-hl">Career Toolkit</span></h1>
-          <p className="hero-sub">
+          <span className="hero-badge hero-anim-1">✦ AI-Powered Career Platform</span>
+          <h1 className="hero-anim-2">Your Complete <span className="hero-hl">Career Toolkit</span></h1>
+          <p className="hero-sub hero-anim-3">
             Resume parsing · Job matching · Ghost job detection · ATS resume builder ·
             IQ tests · Mock interviews — everything in one place.
           </p>
-          <div className="hero-btns">
-            {user ? (
-              <>
-                <Link to="/resumes" className="btn-primary">My Resumes</Link>
-                <Link to="/prep"    className="btn-outline">Prep Hub →</Link>
-              </>
-            ) : (
-              <>
-                <Link to="/register" className="btn-primary">Get Started Free</Link>
-                <Link to="/login"    className="btn-outline">Sign In →</Link>
-              </>
-            )}
-          </div>
-          <div className="hero-pills">
+          {user && (
+            <div className="hero-btns hero-anim-4">
+              <Link to="/resumes" className="btn-primary">My Resumes</Link>
+              <Link to="/prep"    className="btn-outline">Prep Hub →</Link>
+            </div>
+          )}
+          <div className="hero-pills hero-anim-5">
             <span className="pill">✅ Real Adzuna Jobs</span>
             <span className="pill">✅ 0–100% Match Score</span>
             <span className="pill">✅ Ghost Job Filter</span>
@@ -90,17 +93,17 @@ export default function Home() {
         ))}
       </section>
 
-
-
       {/* ── Features ── */}
       <section className="feat-section">
         <div className="feat-inner">
-          <div className="sect-label">FEATURES</div>
-          <h2 className="sect-title">Everything You Need</h2>
-          <p className="sect-sub">From resume parsing to interview prep — all in one platform</p>
+          <div className="sect-label reveal">FEATURES</div>
+          <h2 className="sect-title reveal">Everything You Need</h2>
+          <p className="sect-sub reveal">From resume parsing to interview prep — all in one platform</p>
           <div className="feat-grid">
-            {FEATURES.map(f => (
-              <Link to={f.link} key={f.title} className={`feat-card ${f.accent ? "feat-card--accent" : ""}`}>
+            {FEATURES.map((f, i) => (
+              <Link to={f.link} key={f.title}
+                className={`feat-card reveal ${f.accent ? "feat-card--accent" : ""}`}
+                style={{ animationDelay: `${i * 0.08}s` }}>
                 <div className="feat-icon">{f.icon}</div>
                 <h3>{f.title}</h3>
                 <p>{f.desc}</p>
@@ -111,38 +114,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Prep Hub spotlight ── */}
-      <section className="prep-section">
-        <div className="feat-inner">
-          <div className="sect-label">INTERVIEW PREP HUB</div>
-          <h2 className="sect-title">Sharpen Your Skills</h2>
-          <p className="sect-sub">Three tools to get you interview-ready before the big day</p>
-          <div className="prep-grid">
-            {PREP_TOOLS.map(t => (
-              <Link key={t.link} to={t.link} className="prep-card"
-                style={{ "--pc": t.color, "--pl": t.light }}>
-                <div className="prep-card-icon">{t.icon}</div>
-                <h3>{t.title}</h3>
-                <p>{t.desc}</p>
-                <span className="prep-card-cta" style={{ color: t.color }}>Start now →</span>
-              </Link>
-            ))}
-          </div>
-          <div className="prep-cta-wrap">
-            <Link to="/prep" className="btn-prep-hub">Go to Prep Hub →</Link>
-          </div>
-        </div>
-      </section>
-
       {/* ── How it works ── */}
       <section className="steps-section">
         <div className="feat-inner">
-          <div className="sect-label">HOW IT WORKS</div>
-          <h2 className="sect-title">Four Simple Steps</h2>
-          <p className="sect-sub">From zero to job-ready in minutes</p>
+          <div className="sect-label reveal">HOW IT WORKS</div>
+          <h2 className="sect-title reveal">Four Simple Steps</h2>
+          <p className="sect-sub reveal">From zero to job-ready in minutes</p>
           <div className="steps-grid">
             {STEPS.map((s, i) => (
-              <div key={s.num} className="step-card">
+              <div key={s.num} className="step-card reveal" style={{ animationDelay: `${i * 0.1}s` }}>
                 <div className="step-icon">{s.icon}</div>
                 <div className="step-num">{s.num}</div>
                 <h4>{s.title}</h4>
@@ -157,12 +137,12 @@ export default function Home() {
       {/* ── Tips ── */}
       <section className="tips-section">
         <div className="feat-inner">
-          <div className="sect-label">PRO TIPS</div>
-          <h2 className="sect-title">Tips for Job Seekers</h2>
-          <p className="sect-sub">Make the most of VDart Academy with these smart strategies</p>
+          <div className="sect-label reveal">PRO TIPS</div>
+          <h2 className="sect-title reveal">Tips for Job Seekers</h2>
+          <p className="sect-sub reveal">Make the most of VDart Academy with these smart strategies</p>
           <div className="tips-grid">
             {TIPS.map((t, i) => (
-              <div key={i} className="tip-card">
+              <div key={i} className="tip-card reveal" style={{ animationDelay: `${i * 0.07}s` }}>
                 <span className="tip-icon">{t.icon}</span>
                 <p>{t.tip}</p>
               </div>
@@ -171,21 +151,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      {!user && (
-        <section className="cta-section">
-          <div className="feat-inner cta-inner">
-            <h2>Ready to land your perfect job?</h2>
-            <p>Join job seekers using AI-powered resume matching, ghost job detection and interview prep — all free.</p>
-            <div className="cta-btns">
-              <Link to="/register" className="btn-primary btn-lg">Get Started Free →</Link>
-              <Link to="/login"    className="btn-cta-outline">Sign In</Link>
-            </div>
-          </div>
-        </section>
-      )}
-
     </div>
   );
 }
-

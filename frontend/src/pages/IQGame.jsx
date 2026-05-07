@@ -111,18 +111,48 @@ export default function IQGame() {
   if (phase === "intro") return (
     <div className="pg-page">
       <Link to="/prep" className="pg-back">← Back to Prep Hub</Link>
-      <div className="pg-intro-card" style={{ "--c": "#7C3AED", "--cl": "#F5F3FF" }}>
-        <div className="pg-intro-icon">🧠</div>
+      <div className="pg-intro-card" style={{ "--c": "#2563EB", "--cl": "#EFF6FF" }}>
+        <div className="pg-intro-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.14Z"/>
+            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.14Z"/>
+          </svg>
+        </div>
         <h1>IQ Level Game</h1>
         <p>25 randomly selected questions covering logical reasoning, number patterns, spatial thinking and verbal ability.</p>
         <ul className="pg-rules">
-          <li>⏱ Total time: <strong>~17 minutes</strong> (40s per question)</li>
-          <li>🔀 Questions are shuffled every session</li>
-          <li>⏸ You can pause and resume anytime</li>
-          <li>✅ Each correct answer = 1 point</li>
-          <li>📊 Your IQ band is shown at the end</li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "6px" }}>
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Total time: <strong>~17 minutes</strong> (40s per question)
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "6px" }}>
+              <polyline points="16 3 21 3 21 8"/><path d="M4 20 21 3"/><polyline points="21 16 21 21 16 21"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/>
+            </svg>
+            Questions are shuffled every session
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "6px" }}>
+              <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+            </svg>
+            You can pause and resume anytime
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "6px" }}>
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Each correct answer = 1 point
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "6px" }}>
+              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            Your IQ band is shown at the end
+          </li>
         </ul>
-        <button className="pg-btn-start" style={{ background: "#7C3AED" }} onClick={startGame}>Start IQ Test →</button>
+        <button className="pg-btn-start" style={{ background: "#2563EB" }} onClick={startGame}>Start IQ Test →</button>
       </div>
     </div>
   );
@@ -133,7 +163,12 @@ export default function IQGame() {
       <div className="pg-page">
         <Link to="/prep" className="pg-back">← Back to Prep Hub</Link>
         <div className="pg-result-card">
-          <div className="pg-result-icon">🧠</div>
+          <div className="pg-result-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.14Z"/>
+              <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.14Z"/>
+            </svg>
+          </div>
           <h2>Your IQ Band</h2>
           <div className="pg-iq-band" style={{ color: band.color, borderColor: band.color }}>{band.label}</div>
           <p className="pg-band-desc">{band.desc}</p>
@@ -151,7 +186,7 @@ export default function IQGame() {
               </div>
             ))}
           </div>
-          <button className="pg-btn-start" style={{ background: "#7C3AED" }} onClick={startGame}>Try Again (New Questions)</button>
+          <button className="pg-btn-start" style={{ background: "#2563EB" }} onClick={startGame}>Try Again (New Questions)</button>
         </div>
       </div>
     );
@@ -161,11 +196,25 @@ export default function IQGame() {
     return (
       <div className="pg-page">
         <div className="pg-paused-card">
-          <div className="pg-paused-icon">⏸</div>
+          <div className="pg-paused-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+            </svg>
+          </div>
           <h2>Test Paused</h2>
           <p>Q {current + 1} of {questions.length} · {mins}:{secs} remaining</p>
-          <button className="pg-btn-start" style={{ background: "#7C3AED" }} onClick={resume}>▶ Resume Test</button>
-          <button className="pg-btn-quit" onClick={startGame}>↺ Restart with New Questions</button>
+          <button className="pg-btn-start" style={{ background: "#2563EB" }} onClick={resume}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "4px" }}>
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Resume Test
+          </button>
+          <button className="pg-btn-quit" onClick={startGame}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "4px" }}>
+              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            Restart with New Questions
+          </button>
         </div>
       </div>
     );
@@ -178,13 +227,18 @@ export default function IQGame() {
         <span className="pg-qcount">Q {current + 1} / {questions.length}</span>
         <div className="pg-timer-wrap">
           <div className="pg-timer-bar">
-            <div className="pg-timer-fill" style={{ width: `${pct}%`, background: pct < 20 ? "#DC2626" : "#7C3AED" }} />
+            <div className="pg-timer-fill" style={{ width: `${pct}%`, background: pct < 20 ? "#DC2626" : "#2563EB" }} />
           </div>
           <span className="pg-timer-text" style={{ color: pct < 20 ? "#DC2626" : "var(--dark)" }}>{mins}:{secs}</span>
         </div>
-        <button className="pg-btn-pause" onClick={pause}>⏸ Pause</button>
+        <button className="pg-btn-pause" onClick={pause}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "4px" }}>
+            <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+          </svg>
+          Pause
+        </button>
       </div>
-      <div className="pg-question-card" style={{ "--c": "#7C3AED", "--cl": "#F5F3FF" }}>
+      <div className="pg-question-card" style={{ "--c": "#2563EB", "--cl": "#EFF6FF" }}>
         <p className="pg-question">{q.q}</p>
         <div className="pg-options">
           {q.opts.map((opt, i) => (

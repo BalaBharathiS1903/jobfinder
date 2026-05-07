@@ -37,6 +37,14 @@
 
 .navbar-links a:hover { color: var(--primary); background: var(--primary-light); }
 
+/* Nav links with icons */
+.nav-icon-link {
+  display: flex !important;
+  align-items: center;
+  gap: 0.35rem;
+}
+.nav-icon-link svg { flex-shrink: 0; }
+
 .btn-nav {
   padding: 0.4rem 1rem;
   border-radius: 7px;
@@ -93,7 +101,8 @@
 
 .nav-avatar:hover { background: #DBEAFE; }
 .nav-username { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.nav-caret { font-size: 0.6rem; color: var(--muted); }
+.nav-caret { display: flex; align-items: center; color: var(--muted); }
+.nav-caret svg { flex-shrink: 0; }
 
 /* Dropdown */
 .user-dropdown {
@@ -170,11 +179,13 @@
   text-decoration: none;
   transition: background 0.15s;
 }
-
+.drop-link svg { width: 15px; height: 15px; flex-shrink: 0; }
 .drop-link:hover { background: var(--light); color: var(--primary) !important; }
 
 .drop-logout {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
   text-align: left;
   padding: 0.6rem 1.25rem;
@@ -185,5 +196,8 @@
   cursor: pointer;
   transition: background 0.15s;
 }
-
+.drop-logout svg { width: 15px; height: 15px; flex-shrink: 0; }
 .drop-logout:hover { background: #FEF2F2; }
+
+.drop-icon { display: inline-flex; align-items: center; width: 15px; height: 15px; }
+.drop-icon svg { width: 100%; height: 100%; }

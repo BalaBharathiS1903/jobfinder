@@ -298,21 +298,48 @@ export default function MockInterview() {
 
   const score = answers.filter((a, i) => a === questions[i]?.ans).length;
   const pct   = questions.length ? Math.round((score / questions.length) * 100) : 0;
-  const resultLabel = pct >= 80 ? "Excellent 🎉" : pct >= 60 ? "Good 👍" : pct >= 40 ? "Needs Work 📚" : "Keep Practising 💪";
+  const resultLabel = pct >= 80 ? "Excellent" : pct >= 60 ? "Good" : pct >= 40 ? "Needs Work" : "Keep Practising";
   const resultColor = pct >= 80 ? "#059669" : pct >= 60 ? "#2563EB" : pct >= 40 ? "#D97706" : "#DC2626";
 
   if (phase === "select") return (
     <div className="pg-page">
       <Link to="/prep" className="pg-back">← Back to Prep Hub</Link>
       <div className="pg-intro-card" style={{ "--c": "#2563EB", "--cl": "#EFF6FF" }}>
-        <div className="pg-intro-icon">🎤</div>
+        <div className="pg-intro-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="22"/>
+            <line x1="8" y1="22" x2="16" y2="22"/>
+          </svg>
+        </div>
         <h1>Mock Interview</h1>
         <p>Select your role. Each question has 4 options — pick the best answer, then see the full explanation. New questions every session.</p>
         <ul className="pg-rules">
-          <li>🔀 Questions are shuffled every session</li>
-          <li>✅ Pick the correct option from 4 choices</li>
-          <li>💡 Full explanation revealed after each answer</li>
-          <li>📊 Score validated at the end</li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "6px" }}>
+              <polyline points="16 3 21 3 21 8"/><path d="M4 20 21 3"/><polyline points="21 16 21 21 16 21"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/>
+            </svg>
+            Questions are shuffled every session
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "6px" }}>
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Pick the correct option from 4 choices
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "6px" }}>
+              <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            Full explanation revealed after each answer
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "6px" }}>
+              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            Score validated at the end
+          </li>
         </ul>
         <div className="pg-role-grid">
           {Object.keys(ALL_ROLES).map(r => (
@@ -331,7 +358,14 @@ export default function MockInterview() {
     <div className="pg-page">
       <Link to="/prep" className="pg-back">← Back to Prep Hub</Link>
       <div className="pg-result-card">
-        <div className="pg-result-icon">🎤</div>
+        <div className="pg-result-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="22"/>
+            <line x1="8" y1="22" x2="16" y2="22"/>
+          </svg>
+        </div>
         <h2>Interview Result — {role}</h2>
         <div className="pg-iq-band" style={{ color: resultColor, borderColor: resultColor }}>{resultLabel}</div>
         <div className="pg-score-row">

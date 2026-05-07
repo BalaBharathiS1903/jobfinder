@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import "./ManualProfile.css";
 import JobMatchCard from "../components/JobMatchCard";
@@ -22,6 +23,7 @@ const TABS = [
 
 export default function ManualProfile() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [tab, setTab] = useState("personal");
   const [saved, setSaved] = useState(false);
   const [matchLocation, setMatchLocation] = useState("");
@@ -68,10 +70,16 @@ export default function ManualProfile() {
           <h1>Professional Profile</h1>
           <p>Build and manage your career profile</p>
         </div>
-        <button className={`mp-btn-save ${saved ? "saved" : ""}`}
-          onClick={() => mutation.mutate(form)} disabled={mutation.isPending}>
-          {saved ? "Saved" : mutation.isPending ? "Saving…" : "Save Profile"}
-        </button>
+        <div className="mp-header-actions">
+          <button className="mp-btn-activity" onClick={() => navigate("/my-activity")}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            My Activity
+          </button>
+          <button className={`mp-btn-save ${saved ? "saved" : ""}`}
+            onClick={() => mutation.mutate(form)} disabled={mutation.isPending}>
+            {saved ? "Saved" : mutation.isPending ? "Saving…" : "Save Profile"}
+          </button>
+        </div>
       </div>
 
       <div className="mp-card mp-profile-card">

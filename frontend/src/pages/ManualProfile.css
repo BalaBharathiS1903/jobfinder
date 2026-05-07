@@ -8,6 +8,17 @@
 .mp-page-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--dark); margin: 0 0 0.2rem; }
 .mp-page-header p  { font-size: 0.85rem; color: var(--muted); margin: 0; }
 
+.mp-header-actions { display: flex; align-items: center; gap: 0.6rem; }
+
+.mp-btn-activity {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.6rem 1.2rem; background: var(--light); color: var(--primary);
+  border: 1.5px solid var(--primary); border-radius: 7px;
+  font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.2s;
+}
+.mp-btn-activity:hover { background: var(--primary-light); }
+.mp-btn-activity svg { flex-shrink: 0; }
+
 .mp-btn-save {
   padding: 0.6rem 1.5rem; background: var(--primary); color: #fff;
   border: none; border-radius: 7px; font-size: 0.88rem; font-weight: 700;

@@ -13,7 +13,7 @@ A full-stack career platform built with Django + React. Upload your resume, matc
 | Job APIs | Adzuna (primary) · JSearch/RapidAPI (fallback) |
 | Resume Parsing | PyPDF2 · python-docx · regex NLP |
 | Database | SQLite (dev) · PostgreSQL (prod) |
-| Auth | JWT (access + refresh tokens) |
+| Auth | JWT (access + refresh tokens) + Email Authentication |
 
 ---
 
@@ -65,11 +65,22 @@ Get free API keys:
 
 ## Features
 
+### Admin Dashboard (`/admin-dashboard`)
+- **User Management** — view all users, search by name/email
+- **User Stats** — total users, active/inactive count, prep access count
+- **User Actions** — activate/deactivate, delete, view full profile
+- **Prep Hub Access** — grant or revoke prep hub access per user
+- **Course Approval** — approve/revoke individual courses or approve all at once
+- **Limits Control** — set resume upload limit and daily job search limit per user
+- **User Detail View** — full profile, resumes, job searches, saved jobs, course progress
+- **Create User** — admin can create new user accounts
+- **Protected Superadmin** — superadmin accounts cannot be modified or deleted
+
 ### Resume
 - Upload PDF, DOCX or TXT — skills, education, projects, keywords auto-extracted
 - **Version control** — every re-parse or file replace saves a snapshot (v1, v2, v3…)
 - **Replace** existing resume file without losing history
-- Max 5 resumes per user
+- Max 5 resumes per user (configurable by admin)
 - Re-parse anytime to refresh extracted data
 - Candidate profile card auto-generated from resume data
 
@@ -108,7 +119,11 @@ Get free API keys:
 
 ### Interview Prep Hub (`/prep`)
 
-**All Courses** — Browse all 15 available courses categorized by Programming Languages, Web & Frameworks, Data & Databases, and DevOps & Tools
+**Recommended Courses** — Shows only courses that match skills from your resume, ranked by relevance
+
+**All Courses** — Browse all 16 available courses categorized by Programming Languages, Web & Frameworks, Data & Databases, and DevOps & Tools
+
+**Course Access Control** — Admin approves courses per user. Users can only access approved courses.
 
 #### IQ Level Game
 - 25 questions randomly shuffled from a pool of 30 each session
@@ -134,7 +149,7 @@ Get free API keys:
 - Score as correct/total + percentage
 
 ### Learning Paths (`/prep/course/:id`)
-- 15 courses: Python Basics · Web Development · Data Science · Django REST API · JavaScript Advanced · SQL & Databases · Git & DevOps · Java Fundamentals · TypeScript · Go (Golang) · Rust · Kotlin · C/C++ · PHP & Laravel · Ruby & Rails · Swift & iOS
+- 16 courses: Python Basics · Web Development · Data Science · Django REST API · JavaScript Advanced · SQL & Databases · Git & DevOps · Java Fundamentals · TypeScript · Go (Golang) · Rust · Kotlin · C/C++ · PHP & Laravel · Ruby & Rails · Swift & iOS
 - 5 modules per course, 4 lessons each (20 lessons total)
 - Lesson types: 📖 Reading · 💻 Coding · ⚙️ Setup
 - Click lesson to expand — shows **GeeksforGeeks**, **W3Schools**, and **Official Docs** links
@@ -152,9 +167,12 @@ Get free API keys:
 ### Auth
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/auth/register/` | Register |
-| POST | `/api/auth/login/` | Login (returns JWT) |
+| POST | `/api/auth/login/` | Login with email + password (returns JWT) |
 | POST | `/api/auth/refresh/` | Refresh access token |
+| POST | `/api/auth/logout/` | Logout |
+| GET | `/api/auth/me/` | Get current user |
+| POST | `/api/auth/forgot-password/` | Request password reset |
+| POST | `/api/auth/reset-password/` | Reset password with token |
 
 ### Resume
 | Method | Endpoint | Description |
@@ -184,9 +202,21 @@ Get free API keys:
 ### Courses
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/courses/progress/` | All courses progress + cert status |
+| GET | `/api/courses/progress/` | All courses progress + cert status + approval |
 | GET/POST | `/api/courses/progress/<course_id>/` | Get or save lesson progress |
 | GET | `/api/courses/certificate/<course_id>/` | Get earned certificate |
+| GET | `/api/courses/admin/<user_id>/access/` | Get approved courses (admin) |
+| POST | `/api/courses/admin/<user_id>/toggle/` | Approve/revoke course (admin) |
+| POST | `/api/courses/admin/<user_id>/approve-all/` | Approve all courses (admin) |
+
+### Admin
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/auth/admin/users/` | List all users (admin) |
+| POST | `/api/auth/admin/users/create/` | Create new user (admin) |
+| GET | `/api/auth/admin/users/<id>/detail/` | Get user full details (admin) |
+| PATCH | `/api/auth/admin/users/<id>/` | Update user settings (admin) |
+| DELETE | `/api/auth/admin/users/<id>/delete/` | Delete user (admin) |
 
 ---
 
@@ -196,11 +226,11 @@ Get free API keys:
 resume_project/
 ├── backend/
 │   ├── apps/
-│   │   ├── accounts/       # User auth (JWT)
+│   │   ├── accounts/       # User auth (JWT) + admin endpoints
 │   │   ├── resume/         # Resume upload, parse, version control
 │   │   ├── jobs/           # Job search, matching, saved jobs
 │   │   ├── profile/        # Career profile
-│   │   └── courses/        # Learning paths, progress, certificates
+│   │   └── courses/        # Learning paths, progress, certificates, access control
 │   ├── config/             # Django settings, URLs
 │   └── requirements.txt
 └── frontend/
@@ -214,14 +244,19 @@ resume_project/
         │   ├── ManualProfile.jsx   # Career profile editor
         │   ├── ResumeAnalyzer.jsx
         │   ├── ResumeBuilder.jsx   # ATS resume builder
-        │   ├── PrepHub.jsx         # Prep hub landing
+        │   ├── PrepHub.jsx         # Prep hub landing + recommended courses
+        │   ├── AllCourses.jsx      # All 16 courses with approval status
         │   ├── IQGame.jsx          # IQ test with shuffle + pause
         │   ├── MockInterview.jsx   # MCQ mock interview + validation
         │   ├── TestPage.jsx        # Skill test with shuffle + pause
         │   ├── LearningPath.jsx    # Course lessons + progress
-        │   └── Certificate.jsx     # Certificate generation
+        │   ├── Certificate.jsx     # Certificate generation
+        │   ├── AdminDashboard.jsx  # Admin user management + course approval
+        │   └── UserActivity.jsx    # User activity tracking
         └── components/
             ├── Navbar.jsx
+            ├── AdminRoute.jsx      # Superuser route guard
+            ├── PrepRoute.jsx       # Prep hub access guard
             ├── JobMatchCard.jsx
             └── LocationInput.jsx
 ```
@@ -241,13 +276,25 @@ resume_project/
 | v1.6 | Resume version control (replace + history), 5-resume limit, improved parser |
 | v1.7 | Resume Builder overhaul — save/edit entries, custom sections, profile photo, skill dropdown |
 | v1.8 | IQ/Skill Test shuffle + pause/resume · Mock Interview MCQ + end validation · Profile photo in profile page |
-| v1.9 | Resume Builder save to Resumes · Resume Analyzer skill gap analysis · All Courses page with 15 courses |
+| v1.9 | Resume Builder save to Resumes · Resume Analyzer skill gap analysis · All Courses page with 16 courses |
+| v2.0 | Admin Dashboard with user management · Per-course approval system · Email authentication · Prep Hub shows resume-matched courses only · Superuser auto-redirect to admin dashboard |
 
 ---
 
 ## Django Admin
 
-Access at `/admin/` after creating a superuser:
+Access Django admin panel at `/admin/` after creating a superuser:
 ```bash
 python manage.py createsuperuser
 ```
+
+**Admin Dashboard** at `/admin-dashboard` provides:
+- Full user management interface
+- Course approval system
+- User activity monitoring
+- Prep hub access control
+
+**Login:**
+- Superusers automatically redirect to `/admin-dashboard`
+- Regular users redirect to `/home`
+- Login with **email + password** (not username)

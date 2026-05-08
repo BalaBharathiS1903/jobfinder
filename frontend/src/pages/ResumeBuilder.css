@@ -360,3 +360,56 @@
   font-family: inherit; line-height: 1.6;
 }
 .rb-custom-body:focus { border-color: #7C3AED; background: #fff; }
+
+/* ── Save Modal ── */
+.rb-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 1rem;
+}
+.rb-modal {
+  background: #fff; border-radius: 14px;
+  width: 100%; max-width: 460px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden;
+}
+.rb-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.1rem 1.4rem; border-bottom: 1px solid var(--border);
+}
+.rb-modal-header h3 { margin: 0; font-size: 1rem; font-weight: 700; }
+.rb-modal-close {
+  background: none; border: none; font-size: 1.1rem;
+  cursor: pointer; color: var(--muted);
+}
+.rb-modal-sub {
+  font-size: 0.85rem; color: var(--muted);
+  margin: 0.9rem 1.4rem 0.5rem; line-height: 1.5;
+}
+.rb-modal-list {
+  padding: 0.4rem 1rem; display: flex; flex-direction: column; gap: 0.4rem;
+  max-height: 260px; overflow-y: auto;
+}
+.rb-modal-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.7rem 0.9rem; border-radius: 10px;
+  border: 1.5px solid var(--border); background: #fff;
+  cursor: pointer; text-align: left; width: 100%;
+  transition: all 0.15s;
+}
+.rb-modal-item:hover { border-color: #F59E0B; background: #FFFBEB; }
+.rb-modal-icon { font-size: 1.2rem; flex-shrink: 0; }
+.rb-modal-info { flex: 1; display: flex; flex-direction: column; gap: 0.1rem; }
+.rb-modal-name { font-size: 0.87rem; font-weight: 600; color: var(--dark); }
+.rb-modal-meta { font-size: 0.74rem; color: var(--muted); }
+.rb-modal-replace {
+  font-size: 0.75rem; font-weight: 700; color: #D97706;
+  background: #FEF3C7; padding: 0.2rem 0.6rem; border-radius: 20px;
+}
+.rb-modal-new {
+  display: block; width: calc(100% - 2rem); margin: 0.6rem 1rem 1rem;
+  padding: 0.65rem; border-radius: 10px;
+  border: 1.5px dashed var(--primary); background: #EFF6FF;
+  color: var(--primary); font-size: 0.88rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+}
+.rb-modal-new:hover { background: #DBEAFE; }

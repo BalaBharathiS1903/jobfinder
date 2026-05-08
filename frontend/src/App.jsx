@@ -4,6 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Resumes from "./pages/Resumes";
@@ -23,14 +24,24 @@ import AllCourses from "./pages/AllCourses";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserActivity from "./pages/UserActivity";
 import PrepRoute from "./components/PrepRoute";
+import { useAuth } from "./context/AuthContext";
+
+function HomeRedirect() {
+  const { user } = useAuth();
+  if (user === undefined) return <div className="loading">Loading…</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.is_superuser) return <Navigate to="/admin-dashboard" replace />;
+  return <Navigate to="/home" replace />;
+}
 
 export default function App() {
   return (
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<HomeRedirect />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
@@ -50,7 +61,7 @@ export default function App() {
         <Route path="/prep/course/:courseId" element={<ProtectedRoute><PrepRoute><LearningPath /></PrepRoute></ProtectedRoute>} />
         <Route path="/prep/certificate/:courseId" element={<ProtectedRoute><PrepRoute><Certificate /></PrepRoute></ProtectedRoute>} />
         <Route path="/admin-dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<HomeRedirect />} />
       </Routes>
     </>
   );

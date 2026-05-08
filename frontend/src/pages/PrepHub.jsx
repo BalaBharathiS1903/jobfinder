@@ -37,6 +37,11 @@ export default function PrepHub() {
     queryFn: () => api.get("/resume/").then(r => r.data),
   });
 
+  const { data: allProgress = {} } = useQuery({
+    queryKey: ["courses-progress"],
+    queryFn: () => api.get("/courses/progress/").then(r => r.data),
+  });
+
   const resumeSkills = (resumes[0]?.skills || []).map(s => s.toLowerCase());
   const hasResume = resumes.length > 0;
 
@@ -51,10 +56,11 @@ export default function PrepHub() {
     return { missing, matched, matchPct };
   };
 
-  const skillGapCourses = Object.entries(COURSES)
+  // Show only courses that match resume skills
+  const matchedCourses = Object.entries(COURSES)
     .map(([id, course]) => ({ id, course, rec: getRecommendation(id) }))
-    .filter(({ rec }) => rec && rec.missing.length > 0)
-    .sort((a, b) => b.rec.missing.length - a.rec.missing.length);
+    .filter(({ rec }) => rec && rec.matched.length > 0)
+    .sort((a, b) => b.rec.matchPct - a.rec.matchPct);
 
   return (
     <div className="ph-page">
@@ -83,9 +89,9 @@ export default function PrepHub() {
         ))}
       </div>
 
-      {/* Skill Gap Recommendations */}
-      <div className="ph-section-label" style={{ marginTop: "2.5rem" }}>
-        <span>SKILL GAP — COURSES TO IMPROVE</span>
+      {/* Matched Courses */}
+      <div className="ph-section-label ph-section-label-row" style={{ marginTop: "2.5rem" }}>
+        <span>RECOMMENDED COURSES — BASED ON YOUR RESUME</span>
         <Link to="/prep/courses" className="ph-all-courses-btn">View All Courses →</Link>
       </div>
 
@@ -93,20 +99,20 @@ export default function PrepHub() {
         <div className="ph-resume-hint">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
           <span>
-            <Link to="/resumes">Upload your resume</Link> to see which courses will improve your skill gaps.
+            <Link to="/resumes">Upload your resume</Link> to see courses matched to your skills.
           </span>
         </div>
-      ) : skillGapCourses.length === 0 ? (
+      ) : matchedCourses.length === 0 ? (
         <div className="ph-skills-covered" style={{ display: "inline-block", marginBottom: "1rem" }}>
-          🎉 All course skills are already covered in your resume!
+          No courses match your resume skills yet. <Link to="/prep/courses">Browse all courses →</Link>
         </div>
       ) : (
         <>
           <p className="ph-section-sub">
-            Courses ranked by skill gap — learn what's missing from your resume first.
+            Courses ranked by skill match — learn topics relevant to your resume.
           </p>
           <div className="ph-courses-grid">
-            {skillGapCourses.map(({ id, course, rec }) => (
+            {matchedCourses.map(({ id, course, rec }) => (
               <div key={id} className="ph-course-card ph-course-recommended"
                 style={{ "--cc": course.color, "--cl": course.light }}>
 
@@ -131,18 +137,22 @@ export default function PrepHub() {
                     <span className="ph-gap-pct">{rec.matchPct}% match</span>
                   </div>
                   <div className="ph-missing-skills">
-                    <span className="ph-missing-label">Missing skills:</span>
-                    {rec.missing.slice(0, 4).map(s => (
+                    <span className="ph-missing-label">Matched skills:</span>
+                    {rec.matched.slice(0, 4).map(s => (
                       <span key={s} className="ph-missing-tag">{s}</span>
                     ))}
-                    {rec.missing.length > 4 && <span className="ph-missing-more">+{rec.missing.length - 4}</span>}
+                    {rec.matched.length > 4 && <span className="ph-missing-more">+{rec.matched.length - 4}</span>}
                   </div>
                 </div>
 
                 <div className="ph-course-actions">
-                  <Link to={`/prep/course/${id}`} className="ph-btn-start" style={{ background: course.color }}>
-                    Start Learning →
-                  </Link>
+                  {allProgress[id]?.approved !== false ? (
+                    <Link to={`/prep/course/${id}`} className="ph-btn-start" style={{ background: course.color }}>
+                      Start Learning →
+                    </Link>
+                  ) : (
+                    <span className="ph-btn-locked">🔒 Not Approved</span>
+                  )}
                 </div>
               </div>
             ))}

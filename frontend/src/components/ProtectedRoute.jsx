@@ -5,6 +5,5 @@ export default function ProtectedRoute({ children }) {
   const { user } = useAuth();
   if (user === undefined) return <div className="loading">Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
-  if (user.is_superuser) return <Navigate to="/admin-dashboard" replace />;
   return children;
 }

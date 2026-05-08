@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django.utils import timezone
 import uuid
 
-from .models import CourseProgress, CourseCertificate
+from .models import CourseProgress, CourseCertificate, CourseAccess
 from .serializers import CourseProgressSerializer, CourseCertificateSerializer
 
 VALID_COURSES = {
@@ -33,6 +33,13 @@ COURSE_TOTALS = {
 }
 
 
+def has_course_access(user, course_id):
+    """Superuser always has access. Others need per-course approval."""
+    if user.is_superuser:
+        return True
+    return CourseAccess.objects.filter(user=user, course_id=course_id).exists()
+
+
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def course_progress(request, course_id):
@@ -40,6 +47,8 @@ def course_progress(request, course_id):
         return Response({"error": "Prep Hub access denied. Contact admin."}, status=403)
     if course_id not in VALID_COURSES:
         return Response({"error": "Invalid course."}, status=404)
+    if not has_course_access(request.user, course_id):
+        return Response({"error": "Course not approved. Contact admin."}, status=403)
 
     progress, _ = CourseProgress.objects.get_or_create(
         user=request.user, course_id=course_id
@@ -48,20 +57,17 @@ def course_progress(request, course_id):
     if request.method == "GET":
         return Response(CourseProgressSerializer(progress).data)
 
-    # POST — save completed lessons dict
     completed = request.data.get("completed", {})
     if not isinstance(completed, dict):
         return Response({"error": "completed must be an object."}, status=400)
 
-    # Validate keys are legitimate lesson keys (format: "mi-li")
     import re as _re
     for key in completed:
         if not _re.match(r'^\d+-\d+$', str(key)):
             return Response({"error": f"Invalid lesson key: {key}"}, status=400)
 
-    # Only count keys that are True
-    total    = COURSE_TOTALS.get(course_id, 0)
-    done     = sum(1 for v in completed.values() if v)
+    total = COURSE_TOTALS.get(course_id, 0)
+    done  = sum(1 for v in completed.values() if v)
     if done > total:
         return Response({"error": "Completed count exceeds course total."}, status=400)
 
@@ -70,7 +76,7 @@ def course_progress(request, course_id):
     cert_data = None
 
     if done >= total and total > 0:
-        cert, created = CourseCertificate.objects.get_or_create(
+        cert, _ = CourseCertificate.objects.get_or_create(
             user=request.user,
             course_id=course_id,
             defaults={
@@ -103,21 +109,82 @@ def course_certificate(request, course_id):
 def all_progress(request):
     if not request.user.has_prep_access and not request.user.is_superuser:
         return Response({"error": "Prep Hub access denied. Contact admin."}, status=403)
+
+    # Get approved course IDs for this user
+    if request.user.is_superuser:
+        approved = set(VALID_COURSES)
+    else:
+        approved = set(
+            CourseAccess.objects.filter(user=request.user).values_list("course_id", flat=True)
+        )
+
     result = {}
     for course_id in VALID_COURSES:
-        progress = CourseProgress.objects.filter(
-            user=request.user, course_id=course_id
-        ).first()
-        cert = CourseCertificate.objects.filter(
-            user=request.user, course_id=course_id
-        ).first()
+        progress = CourseProgress.objects.filter(user=request.user, course_id=course_id).first()
+        cert = CourseCertificate.objects.filter(user=request.user, course_id=course_id).first()
         total = COURSE_TOTALS.get(course_id, 0)
         done  = sum(1 for v in (progress.completed if progress else {}).values() if v)
         result[course_id] = {
-            "completed":   progress.completed if progress else {},
-            "done":        done,
-            "total":       total,
-            "pct":         round((done / total) * 100) if total else 0,
+            "completed":  progress.completed if progress else {},
+            "done":       done,
+            "total":      total,
+            "pct":        round((done / total) * 100) if total else 0,
             "certificate": CourseCertificateSerializer(cert).data if cert else None,
+            "approved":   course_id in approved,
         }
     return Response(result)
+
+
+# ── Admin course access endpoints ─────────────────────────────────────────────
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def admin_user_course_access(request, user_id):
+    """Get approved courses for a user."""
+    if not request.user.is_superuser:
+        return Response({"error": "Forbidden."}, status=403)
+    approved = list(
+        CourseAccess.objects.filter(user_id=user_id).values_list("course_id", flat=True)
+    )
+    return Response({"user_id": user_id, "approved_courses": approved})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def admin_toggle_course_access(request, user_id):
+    """Grant or revoke a course for a user. Body: {course_id, grant: true/false}"""
+    if not request.user.is_superuser:
+        return Response({"error": "Forbidden."}, status=403)
+    from django.contrib.auth import get_user_model
+    course_id = request.data.get("course_id")
+    grant     = request.data.get("grant", True)
+    if course_id not in VALID_COURSES:
+        return Response({"error": "Invalid course."}, status=400)
+    try:
+        target = get_user_model().objects.get(pk=user_id)
+    except get_user_model().DoesNotExist:
+        return Response(status=404)
+    if grant:
+        CourseAccess.objects.get_or_create(user=target, course_id=course_id)
+    else:
+        CourseAccess.objects.filter(user=target, course_id=course_id).delete()
+    approved = list(
+        CourseAccess.objects.filter(user=target).values_list("course_id", flat=True)
+    )
+    return Response({"user_id": user_id, "approved_courses": approved})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def admin_approve_all_courses(request, user_id):
+    """Approve all courses for a user at once."""
+    if not request.user.is_superuser:
+        return Response({"error": "Forbidden."}, status=403)
+    from django.contrib.auth import get_user_model
+    try:
+        target = get_user_model().objects.get(pk=user_id)
+    except get_user_model().DoesNotExist:
+        return Response(status=404)
+    for course_id in VALID_COURSES:
+        CourseAccess.objects.get_or_create(user=target, course_id=course_id)
+    return Response({"user_id": user_id, "approved_courses": list(VALID_COURSES)})

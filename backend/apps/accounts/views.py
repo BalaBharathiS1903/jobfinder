@@ -9,9 +9,8 @@ from .serializers import RegisterSerializer, UserSerializer
 
 
 class RegisterView(generics.CreateAPIView):
-    """Only superadmin can create users via this endpoint."""
     serializer_class = RegisterSerializer
-    permission_classes = (permissions.IsAdminUser,)
+    permission_classes = (permissions.AllowAny,)
 
 
 class MeView(generics.RetrieveAPIView):

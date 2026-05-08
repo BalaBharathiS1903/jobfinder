@@ -50,13 +50,13 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to={user ? "/home" : "/login"} className="navbar-brand">
+      <Link to={user?.is_superuser ? "/admin-dashboard" : (user ? "/home" : "/login")} className="navbar-brand">
         <Logo size={36} />
       </Link>
       <div className="navbar-links">
         {user ? (
           <>
-            <Link to="/home" className="nav-icon-link">{NavIcon.home} Home</Link>
+            <Link to={user?.is_superuser ? "/admin-dashboard" : "/home"} className="nav-icon-link">{NavIcon.home} Home</Link>
             {user?.is_superuser && <Link to="/admin-dashboard" className="nav-icon-link">{NavIcon.shield} Admin</Link>}
             {!user?.is_superuser && <Link to="/resumes" className="nav-icon-link">{NavIcon.file} Resumes</Link>}
             {!user?.is_superuser && <Link to="/search" className="nav-icon-link">{NavIcon.search} Search Jobs</Link>}

@@ -222,3 +222,30 @@
   .adm-stats { grid-template-columns: repeat(2, 1fr); }
   .adm-table-wrap { overflow-x: auto; }
 }
+
+/* Course Access Grid */
+.adm-course-access-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+}
+.adm-course-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  font-size: 0.83rem;
+}
+.course-approved {
+  background: #F0FDF4;
+  border-color: #86EFAC;
+}
+.course-locked {
+  background: #FAFAFA;
+  border-color: var(--border);
+}
+.adm-course-label {
+  font-weight: 600;
+  color: var(--dark);
+  font-size: 0.82rem;
+}

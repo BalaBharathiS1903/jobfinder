@@ -89,7 +89,7 @@ export default function ManualProfile() {
             : <div className="mp-avatar">{form.full_name ? form.full_name.slice(0,2).toUpperCase() : "—"}</div>
           }
           <label className="mp-photo-btn">
-            {form.photo ? "📷 Change" : "📷 Add Photo"}
+            {form.photo ? "Change Photo" : "Add Photo"}
             <input type="file" accept="image/*" hidden onChange={e => {
               const file = e.target.files?.[0];
               if (!file) return;

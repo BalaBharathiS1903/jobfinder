@@ -109,6 +109,10 @@ STATIC_URL = "/static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+AUTHENTICATION_BACKENDS = [
+    "apps.accounts.backends.EmailBackend",
+]
+
 ADZUNA_APP_ID = os.getenv("ADZUNA_APP_ID", "")
 ADZUNA_APP_KEY = os.getenv("ADZUNA_APP_KEY", "")
 JSEARCH_API_KEY = os.getenv("JSEARCH_API_KEY", "")

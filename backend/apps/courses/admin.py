@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import CourseProgress, CourseCertificate, CourseAccess
 
-# Register your models here.
+admin.site.register(CourseProgress)
+admin.site.register(CourseCertificate)
+admin.site.register(CourseAccess)

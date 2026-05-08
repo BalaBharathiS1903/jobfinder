@@ -40,12 +40,13 @@ export default function AllCourses() {
             {courseIds.map(id => {
               const course = COURSES[id];
               if (!course) return null;
-              const p = allProgress[id] || { done: 0, total: 0, pct: 0, certificate: null };
+              const p = allProgress[id] || { done: 0, total: 0, pct: 0, certificate: null, approved: false };
               const earned = !!p.certificate;
+              const approved = p.approved;
               const totalLessons = course.modules.reduce((s, m) => s + m.lessons.length, 0);
 
               return (
-                <div key={id} className="ac-card" style={{ "--cc": course.color, "--cl": course.light }}>
+                <div key={id} className={`ac-card ${!approved ? "ac-card-locked" : ""}`} style={{ "--cc": course.color, "--cl": course.light }}>
                   <div className="ac-card-header">
                     <div className="ac-icon-wrap" style={{ background: course.color }}>
                       <span className="ac-icon">{course.icon}</span>
@@ -88,13 +89,15 @@ export default function AllCourses() {
                   )}
 
                   <div className="ac-actions">
-                    <Link to={`/prep/course/${id}`} className="ac-btn-start" style={{ background: course.color }}>
-                      {p.done === 0 ? "Start Course" : p.done === totalLessons ? "Review" : "Continue"}
-                    </Link>
-                    {earned && (
-                      <Link to={`/prep/certificate/${id}`} className="ac-btn-cert">
-                        Certificate
+                    {approved ? (
+                      <Link to={`/prep/course/${id}`} className="ac-btn-start" style={{ background: course.color }}>
+                        {p.done === 0 ? "Start Course" : p.done === totalLessons ? "Review" : "Continue"}
                       </Link>
+                    ) : (
+                      <span className="ac-btn-locked">🔒 Not Approved</span>
+                    )}
+                    {earned && (
+                      <Link to={`/prep/certificate/${id}`} className="ac-btn-cert">Certificate</Link>
                     )}
                   </div>
                 </div>

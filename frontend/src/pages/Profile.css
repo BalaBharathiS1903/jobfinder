@@ -151,3 +151,88 @@
   transition: background 0.2s;
 }
 .btn-search-jobs:hover { background: #1D4ED8; }
+
+/* ── Header right side ── */
+.profile-header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem; flex-shrink: 0; }
+.profile-header-btns  { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
+
+.prof-btn-switch, .prof-btn-pdf {
+  padding: 0.45rem 1rem; border-radius: 8px;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  border: 1.5px solid var(--border); background: #fff;
+  color: var(--dark); transition: all 0.15s;
+}
+.prof-btn-switch:hover { border-color: #2563EB; color: #2563EB; }
+.prof-btn-pdf { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; }
+.prof-btn-pdf:hover { background: #DBEAFE; }
+
+/* ── PDF Viewer ── */
+.prof-pdf-wrap {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; margin-bottom: 1.25rem;
+}
+.prof-pdf-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.65rem 1rem; background: #F8FAFC;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem; font-weight: 600; color: var(--dark);
+}
+.prof-pdf-open {
+  font-size: 0.8rem; color: #2563EB; text-decoration: none; font-weight: 600;
+  padding: 0.3rem 0.7rem; border-radius: 6px; background: #EFF6FF;
+}
+.prof-pdf-open:hover { background: #DBEAFE; }
+.prof-pdf-close {
+  font-size: 0.8rem; color: #DC2626; font-weight: 600;
+  padding: 0.3rem 0.7rem; border-radius: 6px; background: #FEE2E2;
+  border: none; cursor: pointer;
+}
+.prof-pdf-frame { width: 100%; height: 600px; border: none; display: block; }
+
+/* ── Resume Selector Modal ── */
+.prof-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 1rem;
+}
+.prof-modal {
+  background: #fff; border-radius: 14px;
+  width: 100%; max-width: 460px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+.prof-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.1rem 1.4rem; border-bottom: 1px solid var(--border);
+}
+.prof-modal-header h3 { margin: 0; font-size: 1rem; font-weight: 700; }
+.prof-modal-close {
+  background: none; border: none; font-size: 1.1rem;
+  cursor: pointer; color: var(--muted); line-height: 1;
+}
+.prof-modal-sub { font-size: 0.83rem; color: var(--muted); margin: 0.75rem 1.4rem 0.5rem; }
+.prof-resume-list { padding: 0.5rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.prof-resume-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem 1rem; border-radius: 10px;
+  border: 1.5px solid var(--border); background: #fff;
+  cursor: pointer; text-align: left; transition: all 0.15s; width: 100%;
+}
+.prof-resume-item:hover  { border-color: #2563EB; background: #EFF6FF; }
+.prof-resume-item.active { border-color: #2563EB; background: #EFF6FF; }
+.prof-resume-icon { font-size: 1.3rem; flex-shrink: 0; }
+.prof-resume-info { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
+.prof-resume-name { font-size: 0.88rem; font-weight: 600; color: var(--dark); }
+.prof-resume-meta { font-size: 0.75rem; color: var(--muted); }
+.prof-resume-active {
+  font-size: 0.72rem; font-weight: 700; color: #059669;
+  background: #ECFDF5; padding: 0.2rem 0.55rem; border-radius: 20px;
+}
+
+.prof-btn-builder {
+  padding: 0.45rem 1rem; border-radius: 8px;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  border: 1.5px solid #BFDBFE; background: #EFF6FF;
+  color: #1D4ED8; transition: all 0.15s;
+}
+.prof-btn-builder:hover { background: #DBEAFE; border-color: #2563EB; }

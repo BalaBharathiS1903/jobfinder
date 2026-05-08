@@ -16,23 +16,39 @@ export default function ResumeBuilder() {
   const location = useLocation();
   const incomingState = location.state || {};
   const incoming = (incomingState.missingSkills || []).filter(s => typeof s === "string" && s.trim());
+  const fromResume = incomingState.fromResume || null;
+  const replaceId  = incomingState.replaceId  || null;
 
-  const [step, setStep]               = useState(incoming.length ? 2 : 1);
+  const [step, setStep]               = useState(incoming.length || fromResume ? 2 : 1);
   const [template, setTemplate]       = useState("classic");
   const [source, setSource]           = useState("manual");
   const [selectedResume, setSelectedResume] = useState("");
   const [kwBanner, setKwBanner]       = useState(!!incoming.length);
   const [savedItems, setSavedItems]   = useState({});
   const [customSections, setCustomSections] = useState([]);
+  const [saveModal, setSaveModal] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [data, setData] = useState({
-    name: "", headline: incomingState.jobTitle || "", email: "", phone: "",
-    location: "", linkedin: "", github: "", leetcode: "", summary: "", photo: "",
-    experience: [], education: [], skills: incoming, certifications: [], projects: [],
+  const [data, setData] = useState(() => {
+    if (fromResume) return {
+      name: fromResume.name || "", headline: fromResume.headline || "",
+      email: fromResume.email || "", phone: fromResume.phone || "",
+      location: "", linkedin: "", github: "", leetcode: "",
+      summary: fromResume.summary || "", photo: "",
+      experience: fromResume.experience || [],
+      education:  fromResume.education  || [],
+      skills: fromResume.skills || [],
+      certifications: fromResume.certifications || [],
+      projects: fromResume.projects || [],
+    };
+    return {
+      name: "", headline: incomingState.jobTitle || "", email: "", phone: "",
+      location: "", linkedin: "", github: "", leetcode: "", summary: "", photo: "",
+      experience: [], education: [], skills: incoming, certifications: [], projects: [],
+    };
   });
 
   useEffect(() => {
@@ -80,70 +96,25 @@ export default function ResumeBuilder() {
   const editItem  = (f, i) => setSavedItems(p => ({ ...p, [`${f}-${i}`]: false }));
   const isSaved   = (f, i) => !!savedItems[`${f}-${i}`];
 
-  const saveAsResume = async () => {
-    if (!data.name) {
-      alert("Please enter your name before saving.");
-      return;
-    }
+  const saveAsResume = () => {
+    if (!data.name) { alert("Please enter your name before saving."); return; }
+    setSaveModal(true);
+  };
 
-    // Check if user has existing resumes
-    if (resumes.length > 0) {
-      const replaceChoice = window.confirm(
-        `You have ${resumes.length} existing resume(s).\n\n` +
-        `Do you want to REPLACE an existing resume?\n\n` +
-        `• Click OK to replace the most recent resume\n` +
-        `• Click Cancel to save as a new resume`
-      );
-
-      if (replaceChoice) {
-        // User wants to replace - use the most recent resume ID
-        const mostRecentResume = resumes[0]; // Resumes are ordered by -uploaded_at
-        setSaving(true);
-        try {
-          const payload = {
-            name: data.name,
-            email: data.email,
-            phone: data.phone,
-            headline: data.headline,
-            summary: data.summary,
-            skills: data.skills.filter(Boolean),
-            experience: data.experience,
-            education: data.education,
-            certifications: data.certifications,
-            projects: data.projects,
-            replace_id: mostRecentResume.id,
-          };
-          await api.post("/resume/save-from-builder/", payload);
-          await queryClient.invalidateQueries(["resumes"]);
-          alert("Resume replaced successfully!");
-          navigate("/resumes");
-        } catch (err) {
-          alert(err.response?.data?.error || "Failed to replace resume.");
-        } finally {
-          setSaving(false);
-        }
-        return;
-      }
-    }
-
-    // Save as new resume
+  const doSave = async (replaceWithId) => {
+    setSaveModal(false);
     setSaving(true);
+    const payload = {
+      name: data.name, email: data.email, phone: data.phone,
+      headline: data.headline, summary: data.summary,
+      skills: data.skills.filter(Boolean),
+      experience: data.experience, education: data.education,
+      certifications: data.certifications, projects: data.projects,
+      ...(replaceWithId ? { replace_id: replaceWithId } : {}),
+    };
     try {
-      const payload = {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        headline: data.headline,
-        summary: data.summary,
-        skills: data.skills.filter(Boolean),
-        experience: data.experience,
-        education: data.education,
-        certifications: data.certifications,
-        projects: data.projects,
-      };
       await api.post("/resume/save-from-builder/", payload);
       await queryClient.invalidateQueries(["resumes"]);
-      alert("Resume saved successfully!");
       navigate("/resumes");
     } catch (err) {
       alert(err.response?.data?.error || "Failed to save resume.");
@@ -154,6 +125,63 @@ export default function ResumeBuilder() {
 
   return (
     <div className="rb-page">
+
+      {/* ── Save Modal ── */}
+      {saveModal && (
+        <div className="rb-modal-overlay" onClick={() => setSaveModal(false)}>
+          <div className="rb-modal" onClick={e => e.stopPropagation()}>
+            <div className="rb-modal-header">
+              <h3>Save Resume</h3>
+              <button className="rb-modal-close" onClick={() => setSaveModal(false)}>✕</button>
+            </div>
+
+            {/* At limit — must replace */}
+            {resumes.length >= (resumes[0]?.resume_upload_limit || 5) || replaceId ? (
+              <>
+                <p className="rb-modal-sub">
+                  {replaceId
+                    ? "Choose to replace the original resume or save as new:"
+                    : `⚠️ You've reached your resume limit (${resumes.length}). Select a resume to replace:`
+                  }
+                </p>
+                <div className="rb-modal-list">
+                  {resumes.map(r => (
+                    <button key={r.id} className="rb-modal-item" onClick={() => doSave(r.id)}>
+                      <span className="rb-modal-icon">📄</span>
+                      <div className="rb-modal-info">
+                        <span className="rb-modal-name">{r.filename}</span>
+                        <span className="rb-modal-meta">v{r.version} · {new Date(r.uploaded_at).toLocaleDateString()}</span>
+                      </div>
+                      <span className="rb-modal-replace">Replace</span>
+                    </button>
+                  ))}
+                </div>
+                {replaceId && (
+                  <button className="rb-modal-new" onClick={() => doSave(null)}>+ Save as New Resume</button>
+                )}
+              </>
+            ) : (
+              /* Under limit — choose replace or new */
+              <>
+                <p className="rb-modal-sub">How would you like to save this resume?</p>
+                <div className="rb-modal-list">
+                  {resumes.map(r => (
+                    <button key={r.id} className="rb-modal-item" onClick={() => doSave(r.id)}>
+                      <span className="rb-modal-icon">📄</span>
+                      <div className="rb-modal-info">
+                        <span className="rb-modal-name">{r.filename}</span>
+                        <span className="rb-modal-meta">v{r.version} · {new Date(r.uploaded_at).toLocaleDateString()}</span>
+                      </div>
+                      <span className="rb-modal-replace">Replace</span>
+                    </button>
+                  ))}
+                </div>
+                <button className="rb-modal-new" onClick={() => doSave(null)}>+ Save as New Resume</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       <div className="rb-header">
         <h1>Resume Builder</h1>
         <p>Build a professional resume in minutes using templates</p>

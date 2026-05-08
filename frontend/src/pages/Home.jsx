@@ -1,6 +1,12 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import {
+  IconFileText, IconSearch, IconChartBar, IconTool,
+  IconUserCheck, IconBookmark, IconUpload, IconBriefcase,
+  IconBrain, IconFileDescription, IconTarget, IconShieldOff,
+  IconRefresh
+} from "@tabler/icons-react";
 import "./Home.css";
 
 function useReveal() {
@@ -20,19 +26,19 @@ function useReveal() {
 }
 
 const FEATURES = [
-  { icon: "📄", title: "Resume Upload & Parsing", desc: "Upload PDF, DOCX or TXT. Skills, education, projects and keywords auto-extracted instantly.", link: "/resumes",         accent: false },
-  { icon: "🔍", title: "Job Search & Matching",   desc: "Real Adzuna jobs scored 0–100% against your skills with built-in ghost job detection.",      link: "/search",          accent: true  },
-  { icon: "📊", title: "Resume Analyzer",         desc: "Instant score, section-by-section feedback and actionable improvement tips.",                link: "/resume-analyzer", accent: false },
-  { icon: "🏗️", title: "Resume Builder",          desc: "ATS-friendly templates. Import from your profile and download as PDF.",                      link: "/resume-builder",  accent: true  },
-  { icon: "🧑💼", title: "Professional Profile",  desc: "Build your career profile with skills, experience, certifications and social links.",         link: "/my-profile",      accent: false },
-  { icon: "🔖", title: "Saved Jobs",              desc: "Bookmark verified jobs and revisit them anytime from your saved jobs dashboard.",              link: "/saved",           accent: true  },
+  { icon: <IconFileText size={28} stroke={1.6}/>, title: "Resume Upload & Parsing", desc: "Upload PDF, DOCX or TXT. Skills, education, projects and keywords auto-extracted instantly.", link: "/resumes",         accent: false },
+  { icon: <IconSearch    size={28} stroke={1.6}/>, title: "Job Search & Matching",   desc: "Real Adzuna jobs scored 0–100% against your skills with built-in ghost job detection.",      link: "/search",          accent: true  },
+  { icon: <IconChartBar  size={28} stroke={1.6}/>, title: "Resume Analyzer",         desc: "Instant score, section-by-section feedback and actionable improvement tips.",                link: "/resume-analyzer", accent: false },
+  { icon: <IconTool      size={28} stroke={1.6}/>, title: "Resume Builder",          desc: "ATS-friendly templates. Import from your profile and download as PDF.",                      link: "/resume-builder",  accent: true  },
+  { icon: <IconUserCheck size={28} stroke={1.6}/>, title: "Professional Profile",    desc: "Build your career profile with skills, experience, certifications and social links.",         link: "/my-profile",      accent: false },
+  { icon: <IconBookmark  size={28} stroke={1.6}/>, title: "Saved Jobs",              desc: "Bookmark verified jobs and revisit them anytime from your saved jobs dashboard.",              link: "/saved",           accent: true  },
 ];
 
 const STEPS = [
-  { num: "01", icon: "📄", title: "Upload Resume",   desc: "Drop your PDF, DOCX or TXT resume — skills extracted in seconds" },
-  { num: "02", icon: "🧑💼", title: "Build Profile", desc: "Add experience, skills, certifications and social links" },
-  { num: "03", icon: "🔍", title: "Match & Search",  desc: "Find jobs ranked by how well they match your exact skill set" },
-  { num: "04", icon: "🧠", title: "Prep & Apply",    desc: "Sharpen skills with IQ tests and mock interviews, then apply safely" },
+  { num: "01", icon: <IconUpload      size={32} stroke={1.5}/>, title: "Upload Resume",   desc: "Drop your PDF, DOCX or TXT resume — skills extracted in seconds" },
+  { num: "02", icon: <IconBriefcase   size={32} stroke={1.5}/>, title: "Build Profile",   desc: "Add experience, skills, certifications and social links" },
+  { num: "03", icon: <IconSearch      size={32} stroke={1.5}/>, title: "Match & Search",  desc: "Find jobs ranked by how well they match your exact skill set" },
+  { num: "04", icon: <IconBrain       size={32} stroke={1.5}/>, title: "Prep & Apply",    desc: "Sharpen skills with IQ tests and mock interviews, then apply safely" },
 ];
 
 const STATS = [
@@ -43,12 +49,12 @@ const STATS = [
 ];
 
 const TIPS = [
-  { icon: "📝", tip: "Tailor your resume keywords to match the job description for higher match scores." },
-  { icon: "🎯", tip: "Use Auto Match on your profile to find jobs without uploading a resume every time." },
-  { icon: "🚫", tip: "Always check the Trust Score — avoid jobs flagged as Suspicious or Fake." },
-  { icon: "🧠", tip: "Practice the IQ Game and Mock Interview before your actual interview day." },
-  { icon: "🏗️", tip: "Use the ATS-friendly Resume Builder to pass automated screening systems." },
-  { icon: "🔄", tip: "Re-parse your resume after updating it to refresh your skill profile." },
+  { icon: <IconFileDescription size={24} stroke={1.6}/>, tip: "Tailor your resume keywords to match the job description for higher match scores." },
+  { icon: <IconTarget          size={24} stroke={1.6}/>, tip: "Use Auto Match on your profile to find jobs without uploading a resume every time." },
+  { icon: <IconShieldOff       size={24} stroke={1.6}/>, tip: "Always check the Trust Score — avoid jobs flagged as Suspicious or Fake." },
+  { icon: <IconBrain           size={24} stroke={1.6}/>, tip: "Practice the IQ Game and Mock Interview before your actual interview day." },
+  { icon: <IconTool            size={24} stroke={1.6}/>, tip: "Use the ATS-friendly Resume Builder to pass automated screening systems." },
+  { icon: <IconRefresh         size={24} stroke={1.6}/>, tip: "Re-parse your resume after updating it to refresh your skill profile." },
 ];
 
 export default function Home() {
@@ -60,8 +66,17 @@ export default function Home() {
 
       {/* ── Hero ── */}
       <section className="hero">
+        <video
+          className="hero-video"
+          src="/Hero_Video.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster="/vdart.png"
+        />
+        <div className="hero-overlay" />
         <div className="hero-inner">
-          <span className="hero-badge hero-anim-1">✦ AI-Powered Career Platform</span>
           <h1 className="hero-anim-2">Your Complete <span className="hero-hl">Career Toolkit</span></h1>
           <p className="hero-sub hero-anim-3">
             Resume parsing · Job matching · Ghost job detection · ATS resume builder ·
@@ -74,11 +89,11 @@ export default function Home() {
             </div>
           )}
           <div className="hero-pills hero-anim-5">
-            <span className="pill">✅ Real Adzuna Jobs</span>
-            <span className="pill">✅ 0–100% Match Score</span>
-            <span className="pill">✅ Ghost Job Filter</span>
-            <span className="pill">✅ IQ &amp; Interview Prep</span>
-            <span className="pill">✅ Free to Use</span>
+            <span className="pill">Real Adzuna Jobs</span>
+            <span className="pill">0–100% Match Score</span>
+            <span className="pill">Ghost Job Filter</span>
+            <span className="pill">IQ &amp; Interview Prep</span>
+            <span className="pill">Free to Use</span>
           </div>
         </div>
       </section>

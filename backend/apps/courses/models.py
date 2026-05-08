@@ -2,6 +2,18 @@ from django.db import models
 from apps.accounts.models import User
 
 
+class CourseAccess(models.Model):
+    user      = models.ForeignKey(User, on_delete=models.CASCADE, related_name="course_access")
+    course_id = models.CharField(max_length=100)
+    granted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "course_id")
+
+    def __str__(self):
+        return f"{self.user.email} — {self.course_id}"
+
+
 class CourseProgress(models.Model):
     user       = models.ForeignKey(User, on_delete=models.CASCADE, related_name="course_progress")
     course_id  = models.CharField(max_length=100)

@@ -75,11 +75,54 @@ function CreateUserModal({ onClose, onCreated, notify }) {
   );
 }
 
+const COURSE_LIST = [
+  { id: "python-basics",       label: "Python Basics" },
+  { id: "web-dev",             label: "Web Development" },
+  { id: "data-science",        label: "Data Science" },
+  { id: "django-rest",         label: "Django REST API" },
+  { id: "javascript-advanced", label: "JavaScript Advanced" },
+  { id: "sql-databases",       label: "SQL & Databases" },
+  { id: "git-devops",          label: "Git & DevOps" },
+  { id: "java-basics",         label: "Java Fundamentals" },
+  { id: "typescript",          label: "TypeScript" },
+  { id: "golang",              label: "Go (Golang)" },
+  { id: "rust-lang",           label: "Rust" },
+  { id: "kotlin",              label: "Kotlin" },
+  { id: "cpp",                 label: "C / C++" },
+  { id: "php",                 label: "PHP & Laravel" },
+  { id: "ruby",                label: "Ruby & Rails" },
+  { id: "swift",               label: "Swift & iOS" },
+];
+
 function UserDetailModal({ userId, onClose }) {
+  const qc = useQueryClient();
+  const [approving, setApproving] = useState(null);
+
   const { data, isLoading } = useQuery({
     queryKey: ["admin-user-detail", userId],
     queryFn: () => api.get(`/auth/admin/users/${userId}/detail/`).then(r => r.data),
   });
+
+  const { data: accessData, refetch: refetchAccess } = useQuery({
+    queryKey: ["admin-course-access", userId],
+    queryFn: () => api.get(`/courses/admin/${userId}/access/`).then(r => r.data),
+  });
+
+  const approvedCourses = new Set(accessData?.approved_courses || []);
+
+  const toggleCourse = async (courseId, grant) => {
+    setApproving(courseId);
+    await api.post(`/courses/admin/${userId}/toggle/`, { course_id: courseId, grant });
+    refetchAccess();
+    setApproving(null);
+  };
+
+  const approveAll = async () => {
+    setApproving("all");
+    await api.post(`/courses/admin/${userId}/approve-all/`);
+    refetchAccess();
+    setApproving(null);
+  };
 
   return (
     <div className="adm-modal-overlay" onClick={onClose}>
@@ -240,6 +283,38 @@ function UserDetailModal({ userId, onClose }) {
                 </div>
               </section>
             )}
+            {/* Course Access */}
+            <section className="adm-detail-section">
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+                <h3 style={{ margin: 0 }}>Course Access</h3>
+                <button
+                  className="adm-btn btn-success"
+                  onClick={approveAll}
+                  disabled={approving === "all"}
+                  style={{ fontSize: "0.78rem", padding: "0.3rem 0.8rem" }}
+                >
+                  {approving === "all" ? "Approving…" : "✓ Approve All"}
+                </button>
+              </div>
+              <div className="adm-course-access-grid">
+                {COURSE_LIST.map(c => {
+                  const approved = approvedCourses.has(c.id);
+                  return (
+                    <div key={c.id} className={`adm-course-row ${approved ? "course-approved" : "course-locked"}`}>
+                      <span className="adm-course-label">{c.label}</span>
+                      <button
+                        className={`adm-btn ${approved ? "btn-warn" : "btn-success"}`}
+                        style={{ fontSize: "0.75rem", padding: "0.25rem 0.7rem" }}
+                        disabled={approving === c.id}
+                        onClick={() => toggleCourse(c.id, !approved)}
+                      >
+                        {approving === c.id ? "…" : approved ? "Revoke" : "Approve"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           </div>
         ) : null}
       </div>

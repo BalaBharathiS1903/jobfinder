@@ -21,12 +21,16 @@ class ResumeListView(generics.ListAPIView):
     serializer_class = ResumeSerializer
     def get_queryset(self):
         return Resume.objects.filter(user=self.request.user).order_by("-uploaded_at")
+    def get_serializer_context(self):
+        return {'request': self.request}
 
 
 class ResumeDetailView(generics.RetrieveDestroyAPIView):
     serializer_class = ResumeSerializer
     def get_queryset(self):
         return Resume.objects.filter(user=self.request.user)
+    def get_serializer_context(self):
+        return {'request': self.request}
 
 
 @api_view(["POST"])

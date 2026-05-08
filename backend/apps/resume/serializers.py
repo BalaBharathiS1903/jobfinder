@@ -11,6 +11,7 @@ class ResumeVersionSerializer(serializers.ModelSerializer):
 
 class ResumeSerializer(serializers.ModelSerializer):
     versions = ResumeVersionSerializer(many=True, read_only=True)
+    file_url = serializers.SerializerMethodField()
 
     class Meta:
         model  = Resume
@@ -18,5 +19,13 @@ class ResumeSerializer(serializers.ModelSerializer):
                   "name", "email", "phone", "summary",
                   "skills", "job_titles", "keywords",
                   "languages", "frameworks", "tools", "soft_skills",
-                  "education", "projects", "years_exp", "versions")
+                  "education", "projects", "years_exp", "versions", "file_url")
         read_only_fields = fields
+
+    def get_file_url(self, obj):
+        request = self.context.get('request')
+        if obj.file and hasattr(obj.file, 'url'):
+            if request:
+                return request.build_absolute_uri(obj.file.url)
+            return obj.file.url
+        return None

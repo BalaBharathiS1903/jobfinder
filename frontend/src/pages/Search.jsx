@@ -136,9 +136,9 @@ export default function Search() {
               placeholder="Job title or keyword"
               value={form.query}
               onChange={(e) => setForm({ ...form, query: e.target.value })}
-              required
             />
           </div>
+          <div className="search-hint">Leave query blank to search by selected resume.</div>
           <LocationInput
             value={form.location}
             onChange={(val) => setForm({ ...form, location: val })}

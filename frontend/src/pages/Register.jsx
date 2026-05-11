@@ -55,8 +55,7 @@ export default function Register() {
 
   return (
     <div className="auth-container">
-      <div className="auth-card">
-        <h2>Create Account</h2>
+      <div className="auth-card">        <img src="/vdart.png" alt="VDart Logo" className="auth-logo" />        <h2>Create Account</h2>
         <p className="auth-sub">Join VDart Academy — it's free</p>
 
         {general && <div className="auth-error">{general}</div>}

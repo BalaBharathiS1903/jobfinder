@@ -235,6 +235,39 @@
 }
 .rb-photo-remove:hover { text-decoration: underline; }
 
+.rb-profile-sync {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  background: #f6f8fa;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.rb-profile-sync div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.rb-profile-sync strong {
+  font-size: 0.86rem;
+  color: var(--dark);
+}
+.rb-profile-sync span {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .rb-profile-sync {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
 /* Keyword banner */
 .rb-kw-banner {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem;

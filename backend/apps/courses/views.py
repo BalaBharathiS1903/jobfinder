@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django.utils import timezone
 import uuid
 
-from .models import CourseProgress, CourseCertificate, CourseAccess
+from .models import CourseProgress, CourseCertificate, CourseAccess, CustomCourse
 from .serializers import CourseProgressSerializer, CourseCertificateSerializer
 
 VALID_COURSES = {
@@ -188,3 +188,128 @@ def admin_approve_all_courses(request, user_id):
     for course_id in VALID_COURSES:
         CourseAccess.objects.get_or_create(user=target, course_id=course_id)
     return Response({"user_id": user_id, "approved_courses": list(VALID_COURSES)})
+
+
+# ── Custom Course endpoints ───────────────────────────────────────────────────
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_custom_courses(request):
+    """List all admin-created custom courses."""
+    courses = CustomCourse.objects.all().order_by("-created_at")
+    data = [{
+        "id": c.id,
+        "course_id": c.course_id,
+        "title": c.title,
+        "description": c.description,
+        "icon": c.icon,
+        "color": c.color,
+        "level": c.level,
+        "duration": c.duration,
+        "skills": c.skills,
+        "created_at": c.created_at,
+    } for c in courses]
+    return Response(data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_custom_course(request):
+    """Admin creates a new custom course."""
+    if not request.user.is_superuser:
+        return Response({"error": "Forbidden."}, status=403)
+    import re
+    title = request.data.get("title", "").strip()
+    if not title:
+        return Response({"error": "Title is required."}, status=400)
+
+    # Check if a specific course_id was provided (for overriding built-in courses)
+    course_id = request.data.get("course_id")
+    if not course_id:
+        # Auto-generate course_id from title
+        course_id = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
+        if CustomCourse.objects.filter(course_id=course_id).exists():
+            course_id = f"{course_id}-{CustomCourse.objects.count() + 1}"
+
+    # If course_id is provided, check if it conflicts with existing custom courses
+    elif CustomCourse.objects.filter(course_id=course_id).exists():
+        return Response({"error": f"Course ID '{course_id}' already exists."}, status=400)
+
+    course = CustomCourse.objects.create(
+        course_id   = course_id,
+        title       = title,
+        description = request.data.get("description", ""),
+        icon        = request.data.get("icon", "📚"),
+        color       = request.data.get("color", "#2563EB"),
+        level       = request.data.get("level", "Beginner"),
+        duration    = request.data.get("duration", "4 hrs"),
+        skills      = request.data.get("skills", []),
+    )
+    return Response({
+        "id": course.id, "course_id": course.course_id,
+        "title": course.title, "description": course.description,
+        "icon": course.icon, "color": course.color,
+        "level": course.level, "duration": course.duration,
+        "skills": course.skills, "created_at": course.created_at,
+    }, status=201)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_custom_course(request, course_id):
+    """Admin updates a custom course."""
+    if not request.user.is_superuser:
+        return Response({"error": "Forbidden."}, status=403)
+    try:
+        course = CustomCourse.objects.get(id=course_id)
+    except CustomCourse.DoesNotExist:
+        return Response(status=404)
+
+    title = request.data.get("title")
+    if title is not None:
+        title = title.strip()
+        if not title:
+            return Response({"error": "Title is required."}, status=400)
+        course.title = title
+
+    if "description" in request.data:
+        course.description = request.data.get("description", "")
+    if "icon" in request.data:
+        course.icon = request.data.get("icon", course.icon)
+    if "color" in request.data:
+        course.color = request.data.get("color", course.color)
+    if "level" in request.data:
+        course.level = request.data.get("level", course.level)
+    if "duration" in request.data:
+        course.duration = request.data.get("duration", course.duration)
+    if "skills" in request.data:
+        skills = request.data.get("skills", [])
+        course.skills = skills if isinstance(skills, list) else []
+
+    course.save()
+    return Response({
+        "id": course.id,
+        "course_id": course.course_id,
+        "title": course.title,
+        "description": course.description,
+        "icon": course.icon,
+        "color": course.color,
+        "level": course.level,
+        "duration": course.duration,
+        "skills": course.skills,
+        "created_at": course.created_at,
+    })
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_custom_course(request, course_id):
+    """Admin deletes a custom course."""
+    if not request.user.is_superuser:
+        return Response({"error": "Forbidden."}, status=403)
+    try:
+        course = CustomCourse.objects.get(id=course_id)
+        course.delete()
+        return Response(status=204)
+    except CustomCourse.DoesNotExist:
+        return Response(status=404)

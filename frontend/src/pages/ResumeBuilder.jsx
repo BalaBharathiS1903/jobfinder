@@ -12,14 +12,21 @@ const TEMPLATES = [
   { id: "creative", name: "Creative", desc: "Bold header with sidebar for skills",            color: "#7C3AED" },
 ];
 
+const normalizeUrl = (value) => {
+  const trimmed = (value || "").trim();
+  if (!trimmed) return "";
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+};
+
 export default function ResumeBuilder() {
   const location = useLocation();
   const incomingState = location.state || {};
   const incoming = (incomingState.missingSkills || []).filter(s => typeof s === "string" && s.trim());
   const fromResume = incomingState.fromResume || null;
+  const fromProfile = !!incomingState.fromProfile;
   const replaceId  = incomingState.replaceId  || null;
 
-  const [step, setStep]               = useState(incoming.length || fromResume ? 2 : 1);
+  const [step, setStep]               = useState(incoming.length || fromResume || fromProfile ? 2 : 1);
   const [template, setTemplate]       = useState("classic");
   const [source, setSource]           = useState("manual");
   const [selectedResume, setSelectedResume] = useState("");
@@ -28,6 +35,7 @@ export default function ResumeBuilder() {
   const [customSections, setCustomSections] = useState([]);
   const [saveModal, setSaveModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -36,7 +44,7 @@ export default function ResumeBuilder() {
     if (fromResume) return {
       name: fromResume.name || "", headline: fromResume.headline || "",
       email: fromResume.email || "", phone: fromResume.phone || "",
-      location: "", linkedin: "", github: "", leetcode: "",
+      location: "", website: "", linkedin: "", github: "", leetcode: "",
       summary: fromResume.summary || "", photo: "",
       experience: fromResume.experience || [],
       education:  fromResume.education  || [],
@@ -46,7 +54,7 @@ export default function ResumeBuilder() {
     };
     return {
       name: "", headline: incomingState.jobTitle || "", email: "", phone: "",
-      location: "", linkedin: "", github: "", leetcode: "", summary: "", photo: "",
+      location: "", website: "", linkedin: "", github: "", leetcode: "", summary: "", photo: "",
       experience: [], education: [], skills: incoming, certifications: [], projects: [],
     };
   });
@@ -75,7 +83,7 @@ export default function ResumeBuilder() {
       setData({
         name: profile.full_name || "", headline: profile.headline || "",
         email: profile.email || "", phone: profile.phone || "",
-        location: profile.location || "", linkedin: profile.linkedin || "",
+        location: profile.location || "", website: profile.website || "", linkedin: profile.linkedin || "",
         github: profile.github || "", leetcode: profile.leetcode || "", summary: profile.summary || "", photo: "",
         experience: profile.experience || [], education: profile.education || [],
         skills: (profile.skills || []).map(s => s.name || s),
@@ -88,6 +96,40 @@ export default function ResumeBuilder() {
     setStep(2);
   };
 
+  const saveToProfile = async () => {
+    setProfileSaving(true);
+    const payload = {
+      full_name: data.name,
+      headline: data.headline,
+      email: data.email,
+      phone: data.phone,
+      location: data.location,
+      website: normalizeUrl(data.website),
+      linkedin: normalizeUrl(data.linkedin),
+      github: normalizeUrl(data.github),
+      leetcode: normalizeUrl(data.leetcode),
+      summary: data.summary,
+      skills: data.skills.filter(Boolean).map(skill => (
+        typeof skill === "string" ? { name: skill, level: "Intermediate" } : skill
+      )),
+      experience: data.experience,
+      education: data.education,
+      certifications: data.certifications,
+      projects: data.projects,
+      languages: profile?.languages || [],
+      achievements: profile?.achievements || [],
+    };
+    try {
+      await api.put("/profile/", payload);
+      await queryClient.invalidateQueries({ queryKey: ["myprofile"] });
+      alert("Profile updated from your resume details.");
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to save profile.");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
   const set       = (f, v) => setData(d => ({ ...d, [f]: v }));
   const addArr    = (f, item) => setData(d => ({ ...d, [f]: [...(d[f] || []), item] }));
   const removeArr = (f, i) => setData(d => ({ ...d, [f]: d[f].filter((_, idx) => idx !== i) }));
@@ -95,6 +137,28 @@ export default function ResumeBuilder() {
   const saveItem  = (f, i) => setSavedItems(p => ({ ...p, [`${f}-${i}`]: true }));
   const editItem  = (f, i) => setSavedItems(p => ({ ...p, [`${f}-${i}`]: false }));
   const isSaved   = (f, i) => !!savedItems[`${f}-${i}`];
+
+  useEffect(() => {
+    if (!fromProfile || !profile || fromResume) return;
+    setData(d => ({
+      ...d,
+      name: profile.full_name || d.name,
+      headline: profile.headline || d.headline,
+      email: profile.email || d.email,
+      phone: profile.phone || d.phone,
+      location: profile.location || d.location,
+      website: profile.website || d.website,
+      linkedin: profile.linkedin || d.linkedin,
+      github: profile.github || d.github,
+      leetcode: profile.leetcode || d.leetcode,
+      summary: profile.summary || d.summary,
+      experience: profile.experience || d.experience,
+      education: profile.education || d.education,
+      skills: (profile.skills || []).map(s => s.name || s).filter(Boolean),
+      certifications: profile.certifications || d.certifications,
+      projects: profile.projects || d.projects,
+    }));
+  }, [fromProfile, profile, fromResume]);
 
   const saveAsResume = () => {
     if (!data.name) { alert("Please enter your name before saving."); return; }
@@ -268,12 +332,22 @@ export default function ResumeBuilder() {
                 <RF label="Email"     value={data.email}    onChange={v => set("email", v)}    ph="john@email.com" />
                 <RF label="Phone"     value={data.phone}    onChange={v => set("phone", v)}    ph="+91 9999999999" />
                 <RF label="Location"  value={data.location} onChange={v => set("location", v)} ph="Chennai, India" />
+                <RF label="Website"   value={data.website}  onChange={v => set("website", v)}  ph="https://yourportfolio.com" />
                 <RF label="LinkedIn"  value={data.linkedin} onChange={v => set("linkedin", v)} ph="linkedin.com/in/username" />
                 <RF label="GitHub"    value={data.github}   onChange={v => set("github", v)}   ph="github.com/username" />
                 <RF label="LeetCode"  value={data.leetcode} onChange={v => set("leetcode", v)} ph="leetcode.com/u/username" />
               </div>
             </div>
             <RF label="Professional Summary" value={data.summary} onChange={v => set("summary", v)} ph="Brief professional summary…" area rows={4} />
+            <div className="rb-profile-sync">
+              <div>
+                <strong>My Profile sync</strong>
+                <span>Save these filled details to your profile so you can reuse them for job matches and future resumes.</span>
+              </div>
+              <button className="rb-btn-outline" onClick={saveToProfile} disabled={profileSaving}>
+                {profileSaving ? "Saving..." : "Save to My Profile"}
+              </button>
+            </div>
           </div>
 
           {/* Projects */}
@@ -564,7 +638,7 @@ function SkillSelector({ skills, onChange }) {
 }
 
 function ResumePreview({ data, customSections }) {
-  const contactParts = [data.email, data.phone, data.location, data.linkedin, data.github, data.leetcode].filter(Boolean);
+  const contactParts = [data.email, data.phone, data.location, data.website, data.linkedin, data.github, data.leetcode].filter(Boolean);
   return (
     <div className="rp-wrap">
       <div className="rp-header">

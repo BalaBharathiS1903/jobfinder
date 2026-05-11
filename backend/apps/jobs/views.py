@@ -11,6 +11,31 @@ from apps.resume.models import Resume
 from apps.profile.models import UserProfile
 
 
+def _resume_query_from_resume(resume):
+    skills = [s.lower() for s in (resume.skills or [])]
+    titles = [t.lower() for t in (resume.job_titles or [])]
+
+    ROLE_MAP = [
+        (["react", "javascript", "typescript", "vue", "angular"], "frontend developer"),
+        (["django", "flask", "fastapi", "spring", "spring boot", "node.js"], "backend developer"),
+        (["javascript", "java", "python", "sql"], "software developer"),
+        (["machine learning", "tensorflow", "pytorch", "scikit-learn"], "machine learning engineer"),
+        (["pandas", "numpy", "matplotlib"], "data analyst"),
+        (["docker", "kubernetes", "aws", "terraform"], "devops engineer"),
+        (["android", "kotlin", "swift", "flutter"], "mobile developer"),
+        (["sql", "postgresql", "mysql", "mongodb"], "database developer"),
+    ]
+    query = None
+    for role_skills, role_name in ROLE_MAP:
+        if any(skill in skills for skill in role_skills):
+            query = role_name
+            break
+    if not query:
+        non_generic = [t for t in titles if t not in ("intern", "trainee", "associate")]
+        query = non_generic[0] if non_generic else (f"{skills[0]} developer" if skills else (titles[0] if titles else ""))
+    return query
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def search_jobs(request):
@@ -18,6 +43,13 @@ def search_jobs(request):
     location = request.data.get("location", "")
     resume_id = request.data.get("resume_id")
     country = request.data.get("country", "in")
+
+    if not query and resume_id:
+        try:
+            resume = Resume.objects.get(pk=resume_id, user=request.user)
+            query = _resume_query_from_resume(resume)
+        except Resume.DoesNotExist:
+            pass
 
     if not query:
         return Response({"error": "query is required."}, status=400)

@@ -1,28 +1,34 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import "./Auth.css";
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function ForgotPassword() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed) {
+      setError("Email is required.");
+      return;
+    }
+    if (!emailRegex.test(trimmed)) {
+      setError("Enter a valid email address.");
+      return;
+    }
     setError("");
-    setToken("");
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/forgot-password/", { email });
-      if (data.token) {
-        setToken(data.token);
-      } else {
-        setError(data.detail || "If that email exists, a reset token has been generated.");
-      }
+      await api.post("/auth/forgot-password/", { email: trimmed });
+      navigate(`/reset-password?email=${encodeURIComponent(trimmed)}`);
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to generate reset token.");
+      setError(err.response?.data?.error || "Failed to request password reset.");
     } finally {
       setLoading(false);
     }
@@ -31,49 +37,28 @@ export default function ForgotPassword() {
   return (
     <div className="auth-container">
       <div className="auth-card">
+        <img src="/vdart.png" alt="VDart Logo" className="auth-logo" />
         <h2>Forgot Password</h2>
-        <p className="auth-sub">Enter your email to get a password reset token</p>
+        <p className="auth-sub">Enter your email and reset your password directly on the next page.</p>
 
         {error && <div className="auth-error">{error}</div>}
 
-        {token ? (
-          <div className="auth-success">
-            <p className="success-title">Reset Token Generated</p>
-            <p className="success-desc">Copy this token and use it on the reset page:</p>
-            <div className="token-box">
-              <code>{token}</code>
-              <button
-                className="btn-copy"
-                onClick={() => {
-                  navigator.clipboard.writeText(token);
-                  alert("Token copied to clipboard!");
-                }}
-              >
-                Copy
-              </button>
-            </div>
-            <Link to={`/reset-password?token=${token}`} className="btn-primary">
-              Reset Password →
-            </Link>
+        <form onSubmit={handleSubmit}>
+          <div className="auth-field">
+            <label>Email</label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              required
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setError(""); }}
+            />
           </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="auth-field">
-              <label>Email</label>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                required
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setError(""); }}
-              />
-            </div>
 
-            <button type="submit" disabled={loading}>
-              {loading ? "Generating token…" : "Get Reset Token"}
-            </button>
-          </form>
-        )}
+          <button type="submit" disabled={loading}>
+            {loading ? "Preparing reset…" : "Continue to Reset Page"}
+          </button>
+        </form>
 
         <p><Link to="/login">← Back to Sign In</Link></p>
       </div>

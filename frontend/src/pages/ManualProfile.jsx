@@ -19,6 +19,7 @@ const TABS = [
   { id: "languages",      label: "Languages"      },
   { id: "achievements",   label: "Achievements"   },
   { id: "job_matches",    label: "Job Matches"    },
+  { id: "password",       label: "Password"       },
 ];
 
 export default function ManualProfile() {
@@ -40,10 +41,14 @@ export default function ManualProfile() {
 
   const [form, setForm] = useState({
     full_name:"", headline:"", email:"", phone:"", location:"",
-    website:"", linkedin:"", github:"", summary:"", photo:"",
+    website:"", linkedin:"", github:"", leetcode:"", summary:"", photo:"",
     skills:[], experience:[], education:[], certifications:[],
     projects:[], languages:[], achievements:[],
   });
+
+  const [passwordForm, setPasswordForm] = useState({ current: "", new: "", confirm: "" });
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   useEffect(() => { if (profile) setForm(profile); }, [profile]);
 
@@ -55,6 +60,40 @@ export default function ManualProfile() {
       setTimeout(() => setSaved(false), 2500);
     },
   });
+
+  const passwordMutation = useMutation({
+    mutationFn: d => api.post("/auth/change-password/", d).then(r => r.data),
+    onSuccess: () => {
+      setPasswordSuccess(true);
+      setPasswordForm({ current: "", new: "", confirm: "" });
+      setPasswordError("");
+      setTimeout(() => setPasswordSuccess(false), 3000);
+    },
+    onError: (err) => {
+      setPasswordError(err.response?.data?.error || "Failed to change password.");
+    },
+  });
+
+  const [githubAvatar, setGithubAvatar] = useState("");
+
+  useEffect(() => {
+    if (form.github) {
+      try {
+        const url = new URL(form.github);
+        const username = url.pathname.split('/').filter(Boolean).pop();
+        if (username) {
+          fetch(`https://api.github.com/users/${username}`)
+            .then(res => res.json())
+            .then(data => setGithubAvatar(data.avatar_url || ""))
+            .catch(() => setGithubAvatar(""));
+        }
+      } catch {
+        setGithubAvatar("");
+      }
+    } else {
+      setGithubAvatar("");
+    }
+  }, [form.github]);
 
   const set = (f, v) => setForm(p => ({ ...p, [f]: v }));
   const add = (f, item) => set(f, [...(form[f] || []), item]);
@@ -74,6 +113,10 @@ export default function ManualProfile() {
           <button className="mp-btn-activity" onClick={() => navigate("/my-activity")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             My Activity
+          </button>
+          <button className="mp-btn-activity" onClick={() => navigate("/resume-builder", { state: { fromProfile: true } })}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="14" y2="17"/></svg>
+            Build Resume
           </button>
           <button className={`mp-btn-save ${saved ? "saved" : ""}`}
             onClick={() => mutation.mutate(form)} disabled={mutation.isPending}>
@@ -105,6 +148,7 @@ export default function ManualProfile() {
         <div className="mp-profile-info">
           <h2>{form.full_name || "Your Name"}</h2>
           <p className="mp-profile-headline">{form.headline || "Professional Headline"}</p>
+          {githubAvatar && <img src={githubAvatar} alt="GitHub Avatar" style={{width: '60px', height: '60px', borderRadius: '50%', margin: '10px 0'}} />}
           <div className="mp-profile-meta">
             {form.location && <span>{form.location}</span>}
             {form.email    && <span>{form.email}</span>}
@@ -127,6 +171,11 @@ export default function ManualProfile() {
               <a href={form.website} target="_blank" rel="noreferrer" className="mp-link-btn mp-link-website">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                 Website
+              </a>
+            )}
+            {form.leetcode && (
+              <a href={form.leetcode} target="_blank" rel="noreferrer" className="mp-link-btn mp-link-website">
+                LeetCode
               </a>
             )}
           </div>
@@ -163,6 +212,7 @@ export default function ManualProfile() {
               <F label="Website"     value={form.website}   onChange={v => set("website", v)}   ph="https://yoursite.com" />
               <F label="LinkedIn"    value={form.linkedin}  onChange={v => set("linkedin", v)}  ph="https://linkedin.com/in/username" />
               <F label="GitHub"      value={form.github}    onChange={v => set("github", v)}    ph="https://github.com/username" />
+              <F label="LeetCode"    value={form.leetcode}  onChange={v => set("leetcode", v)}  ph="https://leetcode.com/u/username" />
             </Grid2>
             <F label="Professional Summary" value={form.summary} onChange={v => set("summary", v)}
               ph="Brief overview of your experience, skills and career goals…" area rows={5} />
@@ -322,6 +372,31 @@ export default function ManualProfile() {
               </ItemCard>
             ))}
             <AddBtn onClick={() => add("achievements", { title:"", issuer:"", date:"", url:"", description:"" })} label="Add Achievement" />
+          </Section>
+        )}
+
+        {tab === "password" && (
+          <Section title="Change Password">
+            {passwordError && <div className="mp-error">{passwordError}</div>}
+            {passwordSuccess && <div className="mp-success">Password changed successfully!</div>}
+            <Grid2>
+              <F label="Current Password" value={passwordForm.current} onChange={v => setPasswordForm(p => ({ ...p, current: v }))} type="password" ph="Enter current password" />
+              <F label="New Password"     value={passwordForm.new}    onChange={v => setPasswordForm(p => ({ ...p, new: v }))}    type="password" ph="Enter new password" />
+              <F label="Confirm Password" value={passwordForm.confirm} onChange={v => setPasswordForm(p => ({ ...p, confirm: v }))} type="password" ph="Confirm new password" />
+            </Grid2>
+            <button
+              className="mp-btn-save"
+              onClick={() => {
+                if (passwordForm.new !== passwordForm.confirm) {
+                  setPasswordError("New passwords do not match.");
+                  return;
+                }
+                passwordMutation.mutate({ current_password: passwordForm.current, new_password: passwordForm.new });
+              }}
+              disabled={passwordMutation.isPending}
+            >
+              {passwordMutation.isPending ? "Changing…" : "Change Password"}
+            </button>
           </Section>
         )}
 

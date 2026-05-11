@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from .serializers import RegisterSerializer, UserSerializer
 
 
@@ -73,41 +75,57 @@ def logout_view(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def forgot_password_view(request):
-    from apps.accounts.models import User, PasswordResetToken
     email = request.data.get("email", "").strip().lower()
     if not email:
         return Response({"error": "Email is required."}, status=400)
     try:
-        user = User.objects.get(email__iexact=email)
-        PasswordResetToken.objects.filter(user=user, used=False).update(used=True)
-        token_obj = PasswordResetToken.objects.create(user=user)
-        return Response({"detail": "Reset token generated.", "token": str(token_obj.token), "email": user.email})
-    except User.DoesNotExist:
-        return Response({"detail": "If that email exists, a reset token has been generated."}, status=200)
+        validate_email(email)
+    except ValidationError:
+        return Response({"error": "Enter a valid email address."}, status=400)
+    from apps.accounts.models import User
+    if not User.objects.filter(email__iexact=email).exists():
+        return Response({"error": "Email not found."}, status=404)
+    return Response({"detail": "Email validated. You can now reset your password."})
 
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def reset_password_view(request):
-    from apps.accounts.models import PasswordResetToken
-    token_str = request.data.get("token", "").strip()
+    from apps.accounts.models import User
+    email = request.data.get("email", "").strip().lower()
     new_password = request.data.get("password", "")
-    if not token_str or not new_password:
-        return Response({"error": "Token and password are required."}, status=400)
+    if not email or not new_password:
+        return Response({"error": "Email and password are required."}, status=400)
+    try:
+        validate_email(email)
+    except ValidationError:
+        return Response({"error": "Enter a valid email address."}, status=400)
     if len(new_password) < 8:
         return Response({"error": "Password must be at least 8 characters."}, status=400)
     try:
-        token_obj = PasswordResetToken.objects.get(token=token_str)
-        if not token_obj.is_valid():
-            return Response({"error": "Token is invalid or expired."}, status=400)
-        user = token_obj.user
+        user = User.objects.get(email__iexact=email)
         user.set_password(new_password)
         user.save()
-        token_obj.used = True
-        token_obj.save()
-        return Response({"detail": "Password reset successful. You can now log in."})
-    except PasswordResetToken.DoesNotExist:
-        return Response({"error": "Invalid token."}, status=400)
+    except User.DoesNotExist:
+        pass
+    return Response({"detail": "If that email exists, the password has been updated."})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def change_password_view(request):
+    current_password = request.data.get("current_password", "")
+    new_password = request.data.get("new_password", "")
+    if not current_password or not new_password:
+        return Response({"error": "Current and new password are required."}, status=400)
+    user = request.user
+    if not user.check_password(current_password):
+        return Response({"error": "Current password is incorrect."}, status=400)
+    if len(new_password) < 8:
+        return Response({"error": "New password must be at least 8 characters."}, status=400)
+    user.set_password(new_password)
+    user.save()
+    return Response({"detail": "Password changed successfully."})
 
 
 # ── User activity endpoint ───────────────────────────────────────────────────
@@ -246,6 +264,27 @@ def admin_user_update(request, pk):
         return Response({"error": "Cannot modify other superadmin accounts."}, status=400)
     if target == request.user and "is_active" in request.data:
         return Response({"error": "Cannot deactivate yourself."}, status=400)
+
+    if "username" in request.data:
+        username = request.data.get("username", "").strip()
+        if not username:
+            return Response({"username": "Username cannot be blank."}, status=400)
+        if username.lower() != target.username.lower() and get_user_model().objects.filter(username__iexact=username).exclude(pk=target.pk).exists():
+            return Response({"username": "This username is already taken."}, status=400)
+        target.username = username
+
+    if "email" in request.data:
+        email = request.data.get("email", "").strip().lower()
+        if not email:
+            return Response({"email": "Email cannot be blank."}, status=400)
+        try:
+            validate_email(email)
+        except ValidationError:
+            return Response({"email": "Enter a valid email address."}, status=400)
+        if email != target.email.lower() and get_user_model().objects.filter(email__iexact=email).exclude(pk=target.pk).exists():
+            return Response({"email": "An account with this email already exists."}, status=400)
+        target.email = email
+
     for field in ("is_active", "has_prep_access", "resume_upload_limit", "job_search_limit"):
         if field in request.data:
             setattr(target, field, request.data[field])

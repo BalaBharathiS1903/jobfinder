@@ -58,6 +58,7 @@ export default function Navbar() {
           <>
             <Link to={user?.is_superuser ? "/admin-dashboard" : "/home"} className="nav-icon-link">{NavIcon.home} Home</Link>
             {user?.is_superuser && <Link to="/admin-dashboard" className="nav-icon-link">{NavIcon.shield} Admin</Link>}
+            {user?.is_superuser && <Link to="/admin-courses" className="nav-icon-link">{NavIcon.book} Courses</Link>}
             {!user?.is_superuser && <Link to="/resumes" className="nav-icon-link">{NavIcon.file} Resumes</Link>}
             {!user?.is_superuser && <Link to="/search" className="nav-icon-link">{NavIcon.search} Search Jobs</Link>}
             {!user?.is_superuser && <Link to="/saved" className="nav-icon-link">{NavIcon.bookmark} Saved Jobs</Link>}

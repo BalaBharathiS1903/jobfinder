@@ -13,6 +13,7 @@ class UserProfile(models.Model):
     website = models.URLField(blank=True)
     linkedin = models.URLField(blank=True)
     github = models.URLField(blank=True)
+    leetcode = models.URLField(blank=True)
     summary = models.TextField(blank=True)
     photo = models.ImageField(upload_to="profile_photos/", blank=True, null=True)
     # JSON sections

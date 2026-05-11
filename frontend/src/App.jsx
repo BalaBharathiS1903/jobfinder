@@ -22,6 +22,8 @@ import LearningPath from "./pages/LearningPath";
 import Certificate from "./pages/Certificate";
 import AllCourses from "./pages/AllCourses";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminCourses from "./pages/AdminCourses";
+import AdminUserDetail from "./pages/AdminUserDetail";
 import UserActivity from "./pages/UserActivity";
 import PrepRoute from "./components/PrepRoute";
 import { useAuth } from "./context/AuthContext";
@@ -61,6 +63,8 @@ export default function App() {
         <Route path="/prep/course/:courseId" element={<ProtectedRoute><PrepRoute><LearningPath /></PrepRoute></ProtectedRoute>} />
         <Route path="/prep/certificate/:courseId" element={<ProtectedRoute><PrepRoute><Certificate /></PrepRoute></ProtectedRoute>} />
         <Route path="/admin-dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin-courses" element={<AdminRoute><AdminCourses /></AdminRoute>} />
+        <Route path="/admin-dashboard/user/:id" element={<AdminRoute><AdminUserDetail /></AdminRoute>} />
         <Route path="*" element={<HomeRedirect />} />
       </Routes>
     </>

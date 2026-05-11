@@ -120,13 +120,24 @@
 .toggle-icon svg { width: 100%; height: 100%; }
 
 /* Action buttons */
-.adm-actions { display: flex; gap: 0.4rem; align-items: center; }
+.adm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  min-width: 240px;
+}
+.adm-table td:last-child,
+.adm-table th:last-child {
+  min-width: 240px;
+}
 .adm-btn {
   display: inline-flex; align-items: center; gap: 0.35rem;
   padding: 0.32rem 0.8rem; border-radius: 6px;
   font-size: 0.78rem; font-weight: 600;
   border: none; cursor: pointer; transition: opacity 0.15s;
   white-space: nowrap;
+  min-width: 5rem;
 }
 .adm-btn:hover { opacity: 0.82; }
 .btn-success { background: #ECFDF5; color: #059669; }
@@ -249,3 +260,12 @@
   color: var(--dark);
   font-size: 0.82rem;
 }
+
+.adm-courses-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.55rem 1.1rem; border-radius: 8px;
+  background: #EDE9FE; color: #6D28D9;
+  font-size: 0.88rem; font-weight: 600;
+  text-decoration: none; border: none; cursor: pointer;
+}
+.adm-courses-btn:hover { background: #DDD6FE; }

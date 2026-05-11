@@ -33,6 +33,7 @@ export default function Login() {
   return (
     <div className="auth-container">
       <div className="auth-card">
+        <img src="/vdart.png" alt="VDart Logo" className="auth-logo" />
         <h2>Sign In</h2>
         <p className="auth-sub">Welcome back to VDart Academy</p>
 

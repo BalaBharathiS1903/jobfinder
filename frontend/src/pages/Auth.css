@@ -6,6 +6,13 @@
   background: var(--light);
 }
 
+.auth-logo {
+  width: 120px;
+  height: auto;
+  display: block;
+  margin: 0 auto 1rem;
+}
+
 .auth-card {
   background: var(--surface);
   padding: 2.5rem;

@@ -3,11 +3,13 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../lib/api";
 import "./Auth.css";
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [form, setForm] = useState({
-    token: searchParams.get("token") || "",
+    email: searchParams.get("email") || "",
     password: "",
     confirm: "",
   });
@@ -25,7 +27,9 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
-    if (!form.token.trim()) errs.token = "Token is required.";
+    const trimmedEmail = form.email.trim().toLowerCase();
+    if (!trimmedEmail) errs.email = "Email is required.";
+    else if (!emailRegex.test(trimmedEmail)) errs.email = "Enter a valid email address.";
     if (form.password.length < 8) errs.password = "Password must be at least 8 characters.";
     if (form.password !== form.confirm) errs.confirm = "Passwords do not match.";
     if (Object.keys(errs).length) { setErrors(errs); return; }
@@ -34,13 +38,13 @@ export default function ResetPassword() {
     setGeneral("");
     try {
       await api.post("/auth/reset-password/", {
-        token: form.token.trim(),
+        email: trimmedEmail,
         password: form.password,
       });
       setDone(true);
       setTimeout(() => navigate("/login"), 3000);
     } catch (err) {
-      setGeneral(err.response?.data?.error || "Reset failed. Token may be invalid or expired.");
+      setGeneral(err.response?.data?.error || "Reset failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -49,6 +53,7 @@ export default function ResetPassword() {
   if (done) return (
     <div className="auth-container">
       <div className="auth-card">
+        <img src="/vdart.png" alt="VDart Logo" className="auth-logo" />
         <div className="auth-success">
           <p className="success-title">Password Reset!</p>
           <p className="success-desc">Your password has been updated. Redirecting to login…</p>
@@ -61,21 +66,23 @@ export default function ResetPassword() {
   return (
     <div className="auth-container">
       <div className="auth-card">
+        <img src="/vdart.png" alt="VDart Logo" className="auth-logo" />
         <h2>Reset Password</h2>
-        <p className="auth-sub">Enter your reset token and choose a new password</p>
+        <p className="auth-sub">Enter your email and choose a new password.</p>
 
         {general && <div className="auth-error">{general}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="auth-field">
-            <label>Reset Token</label>
+            <label>Email</label>
             <input
-              placeholder="Paste your reset token"
-              value={form.token}
-              onChange={(e) => set("token", e.target.value)}
-              className={errors.token ? "input-error" : ""}
+              type="email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+              className={errors.email ? "input-error" : ""}
             />
-            {errors.token && <span className="field-error">{errors.token}</span>}
+            {errors.email && <span className="field-error">{errors.email}</span>}
           </div>
 
           <div className="auth-field">

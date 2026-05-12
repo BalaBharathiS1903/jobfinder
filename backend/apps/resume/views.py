@@ -116,6 +116,19 @@ def save_from_builder(request):
     education  = data.get("education", [])
     projects   = data.get("projects", [])
     certs      = data.get("certifications", [])
+
+    # Normalize expected types from the frontend payload
+    if not isinstance(skills, list):
+        skills = []
+    if not isinstance(experience, list):
+        experience = []
+    if not isinstance(education, list):
+        education = []
+    if not isinstance(projects, list):
+        projects = []
+    if not isinstance(certs, list):
+        certs = []
+
     replace_id = data.get("replace_id")
 
     # Build plain text for parsing
@@ -135,8 +148,19 @@ def save_from_builder(request):
     filename   = f"{name or 'resume'}_builder.txt"
     file_obj   = ContentFile(raw_text.encode("utf-8"), name=filename)
 
+    # IMPORTANT: match Resume model field types
+    # - education is a string
+    # - projects is JSONField: store full project objects as provided by the frontend
+    education_str = ""
+    if education and isinstance(education, list):
+        first = education[0] or {}
+        education_str = first.get("degree", "") or ""
+
     fields = dict(
-        name=name, email=email, phone=phone, summary=summary,
+        name=name,
+        email=email,
+        phone=phone,
+        summary=summary,
         skills=all_skills,
         languages=parsed.get("languages", []),
         frameworks=parsed.get("frameworks", []),
@@ -144,11 +168,12 @@ def save_from_builder(request):
         soft_skills=parsed.get("soft_skills", []),
         job_titles=parsed.get("job_titles", []),
         keywords=parsed.get("keywords", []),
-        projects=[p.get("name","") for p in projects if p.get("name")],
-        education=education[0].get("degree","") if education else "",
+        projects=[p for p in projects if isinstance(p, dict) and (p.get("name") or p.get("description"))],
+        education=education_str,
         years_exp=parsed.get("years_exp", 0),
         raw_text=raw_text,
     )
+
 
     if replace_id:
         try:

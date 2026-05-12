@@ -100,8 +100,8 @@ STOPWORDS = {
 
 def extract_text_from_pdf(file_bytes):
     try:
-        import PyPDF2
-        reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
+        from pypdf import PdfReader
+        reader = PdfReader(io.BytesIO(file_bytes))
         return "\n".join(page.extract_text() or "" for page in reader.pages)
     except Exception:
         return ""

@@ -199,7 +199,13 @@
   align-items: center;
   margin-left: auto;
 }
-.ac2-edit-btn,
+.ac2-edit-btn {
+  font-size: 0.75rem; font-weight: 700;
+  padding: 0.25rem 0.6rem; border-radius: 6px;
+  background: #EFF6FF; color: #2563EB;
+  border: 1px solid #BFDBFE; cursor: pointer; white-space: nowrap;
+}
+.ac2-edit-btn:hover { background: #DBEAFE; }
 .ac2-delete-btn {
   background: none;
   border: none;
@@ -208,8 +214,15 @@
   opacity: 0.65;
   padding: 0.2rem;
 }
-.ac2-edit-btn:hover,
 .ac2-delete-btn:hover { opacity: 1; }
+.ac2-view-btn {
+  font-size: 0.75rem; font-weight: 600;
+  padding: 0.25rem 0.6rem; border-radius: 6px;
+  background: #EFF6FF; color: #2563EB;
+  border: 1px solid #BFDBFE; text-decoration: none;
+  white-space: nowrap;
+}
+.ac2-view-btn:hover { background: #DBEAFE; }
 .ac2-no-custom { text-align: center; padding: 2rem; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 1rem; }
 
 /* Add Course Modal */
@@ -261,3 +274,112 @@
 .ac2-btn-outline { background: #fff; border: 1.5px solid var(--border); color: var(--dark); }
 .ac2-btn-primary { background: #2563EB; color: #fff; border: none; }
 .ac2-btn-primary:hover { background: #1D4ED8; }
+
+/* Learning Path Modal */
+.ac2-lp-modal { max-width: 700px; }
+.ac2-lp-ai-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.ac2-lp-ai-hint { font-size: 0.78rem; color: var(--muted); }
+.ac2-btn-ai {
+  background: linear-gradient(135deg, #7C3AED, #2563EB);
+  color: #fff; border: none; padding: 0.5rem 1.1rem;
+  border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+}
+.ac2-btn-ai:hover { opacity: 0.88; }
+.ac2-btn-ai:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ac2-lp-modules { display: flex; flex-direction: column; gap: 0.75rem; max-height: 420px; overflow-y: auto; }
+.ac2-lp-empty { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 1rem; }
+.ac2-lp-module {
+  border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 0.75rem; background: #FAFAFA;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.ac2-lp-module-header { display: flex; gap: 0.5rem; align-items: center; }
+.ac2-lp-mod-title {
+  flex: 1; padding: 0.4rem 0.6rem; border: 1.5px solid var(--border);
+  border-radius: 6px; font-size: 0.88rem; font-weight: 600; background: #fff;
+}
+.ac2-lp-lesson-row { display: flex; gap: 0.4rem; align-items: center; }
+.ac2-lp-les-title {
+  flex: 1; padding: 0.35rem 0.5rem; border: 1px solid var(--border);
+  border-radius: 6px; font-size: 0.82rem; background: #fff;
+}
+.ac2-lp-les-dur {
+  width: 70px; padding: 0.35rem 0.4rem; border: 1px solid var(--border);
+  border-radius: 6px; font-size: 0.82rem; background: #fff;
+}
+.ac2-lp-les-type {
+  width: 90px; padding: 0.35rem 0.4rem; border: 1px solid var(--border);
+  border-radius: 6px; font-size: 0.82rem; background: #fff;
+}
+.ac2-lp-remove-btn {
+  background: none; border: none; color: #DC2626;
+  cursor: pointer; font-size: 0.85rem; padding: 0.2rem 0.3rem; opacity: 0.7;
+}
+.ac2-lp-remove-btn:hover { opacity: 1; }
+.ac2-lp-add-lesson {
+  font-size: 0.78rem; color: #2563EB; background: none; border: none;
+  cursor: pointer; padding: 0.2rem 0; font-weight: 600; align-self: flex-start;
+}
+.ac2-lp-add-module {
+  padding: 0.45rem 1rem; border: 1.5px dashed #CBD5E1; border-radius: 8px;
+  background: none; color: var(--muted); font-size: 0.85rem; cursor: pointer;
+  font-weight: 600; transition: all 0.15s;
+}
+.ac2-lp-add-module:hover { border-color: #2563EB; color: #2563EB; }
+
+/* LP edit button on course card */
+.ac2-lp-edit-btn {
+  font-size: 0.72rem; font-weight: 700;
+  padding: 0.25rem 0.55rem; border-radius: 6px;
+  background: #F5F3FF; color: #7C3AED;
+  border: 1px solid #DDD6FE; cursor: pointer; white-space: nowrap;
+}
+.ac2-lp-edit-btn:hover { background: #EDE9FE; }
+
+/* LearningPathModal inner tabs */
+.ac2-lp-tabs {
+  display: flex; gap: 0.25rem; margin-bottom: 1rem;
+  border-bottom: 2px solid var(--border); padding-bottom: 0;
+}
+.ac2-lp-tab {
+  padding: 0.45rem 1rem; border: none; background: none;
+  font-size: 0.85rem; font-weight: 600; color: var(--muted);
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: all 0.15s;
+}
+.ac2-lp-tab.active { color: #2563EB; border-bottom-color: #2563EB; }
+.ac2-lp-tab:hover  { color: var(--dark); }
+
+/* Links editor */
+.ac2-lp-links { display: flex; flex-direction: column; gap: 0.6rem; }
+.ac2-lp-links-hint {
+  font-size: 0.8rem; color: var(--muted); margin: 0 0 0.5rem;
+  background: #F8FAFC; border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.6rem 0.85rem;
+}
+.ac2-lp-link-row {
+  display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+  background: #FAFAFA; border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.6rem 0.75rem;
+}
+.ac2-lp-link-preview {
+  font-size: 0.75rem; font-weight: 700;
+  padding: 0.25rem 0.65rem; border-radius: 20px;
+  white-space: nowrap; min-width: 80px; text-align: center;
+}
+.ac2-lp-link-label {
+  width: 150px; padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border); border-radius: 6px;
+  font-size: 0.82rem; background: #fff;
+}
+.ac2-lp-link-url {
+  flex: 1; min-width: 180px; padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border); border-radius: 6px;
+  font-size: 0.82rem; background: #fff;
+}
+.ac2-lp-link-color {
+  width: 32px; height: 32px; border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer; padding: 2px;
+  background: #fff;
+}

@@ -12,6 +12,7 @@ import Search from "./pages/Search";
 import SavedJobs from "./pages/SavedJobs";
 import Profile from "./pages/Profile";
 import ManualProfile from "./pages/ManualProfile";
+import ProfileView from "./pages/ProfileView";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import ResumeBuilder from "./pages/ResumeBuilder";
 import PrepHub from "./pages/PrepHub";
@@ -29,8 +30,8 @@ import PrepRoute from "./components/PrepRoute";
 import { useAuth } from "./context/AuthContext";
 
 function HomeRedirect() {
-  const { user } = useAuth();
-  if (user === undefined) return <div className="loading">Loading…</div>;
+  const { user, loading } = useAuth();
+  if (loading) return <div className="loading">Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
   if (user.is_superuser) return <Navigate to="/admin-dashboard" replace />;
   return <Navigate to="/home" replace />;
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="/saved" element={<ProtectedRoute><SavedJobs /></ProtectedRoute>} />
         <Route path="/my-activity" element={<ProtectedRoute><UserActivity /></ProtectedRoute>} />
         <Route path="/my-profile" element={<ProtectedRoute><ManualProfile /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfileView /></ProtectedRoute>} />
         <Route path="/resume-analyzer" element={<ProtectedRoute><ResumeAnalyzer /></ProtectedRoute>} />
         <Route path="/resume-builder" element={<ProtectedRoute><ResumeBuilder /></ProtectedRoute>} />
         <Route path="/prep" element={<ProtectedRoute><PrepRoute><PrepHub /></PrepRoute></ProtectedRoute>} />

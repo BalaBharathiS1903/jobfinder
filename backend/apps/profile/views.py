@@ -16,3 +16,30 @@ def my_profile(request):
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=400)
+
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def admin_update_user_profile(request, user_id):
+    """Admin endpoint to update a user's profile (links only)"""
+    if not request.user.is_superuser:
+        return Response({"error": "Only admins can update other users' profiles."}, status=403)
+    
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    try:
+        target_user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return Response({"error": "User not found."}, status=404)
+    
+    profile, _ = UserProfile.objects.get_or_create(user=target_user)
+    
+    # Only allow updating links
+    allowed_fields = {"website", "linkedin", "github", "leetcode"}
+    data = {k: v for k, v in request.data.items() if k in allowed_fields}
+    
+    serializer = UserProfileSerializer(profile, data=data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=400)

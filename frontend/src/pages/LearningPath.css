@@ -176,7 +176,14 @@
   .lp-lesson-content { padding-left: 1.25rem; }
 }
 
-/* YouTube video player */
+/* Auto-complete status badge */
+.lp-done-badge {
+  font-size: 0.68rem; font-weight: 700;
+  color: #059669; background: #ECFDF5;
+  padding: 0.1rem 0.5rem; border-radius: 20px;
+  border: 1px solid #6EE7B7;
+}
+
 .lp-youtube-btn { cursor: pointer; border: none; }
 .lp-video-container {
   margin: 1rem 0;

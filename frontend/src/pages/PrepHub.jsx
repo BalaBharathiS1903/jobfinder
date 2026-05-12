@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../context/AuthContext";
 import { COURSES } from "./LearningPath";
 import api from "../lib/api";
 import "./PrepHub.css";
@@ -32,6 +33,8 @@ const TOOLS = [
 ];
 
 export default function PrepHub() {
+  const { user } = useAuth();
+
   const { data: resumes = [] } = useQuery({
     queryKey: ["resumes"],
     queryFn: () => api.get("/resume/").then(r => r.data),
@@ -42,25 +45,86 @@ export default function PrepHub() {
     queryFn: () => api.get("/courses/progress/").then(r => r.data),
   });
 
+  const { data: customCourses = [] } = useQuery({
+    queryKey: ["custom-courses"],
+    queryFn: () => api.get("/courses/custom/").then(r => r.data),
+  });
+
+  const { data: accessData } = useQuery({
+    queryKey: ["my-course-access"],
+    queryFn: () => api.get("/courses/my-access/").then(r => r.data),
+  });
+
+  const approvedSet = new Set(accessData?.approved_courses || []);
+  const isAdmin = user?.is_superuser;
+
+  const progressCourses = Object.entries(allProgress || {})
+    .map(([courseId, progress]) => {
+      const builtIn = COURSES[courseId];
+      const custom = customCourses.find(c => c.course_id === courseId);
+      const course = builtIn || (custom ? {
+        title: custom.title,
+        icon: custom.icon,
+        color: custom.color || "#2563EB",
+        light: custom.light || "#EFF6FF",
+        level: custom.level,
+        duration: custom.duration,
+        desc: custom.description,
+        skills: custom.skills || [],
+        modules: custom.modules || [],
+      } : null);
+
+      return {
+        courseId,
+        course,
+        ...progress,
+        title: course?.title || courseId,
+        color: course?.color || "#2563EB",
+        light: course?.light || "#EFF6FF",
+        approved: isAdmin || approvedSet.has(courseId),
+      };
+    })
+    .filter((p) => p.course && p.total > 0 && p.approved)
+    .sort((a, b) => b.pct - a.pct);
+
+  const currentCourse = progressCourses[0];
+  const courseComplete = currentCourse && currentCourse.done === currentCourse.total;
+
   const resumeSkills = (resumes[0]?.skills || []).map(s => s.toLowerCase());
   const hasResume = resumes.length > 0;
 
-  const getRecommendation = (courseId) => {
-    const course = COURSES[courseId];
-    if (!course.skills) return null;
-    const missing = course.skills.filter(s => !resumeSkills.includes(s));
-    const matched = course.skills.filter(s => resumeSkills.includes(s));
-    const matchPct = course.skills.length
-      ? Math.round((matched.length / course.skills.length) * 100)
-      : 0;
+  const getRecommendation = (courseId, skills) => {
+    if (!skills?.length) return null;
+    const missing = skills.filter(s => !resumeSkills.includes(s));
+    const matched = skills.filter(s => resumeSkills.includes(s));
+    const matchPct = Math.round((matched.length / skills.length) * 100);
     return { missing, matched, matchPct };
   };
 
-  // Show only courses that match resume skills
-  const matchedCourses = Object.entries(COURSES)
-    .map(([id, course]) => ({ id, course, rec: getRecommendation(id) }))
+  // Approved custom courses (not overrides of built-ins)
+  const approvedCustom = customCourses
+    .filter(c => !COURSES[c.course_id] && (isAdmin || approvedSet.has(c.course_id)))
+    .map(c => ({
+      id: c.course_id,
+      course: {
+        title: c.title, icon: c.icon,
+        color: c.color || "#2563EB", light: "#EFF6FF",
+        level: c.level, duration: c.duration,
+        desc: c.description, skills: c.skills || [],
+        modules: c.modules || [],
+      },
+      rec: getRecommendation(c.course_id, c.skills || []),
+      isCustom: true,
+    }))
+    .filter(({ rec }) => rec && rec.matched.length > 0);
+
+  // Built-in courses matched to resume
+  const matchedBuiltIn = Object.entries(COURSES)
+    .map(([id, course]) => ({ id, course, rec: getRecommendation(id, course.skills), isCustom: false }))
     .filter(({ rec }) => rec && rec.matched.length > 0)
     .sort((a, b) => b.rec.matchPct - a.rec.matchPct);
+
+  const matchedCourses = [...matchedBuiltIn, ...approvedCustom];
 
   return (
     <div className="ph-page">
@@ -70,6 +134,85 @@ export default function PrepHub() {
         <h1>Interview Prep Hub</h1>
         <p>Sharpen your skills — IQ tests, mock interviews, topic quizzes and learning paths with certificates.</p>
       </div>
+
+      {/* Progress Summary */}
+      {currentCourse ? (
+        <div className="ph-progress-panel" style={{ borderColor: currentCourse.color }}>
+          <div className="ph-progress-title">Continue your course</div>
+          <div className="ph-progress-body">
+            <div className="ph-progress-main" style={{ color: currentCourse.color }}>
+              <div className="ph-progress-ring">
+                <svg viewBox="0 0 64 64" width="80" height="80">
+                  <circle cx="32" cy="32" r="28" fill="none" stroke="#e5e7eb" strokeWidth="5" />
+                  <circle cx="32" cy="32" r="28" fill="none" stroke={currentCourse.color} strokeWidth="5"
+                    strokeDasharray={`${currentCourse.pct * 1.759} 175.9`} strokeLinecap="round"
+                    transform="rotate(-90 32 32)" />
+                </svg>
+                <div className="ph-progress-ring-label">
+                  <strong>{currentCourse.pct}%</strong>
+                  <span>{currentCourse.done}/{currentCourse.total} lessons</span>
+                </div>
+              </div>
+              <div className="ph-progress-details">
+                <div className="ph-course-meta-row">
+                  {currentCourse.course.level && <span className="ph-course-level">{currentCourse.course.level}</span>}
+                  {currentCourse.course.duration && <span className="ph-course-duration">{currentCourse.course.duration}</span>}
+                </div>
+                <h2>{currentCourse.title}</h2>
+                {courseComplete ? (
+                  <div className="ph-progress-status">
+                    <span className="ph-progress-pill">Course Complete</span>
+                    <p>All {currentCourse.total} lessons are done.</p>
+                  </div>
+                ) : (
+                  <p>{currentCourse.done} of {currentCourse.total} lessons completed.</p>
+                )}
+                <div className="ph-prog-bar">
+                  <div className="ph-prog-fill" style={{ width: `${currentCourse.pct}%`, background: currentCourse.color }} />
+                </div>
+                <Link to={`/prep/course/${currentCourse.courseId}`} className="ph-btn-start" style={{ background: currentCourse.color }}>
+                  {courseComplete ? "Review Course →" : "Continue Course →"}
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {currentCourse.course.modules?.length > 0 && (
+            <div className="ph-course-modules">
+              {currentCourse.course.modules.map((module, mi) => {
+                const moduleTotal = module.lessons?.length || 0;
+                const moduleDone = (module.lessons || []).reduce((count, _, li) => {
+                  return count + (currentCourse.completed?.[`${mi}-${li}`] ? 1 : 0);
+                }, 0);
+
+                return (
+                  <div key={mi} className="ph-module-card">
+                    <div className="ph-module-header">
+                      <span className="ph-module-title">{module.title}</span>
+                      <span className="ph-module-count">{moduleDone}/{moduleTotal} lessons</span>
+                    </div>
+                    <div className="ph-module-lessons">
+                      {(module.lessons || []).map((lesson, li) => {
+                        const completed = Boolean(currentCourse.completed?.[`${mi}-${li}`]);
+                        return (
+                          <span key={`${mi}-${li}`} className={`ph-lesson-pill ${completed ? "done" : ""}`}>
+                            {lesson.title}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="ph-progress-panel ph-progress-empty">
+          <div className="ph-progress-title">Course progress</div>
+          <p>Start a course to see your progress and complete modules like Udemy/Coursera.</p>
+        </div>
+      )}
 
       {/* Practice Tools */}
       <div className="ph-section-label">PRACTICE TOOLS</div>
@@ -146,7 +289,7 @@ export default function PrepHub() {
                 </div>
 
                 <div className="ph-course-actions">
-                  {allProgress[id]?.approved !== false ? (
+                  {(isAdmin || approvedSet.has(id)) ? (
                     <Link to={`/prep/course/${id}`} className="ph-btn-start" style={{ background: course.color }}>
                       Start Learning →
                     </Link>

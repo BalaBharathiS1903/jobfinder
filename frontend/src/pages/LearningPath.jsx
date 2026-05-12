@@ -842,32 +842,128 @@ const TYPE_META = {
   coding:  { label: "Coding",  color: "#059669", bg: "#ECFDF5" },
   setup:   { label: "Setup",   color: "#D97706", bg: "#FFFBEB" },
 };
+function LessonItem({ lesson, lessonKey, done, meta, isActive, courseColor, courseId, modTitle, dbLinks, showVideo, setShowVideo, youtube, onToggle, onExpand }) {
+
+  // Auto-mark complete as soon as the lesson is opened
+  useEffect(() => {
+    if (isActive && !done) {
+      onToggle(lessonKey);
+    }
+  }, [isActive]);
+
+  return (
+    <div className={`lp-lesson-wrap ${done ? "done" : ""} ${isActive ? "active" : ""}`}>
+      <div className="lp-lesson" onClick={onExpand}>
+        <button
+          className="lp-check-btn"
+          style={{ borderColor: courseColor, background: done ? courseColor : "transparent" }}
+          onClick={e => { e.stopPropagation(); onToggle(lessonKey); }}
+          title={done ? "Mark incomplete" : "Mark complete"}
+        >
+          {done && <span>✓</span>}
+        </button>
+        <div className="lp-lesson-info">
+          <span className="lp-lesson-title">{lesson.title}</span>
+          <div className="lp-lesson-meta">
+            <span className="lp-type-badge" style={{ color: meta.color, background: meta.bg }}>{meta.label}</span>
+            <span className="lp-lesson-dur">{lesson.duration}</span>
+            {done && <span className="lp-done-badge">✓ Completed</span>}
+          </div>
+        </div>
+        <span className="lp-expand-icon">{isActive ? "▲" : "▼"}</span>
+      </div>
+
+      {isActive && (
+        <div className="lp-lesson-content">
+          <p className="lp-content-note">
+            This lesson covers <strong>{lesson.title}</strong> — part of the <em>{modTitle}</em> module.
+            Study the concept and practice the examples.
+          </p>
+          <div className="lp-content-actions">
+            {(dbLinks || getResourceLinks(courseId, lesson.title)).map((link, idx) => (
+              <a key={idx} href={link.url} target="_blank" rel="noreferrer"
+                className="lp-ref-btn"
+                style={{ background: link.bg, color: link.color, border: `1px solid ${link.color}33` }}>
+                {link.label}
+              </a>
+            ))}
+            {youtube && (
+              <button className="lp-ref-btn lp-youtube-btn" onClick={() => setShowVideo(!showVideo)}
+                style={{ background: "#FEE2E2", color: "#DC2626", border: "1px solid #DC262633" }}>
+                {showVideo ? "Hide Video" : "📺 Watch Tutorial"}
+              </button>
+            )}
+          </div>
+          {showVideo && youtube && (
+            <div className="lp-video-container">
+              <iframe width="100%" height="400"
+                src={`https://www.youtube.com/embed/videoseries?list=${youtube}`}
+                title="YouTube Tutorial" frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function LearningPath() {
   const { courseId } = useParams();
   const { user } = useAuth();
-  const course = COURSES[courseId];
+  const builtIn = COURSES[courseId];
 
+  const [course, setCourse] = useState(builtIn || null);
   const [completed, setCompleted] = useState({});
   const [certificate, setCertificate] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeLesson, setActiveLesson] = useState(null); // "mi-li"
+  const [activeLesson, setActiveLesson] = useState(null);
   const [openModules, setOpenModules] = useState({ 0: true });
   const [showVideo, setShowVideo] = useState(false);
+  const [dbLinks, setDbLinks] = useState(null); // null = use hardcoded
 
-  // Load progress from backend
   useEffect(() => {
-    if (!course) { setLoading(false); return; }
-    api.get(`/courses/progress/${courseId}/`)
-      .then(r => {
-        setCompleted(r.data.completed || {});
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    const loadCourse = async () => {
+      try {
+        const r = await api.get(`/courses/custom/${courseId}/detail/`);
+        const c = r.data;
+        if (!builtIn) {
+          setCourse({
+            title: c.title, icon: c.icon, color: c.color || "#2563EB",
+            light: "#EFF6FF", level: c.level, duration: c.duration,
+            desc: c.description, skills: c.skills, modules: c.modules || [],
+            youtube_playlist: c.youtube_playlist || "",
+          });
+        } else {
+          // Built-in course: apply DB overrides for links/youtube only
+          if (c.youtube_playlist) {
+            setCourse(prev => ({ ...prev, youtube_playlist: c.youtube_playlist }));
+          }
+        }
+        if (c.resource_links?.length > 0) setDbLinks(c.resource_links);
+      } catch {
+        if (!builtIn) setCourse(null);
+      }
+    };
 
-    api.get(`/courses/certificate/${courseId}/`)
-      .then(r => setCertificate(r.data))
-      .catch(() => {});
-  }, [courseId, course]);
+    const loadProgress = async () => {
+      try {
+        const r = await api.get(`/courses/progress/${courseId}/`);
+        setCompleted(r.data.completed || {});
+      } catch {}
+    };
+
+    const loadCert = async () => {
+      try {
+        const r = await api.get(`/courses/certificate/${courseId}/`);
+        setCertificate(r.data);
+      } catch {}
+    };
+
+    Promise.all([loadCourse(), loadProgress(), loadCert()])
+      .finally(() => setLoading(false));
+  }, [courseId, builtIn]);
 
   // Save progress to backend
   const saveProgress = useCallback((newCompleted) => {
@@ -985,78 +1081,23 @@ export default function LearningPath() {
                     const isActive = activeLesson === key;
 
                     return (
-                      <div key={li} className={`lp-lesson-wrap ${done ? "done" : ""} ${isActive ? "active" : ""}`}>
-                        <div className="lp-lesson" onClick={() => setActiveLesson(isActive ? null : key)}>
-                          <button
-                            className="lp-check-btn"
-                            style={{ borderColor: course.color, background: done ? course.color : "transparent" }}
-                            onClick={e => { e.stopPropagation(); toggle(key); }}
-                            title={done ? "Mark incomplete" : "Mark complete"}
-                          >
-                            {done && <span>✓</span>}
-                          </button>
-                          <div className="lp-lesson-info">
-                            <span className="lp-lesson-title">{lesson.title}</span>
-                            <div className="lp-lesson-meta">
-                              <span className="lp-type-badge" style={{ color: meta.color, background: meta.bg }}>
-                                {meta.label}
-                              </span>
-                              <span className="lp-lesson-dur">{lesson.duration}</span>
-                            </div>
-                          </div>
-                          <span className="lp-expand-icon">{isActive ? "▲" : "▼"}</span>
-                        </div>
-
-                        {/* Lesson content panel */}
-                        {isActive && (
-                          <div className="lp-lesson-content">
-                            <p className="lp-content-note">
-                              This lesson covers <strong>{lesson.title}</strong> — part of the <em>{mod.title}</em> module.
-                              Study the concept, practice the examples, then mark it complete.
-                            </p>
-                            <div className="lp-content-actions">
-                              {getResourceLinks(courseId, lesson.title).map((link, idx) => (
-                                <a key={idx} href={link.url} target="_blank" rel="noreferrer"
-                                  className="lp-ref-btn"
-                                  style={{ background: link.bg, color: link.color, border: `1px solid ${link.color}33` }}>
-                                  {link.label}
-                                </a>
-                              ))}
-                              {YOUTUBE_PLAYLISTS[courseId] && (
-                                <button
-                                  className="lp-ref-btn lp-youtube-btn"
-                                  onClick={() => setShowVideo(!showVideo)}
-                                  style={{ background: "#FEE2E2", color: "#DC2626", border: "1px solid #DC262633" }}
-                                >
-                                  {showVideo ? "Hide Video" : "📺 Watch Tutorial"}
-                                </button>
-                              )}
-                            </div>
-                            {showVideo && YOUTUBE_PLAYLISTS[courseId] && (
-                              <div className="lp-video-container">
-                                <iframe
-                                  width="100%"
-                                  height="400"
-                                  src={`https://www.youtube.com/embed/videoseries?list=${YOUTUBE_PLAYLISTS[courseId]}`}
-                                  title="YouTube Tutorial"
-                                  frameBorder="0"
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  allowFullScreen
-                                />
-                              </div>
-                            )}
-                            {!done && (
-                              <button
-                                className="lp-mark-btn"
-                                style={{ background: course.color }}
-                                onClick={() => toggle(key)}
-                              >
-                                Mark as Complete
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      <LessonItem
+                        key={li}
+                        lesson={lesson}
+                        lessonKey={key}
+                        done={done}
+                        meta={meta}
+                        isActive={isActive}
+                        courseColor={course.color}
+                        courseId={courseId}
+                        modTitle={mod.title}
+                        dbLinks={dbLinks}
+                        showVideo={showVideo}
+                        setShowVideo={setShowVideo}
+                        youtube={course.youtube_playlist || YOUTUBE_PLAYLISTS[courseId]}
+                        onToggle={toggle}
+                        onExpand={() => setActiveLesson(isActive ? null : key)}
+                      />
                     );
                   })}
                 </div>

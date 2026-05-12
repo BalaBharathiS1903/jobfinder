@@ -308,3 +308,127 @@
   .gp-layout { grid-template-columns: 1fr; max-width: 600px; }
   .gp-avatar { max-width: 120px; font-size: 2.5rem; }
 }
+
+/* ── Profile View Additions ── */
+
+/* Tabs */
+.gp-tabs {
+  display: flex; gap: 0; margin-bottom: 1rem;
+  background: var(--gh-surface); border: 1px solid var(--gh-border);
+  border-radius: 6px; overflow: hidden;
+}
+.gp-tab {
+  flex: 1; padding: 0.75rem 1rem; border: none;
+  background: none; font-size: 0.875rem; font-weight: 600;
+  color: var(--gh-muted); cursor: pointer; transition: all 0.15s;
+}
+.gp-tab:hover { background: #f6f8fa; }
+.gp-tab.active {
+  background: var(--gh-blue); color: white;
+}
+
+/* Personal grid */
+.gp-personal-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.75rem; font-size: 0.875rem;
+}
+.gp-personal-grid > div {
+  padding: 0.5rem 0;
+}
+.gp-personal-grid strong {
+  color: var(--gh-text); font-weight: 600;
+}
+
+/* Experience and Education */
+.gp-experience-list, .gp-education-list {
+  display: flex; flex-direction: column; gap: 1rem;
+}
+.gp-exp-item, .gp-edu-item {
+  padding: 1rem; background: #f6f8fa;
+  border: 1px solid var(--gh-border); border-radius: 6px;
+}
+.gp-exp-item h4, .gp-edu-item h4 {
+  font-size: 0.875rem; font-weight: 700; color: var(--gh-text);
+  margin: 0 0 0.25rem;
+}
+.gp-exp-item p, .gp-edu-item p {
+  font-size: 0.8rem; color: var(--gh-muted); margin: 0.25rem 0 0;
+}
+
+/* Activity stats */
+.gp-activity-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+.gp-stat-card {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 1rem; background: #f6f8fa; border: 1px solid var(--gh-border);
+  border-radius: 6px; text-align: center;
+}
+.gp-stat-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+.gp-stat-val {
+  font-size: 1.5rem; font-weight: 800; color: var(--gh-text);
+  margin-bottom: 0.25rem;
+}
+.gp-stat-label {
+  font-size: 0.75rem; color: var(--gh-muted); font-weight: 600;
+}
+
+/* Usage bars */
+.gp-usage-bars { display: flex; flex-direction: column; gap: 1rem; }
+.gp-usage-item { display: flex; flex-direction: column; gap: 0.5rem; }
+.gp-usage-label {
+  font-size: 0.875rem; font-weight: 600; color: var(--gh-text);
+}
+.gp-bar-bg {
+  height: 8px; background: #eaeef2; border-radius: 4px;
+  overflow: hidden;
+}
+.gp-bar-fill {
+  height: 100%; border-radius: 4px; transition: width 0.3s;
+}
+
+/* Recent lists */
+.gp-recent-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.gp-recent-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.75rem 1rem; background: #f6f8fa;
+  border: 1px solid var(--gh-border); border-radius: 6px;
+}
+.gp-recent-name {
+  font-size: 0.875rem; font-weight: 600; color: var(--gh-text);
+}
+.gp-recent-meta {
+  font-size: 0.75rem; color: var(--gh-muted);
+}
+
+/* Social links */
+.gp-social-links {
+  display: flex; flex-wrap: wrap; gap: 0.5rem;
+}
+.gp-social-link {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 1rem; border-radius: 6px;
+  font-size: 0.875rem; font-weight: 600; text-decoration: none;
+  background: var(--gh-blue-bg); color: var(--gh-blue);
+  border: 1px solid #54aeff66; transition: all 0.15s;
+}
+.gp-social-link:hover {
+  background: #b6e3ff; transform: translateY(-2px);
+}
+
+.gp-empty-state {
+  font-size: 0.875rem; color: var(--gh-muted); margin: 0; padding: 1rem;
+  text-align: center;
+}
+
+.gp-field {
+  display: flex; flex-direction: column;
+}
+.gp-field label {
+  margin-bottom: 0.4rem; font-size: 0.875rem; font-weight: 600; color: var(--gh-text);
+}
+.gp-field input {
+  padding: 0.5rem; border: 1px solid var(--gh-border); border-radius: 6px;
+  font-size: 0.875rem; color: var(--gh-text);
+}

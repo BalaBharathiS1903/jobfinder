@@ -19,6 +19,7 @@ def _save_version(resume):
 
 class ResumeListView(generics.ListAPIView):
     serializer_class = ResumeSerializer
+    permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return Resume.objects.filter(user=self.request.user).order_by("-uploaded_at")
     def get_serializer_context(self):
@@ -27,6 +28,7 @@ class ResumeListView(generics.ListAPIView):
 
 class ResumeDetailView(generics.RetrieveDestroyAPIView):
     serializer_class = ResumeSerializer
+    permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return Resume.objects.filter(user=self.request.user)
     def get_serializer_context(self):
@@ -46,7 +48,9 @@ def upload_resume(request):
         return Response({"error": "File too large. Maximum size is 5 MB."}, status=400)
     if Resume.objects.filter(user=request.user).count() >= request.user.resume_upload_limit:
         return Response({"error": f"Maximum {request.user.resume_upload_limit} resumes allowed. Delete or replace an existing one."}, status=400)
-    parsed = parse_resume(file.read(), file.name)
+    file_bytes = file.read()
+    file.seek(0)
+    parsed = parse_resume(file_bytes, file.name)
     resume = Resume.objects.create(user=request.user, file=file, filename=file.name, version=1, **parsed)
     return Response(ResumeSerializer(resume).data, status=201)
 
@@ -67,7 +71,9 @@ def replace_resume(request, pk):
     if file.size > 5 * 1024 * 1024:
         return Response({"error": "File too large. Maximum size is 5 MB."}, status=400)
     _save_version(resume)
-    parsed = parse_resume(file.read(), file.name)
+    file_bytes = file.read()
+    file.seek(0)
+    parsed = parse_resume(file_bytes, file.name)
     resume.file = file
     resume.filename = file.name
     resume.version = resume.version + 1

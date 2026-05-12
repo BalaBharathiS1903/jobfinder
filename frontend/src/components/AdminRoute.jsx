@@ -2,8 +2,8 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function AdminRoute({ children }) {
-  const { user } = useAuth();
-  if (user === undefined) return <div className="loading">Loading…</div>;
+  const { user, loading } = useAuth();
+  if (loading) return <div className="loading">Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
   if (!user.is_superuser) return <Navigate to="/home" replace />;
   return children;

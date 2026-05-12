@@ -27,6 +27,201 @@ const LEVELS  = ["Beginner", "Intermediate", "Advanced"];
 const COLORS  = ["#2563EB","#7C3AED","#059669","#D97706","#DC2626","#0891B2","#B45309","#CA8A04"];
 const ICONS   = ["📚","🐍","🌐","📊","⚙️","📰","🗄️","🔧","☕","📘","🐹","🟣","🐘","💎","🍊","🦀","🎯","🚀","💡","🔬"];
 
+function LearningPathModal({ course, onClose, onSaved, notify }) {
+  const [tab, setTab] = useState("modules");
+  const [modules, setModules] = useState(course.modules || []);
+  const [ytPlaylist, setYtPlaylist] = useState(course.youtube_playlist || "");
+  const [links, setLinks] = useState(
+    course.resource_links?.length > 0
+      ? course.resource_links
+      : [
+          { label: "GeeksforGeeks", url: "", color: "#2E7D32", bg: "#E7F3E8" },
+          { label: "W3Schools",     url: "", color: "#1565C0", bg: "#E3F2FD" },
+          { label: "Official Docs", url: "", color: "#E65100", bg: "#FFF3E0" },
+        ]
+  );
+  const [generating, setGenerating] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const generateWithAI = async () => {
+    setGenerating(true); setError("");
+    try {
+      const res = await api.post("/courses/custom/ai-generate/", {
+        title: course.title, description: course.description,
+        level: course.level, duration: course.duration, skills: course.skills,
+      });
+      setModules(res.data.modules || []);
+      notify(`✓ AI generated ${res.data.modules.length} modules. YouTube search: "${res.data.youtube_search}"`);
+    } catch (err) {
+      setError(err.response?.data?.error || "AI generation failed.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const save = async () => {
+    setSaving(true); setError("");
+    try {
+      let courseId = course.id;
+      if (!courseId) {
+        // Built-in course with no override yet — create it first
+        const res = await api.post("/courses/custom/create/", {
+          course_id: course.course_id,
+          title: course.title,
+          description: course.description || "",
+          icon: course.icon,
+          color: course.color || "#2563EB",
+          level: course.level || "Beginner",
+          duration: course.duration || "4 hrs",
+          skills: course.skills || [],
+        });
+        courseId = res.data.id;
+      }
+      await api.patch(`/courses/custom/${courseId}/edit/`, {
+        modules,
+        youtube_playlist: ytPlaylist,
+        resource_links: links.filter(l => l.label && l.url),
+      });
+      notify("✓ Learning path saved");
+      onSaved(); onClose();
+    } catch (err) {
+      setError(err.response?.data?.error || "Save failed.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateLesson = (mi, li, field, value) =>
+    setModules(prev => prev.map((mod, m) => m !== mi ? mod : {
+      ...mod, lessons: mod.lessons.map((les, l) => l !== li ? les : { ...les, [field]: value })
+    }));
+
+  const updateModuleTitle = (mi, value) =>
+    setModules(prev => prev.map((mod, m) => m !== mi ? mod : { ...mod, title: value }));
+
+  const addLesson = (mi) =>
+    setModules(prev => prev.map((mod, m) => m !== mi ? mod : {
+      ...mod, lessons: [...mod.lessons, { title: "", duration: "8 min", type: "coding" }]
+    }));
+
+  const removeLesson = (mi, li) =>
+    setModules(prev => prev.map((mod, m) => m !== mi ? mod : {
+      ...mod, lessons: mod.lessons.filter((_, l) => l !== li)
+    }));
+
+  const addModule = () =>
+    setModules(prev => [...prev, { title: "New Module", lessons: [{ title: "", duration: "8 min", type: "coding" }] }]);
+
+  const removeModule = (mi) => setModules(prev => prev.filter((_, m) => m !== mi));
+
+  const updateLink = (i, field, value) =>
+    setLinks(prev => prev.map((l, idx) => idx !== i ? l : { ...l, [field]: value }));
+
+  const addLink = () =>
+    setLinks(prev => [...prev, { label: "", url: "", color: "#2563EB", bg: "#EFF6FF" }]);
+
+  const removeLink = (i) => setLinks(prev => prev.filter((_, idx) => idx !== i));
+
+  return (
+    <div className="ac2-modal-overlay" onClick={onClose}>
+      <div className="ac2-modal ac2-lp-modal" onClick={e => e.stopPropagation()}>
+        <div className="ac2-modal-header">
+          <h3>📚 Edit Learning Path — {course.title}{!course.id ? " (Built-in Override)" : ""}</h3>
+          <button className="ac2-modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="ac2-modal-body">
+          {error && <div className="ac2-modal-error">{error}</div>}
+
+          {/* Inner tabs */}
+          <div className="ac2-lp-tabs">
+            <button className={`ac2-lp-tab ${tab === "modules" ? "active" : ""}`} onClick={() => setTab("modules")}>📋 Modules & Lessons</button>
+            <button className={`ac2-lp-tab ${tab === "links" ? "active" : ""}`} onClick={() => setTab("links")}>🔗 Resource Links</button>
+          </div>
+
+          {/* ── MODULES TAB ── */}
+          {tab === "modules" && (
+            <>
+              <div className="ac2-field">
+                <label>📺 YouTube Playlist ID <span style={{fontWeight:400,color:"var(--muted)"}}>( e.g. PL4cUxeGkcC9... )</span></label>
+                <input value={ytPlaylist} onChange={e => setYtPlaylist(e.target.value)} placeholder="Paste YouTube playlist ID" />
+              </div>
+              <div className="ac2-lp-ai-row">
+                <button className="ac2-btn ac2-btn-ai" onClick={generateWithAI} disabled={generating}>
+                  {generating ? "⏳ Generating…" : "✨ Generate with Gemini AI"}
+                </button>
+                <span className="ac2-lp-ai-hint">Auto-creates modules & lessons based on course info</span>
+              </div>
+              <div className="ac2-lp-modules">
+                {modules.length === 0 && <p className="ac2-lp-empty">No modules yet. Generate with AI or add manually.</p>}
+                {modules.map((mod, mi) => (
+                  <div key={mi} className="ac2-lp-module">
+                    <div className="ac2-lp-module-header">
+                      <input className="ac2-lp-mod-title" value={mod.title}
+                        onChange={e => updateModuleTitle(mi, e.target.value)} placeholder="Module title" />
+                      <button className="ac2-lp-remove-btn" onClick={() => removeModule(mi)}>✕</button>
+                    </div>
+                    {mod.lessons.map((les, li) => (
+                      <div key={li} className="ac2-lp-lesson-row">
+                        <input className="ac2-lp-les-title" value={les.title}
+                          onChange={e => updateLesson(mi, li, "title", e.target.value)} placeholder="Lesson title" />
+                        <input className="ac2-lp-les-dur" value={les.duration}
+                          onChange={e => updateLesson(mi, li, "duration", e.target.value)} placeholder="8 min" />
+                        <select className="ac2-lp-les-type" value={les.type}
+                          onChange={e => updateLesson(mi, li, "type", e.target.value)}>
+                          <option value="coding">Coding</option>
+                          <option value="reading">Reading</option>
+                          <option value="setup">Setup</option>
+                        </select>
+                        <button className="ac2-lp-remove-btn" onClick={() => removeLesson(mi, li)}>✕</button>
+                      </div>
+                    ))}
+                    <button className="ac2-lp-add-lesson" onClick={() => addLesson(mi)}>+ Add Lesson</button>
+                  </div>
+                ))}
+                <button className="ac2-lp-add-module" onClick={addModule}>+ Add Module</button>
+              </div>
+            </>
+          )}
+
+          {/* ── LINKS TAB ── */}
+          {tab === "links" && (
+            <div className="ac2-lp-links">
+              <p className="ac2-lp-links-hint">
+                These links appear inside every lesson panel. Students click them to open documentation, tutorials, or reference sites.
+              </p>
+              {links.map((link, i) => (
+                <div key={i} className="ac2-lp-link-row">
+                  <div className="ac2-lp-link-preview" style={{ background: link.bg, color: link.color, border: `1px solid ${link.color}44` }}>
+                    {link.label || "Link"}
+                  </div>
+                  <input className="ac2-lp-link-label" value={link.label}
+                    onChange={e => updateLink(i, "label", e.target.value)} placeholder="Label (e.g. GeeksforGeeks)" />
+                  <input className="ac2-lp-link-url" value={link.url}
+                    onChange={e => updateLink(i, "url", e.target.value)} placeholder="https://..." />
+                  <input type="color" className="ac2-lp-link-color" value={link.color}
+                    onChange={e => updateLink(i, "color", e.target.value)} title="Text color" />
+                  <input type="color" className="ac2-lp-link-color" value={link.bg}
+                    onChange={e => updateLink(i, "bg", e.target.value)} title="Background color" />
+                  <button className="ac2-lp-remove-btn" onClick={() => removeLink(i)}>✕</button>
+                </div>
+              ))}
+              <button className="ac2-lp-add-module" onClick={addLink}>+ Add Link</button>
+            </div>
+          )}
+
+          <div className="ac2-modal-actions">
+            <button className="ac2-btn ac2-btn-outline" onClick={onClose}>Cancel</button>
+            <button className="ac2-btn ac2-btn-primary" onClick={save} disabled={saving}>
+              {saving ? "Saving…" : "💾 Save Learning Path"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AddCourseModal({ onClose, onAdded, notify }) {
   const [form, setForm] = useState({
     title: "", description: "", icon: "📚", color: "#2563EB",
@@ -142,6 +337,7 @@ function EditCourseModal({ course, onClose, onUpdated, notify, updateCourse }) {
     level: course.level || "Beginner",
     duration: course.duration || "4 hrs",
     skills: (course.skills || []).join(", "),
+    course_link: course.course_link || "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -159,6 +355,7 @@ function EditCourseModal({ course, onClose, onUpdated, notify, updateCourse }) {
         level: form.level,
         duration: form.duration,
         skills: form.skills.split(",").map(s => s.trim()).filter(Boolean),
+        course_link: form.course_link,
       };
 
       if (course.id) {
@@ -222,6 +419,11 @@ function EditCourseModal({ course, onClose, onUpdated, notify, updateCourse }) {
             <input value={form.skills} onChange={e => setForm(f => ({...f, skills: e.target.value}))} />
           </div>
 
+          <div className="ac2-field">
+            <label>Course Link <span style={{fontWeight:400,color:"var(--muted)"}}>( optional external URL )</span></label>
+            <input type="url" value={form.course_link} onChange={e => setForm(f => ({...f, course_link: e.target.value}))} placeholder="https://..." />
+          </div>
+
           <div className="ac2-field-row">
             <div className="ac2-field">
               <label>Icon</label>
@@ -271,7 +473,36 @@ export default function AdminCourses() {
   const [toast, setToast] = useState("");
   const [showAddCourse, setShowAddCourse] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
-  const [activeTab, setActiveTab] = useState("access"); // "access" | "courses"
+  const [editingLearningPath, setEditingLearningPath] = useState(null);
+  const [activeTab, setActiveTab] = useState("access");
+
+  const openLPModal = (course) => {
+    // For built-in courses, find or scaffold an override record
+    const existing = customCourses.find(cc => cc.course_id === course.id);
+    if (existing) {
+      setEditingLearningPath(existing);
+    } else {
+      // Scaffold a temporary object — LP modal will create it on save
+      setEditingLearningPath({
+        id: null,
+        course_id: course.id,
+        title: course.label,
+        description: "",
+        icon: course.icon,
+        color: "#2563EB",
+        level: "Beginner",
+        duration: "4 hrs",
+        skills: [],
+        modules: [],
+        youtube_playlist: "",
+        resource_links: [
+          { label: "GeeksforGeeks", url: "", color: "#2E7D32", bg: "#E7F3E8" },
+          { label: "W3Schools",     url: "", color: "#1565C0", bg: "#E3F2FD" },
+          { label: "Official Docs", url: "", color: "#E65100", bg: "#FFF3E0" },
+        ],
+      });
+    }
+  };
 
   const notify = (msg) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -356,6 +587,14 @@ export default function AdminCourses() {
         <AddCourseModal
           onClose={() => setShowAddCourse(false)}
           onAdded={() => refetchCustom()}
+          notify={notify}
+        />
+      )}
+      {editingLearningPath && (
+        <LearningPathModal
+          course={editingLearningPath}
+          onClose={() => setEditingLearningPath(null)}
+          onSaved={() => { setEditingLearningPath(null); refetchCustom(); }}
           notify={notify}
         />
       )}
@@ -488,6 +727,8 @@ export default function AdminCourses() {
                     <span className="ac2-course-icon">{c.icon}</span>
                     <span className="ac2-course-list-name">{c.label}</span>
                     <div className="ac2-course-actions">
+                      <Link to={`/prep/course/${c.id}`} className="ac2-view-btn" title="View Learning Path">👁 View</Link>
+                      <button className="ac2-lp-edit-btn" onClick={() => openLPModal(c)} title="Edit Links & YouTube">🔗 Links</button>
                       <button className="ac2-edit-btn" onClick={() => {
                         // If there's already a custom override, edit it
                         const existingCustom = customCourses.find(cc => cc.course_id === c.id);
@@ -546,6 +787,8 @@ export default function AdminCourses() {
                       )}
                     </div>
                     <div className="ac2-course-actions">
+                      <Link to={`/prep/course/${c.course_id}`} className="ac2-view-btn" title="View Learning Path">👁 View</Link>
+                      <button className="ac2-lp-edit-btn" onClick={() => setEditingLearningPath(c)} title="Edit Learning Path">📚 LP</button>
                       <button className="ac2-edit-btn" onClick={() => setEditingCourse(c)}>✎</button>
                       <button className="ac2-delete-btn" onClick={() => deleteCourse(c.id, c.title)}>🗑</button>
                     </div>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
 import { fmtDate } from "../lib/date";
+import { useAuth } from "../context/AuthContext";
 import "./Resumes.css";
 
 const MAX = 5;
@@ -15,12 +16,15 @@ export default function Resumes() {
   const [uploading, setUploading] = useState(false);
   const [replacing, setReplacing] = useState(false);
   const [reparsingId, setReparsingId] = useState(null);
-  const [error, setError] = useState("");
+  const [uploadError, setUploadError] = useState("");
   const [expandedVersions, setExpandedVersions] = useState({});
 
-  const { data: resumes = [], isLoading } = useQuery({
+  const { user } = useAuth();
+
+  const { data: resumes = [], isLoading, isError, error } = useQuery({
     queryKey: ["resumes"],
     queryFn: () => api.get("/resume/").then(r => r.data),
+    enabled: !!user,
   });
 
   const deleteMutation = useMutation({
@@ -37,7 +41,7 @@ export default function Resumes() {
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setError("");
+    setUploadError("");
     setUploading(true);
     const fd = new FormData();
     fd.append("file", file);
@@ -45,7 +49,7 @@ export default function Resumes() {
       await api.post("/resume/upload/", fd);
       qc.invalidateQueries({ queryKey: ["resumes"] });
     } catch (err) {
-      setError(err.response?.data?.error || "Upload failed.");
+      setUploadError(err.response?.data?.error || "Upload failed.");
     } finally {
       setUploading(false);
       uploadRef.current.value = "";
@@ -55,7 +59,7 @@ export default function Resumes() {
   const handleReplace = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !replaceId) return;
-    setError("");
+    setUploadError("");
     setReplacing(true);
     const fd = new FormData();
     fd.append("file", file);
@@ -63,7 +67,7 @@ export default function Resumes() {
       await api.post(`/resume/${replaceId}/replace/`, fd);
       qc.invalidateQueries({ queryKey: ["resumes"] });
     } catch (err) {
-      setError(err.response?.data?.error || "Replace failed.");
+      setUploadError(err.response?.data?.error || "Replace failed.");
     } finally {
       setReplacing(false);
       setReplaceId(null);
@@ -102,7 +106,8 @@ export default function Resumes() {
         </div>
       )}
 
-      {error && <p className="error">{error}</p>}
+      {isError && <p className="error">{error?.response?.data?.error || error?.message || "Failed to load resumes."}</p>}
+      {uploadError && <p className="error">{uploadError}</p>}
 
       {isLoading ? (
         <p className="loading">Loading…</p>

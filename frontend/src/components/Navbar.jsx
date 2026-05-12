@@ -64,7 +64,7 @@ export default function Navbar() {
             {!user?.is_superuser && <Link to="/saved" className="nav-icon-link">{NavIcon.bookmark} Saved Jobs</Link>}
             {!user?.is_superuser && <Link to="/resume-analyzer" className="nav-icon-link">{NavIcon.chart} Resume Analyzer</Link>}
             {!user?.is_superuser && <Link to="/resume-builder" className="nav-icon-link">{NavIcon.edit} Resume Builder</Link>}
-            {!user?.is_superuser && <Link to="/my-profile" className="nav-icon-link">{NavIcon.user} My Profile</Link>}
+            {!user?.is_superuser && <Link to="/profile" className="nav-icon-link">{NavIcon.user} My Profile</Link>}
             {!user?.is_superuser && <Link to="/prep" className="nav-icon-link">{NavIcon.book} Prep Hub</Link>}
 
             {/* User avatar dropdown */}

@@ -8,41 +8,34 @@ import "./AllCourses.css";
 export default function AllCourses() {
   const { user } = useAuth();
 
-  const { data: allProgress = {} } = useQuery({
+  const { data: allProgress = {}, isLoading } = useQuery({
     queryKey: ["courses-progress"],
-    queryFn: () => api.get("/courses/progress/").then(r => r.data),
+    queryFn: () => api.get("/courses/progress/").then(r => r.data).catch(() => ({})),
     enabled: !!user,
   });
 
   const { data: customCourses = [] } = useQuery({
     queryKey: ["custom-courses"],
-    queryFn: () => api.get("/courses/custom/").then(r => r.data),
+    queryFn: () => api.get("/courses/custom/").then(r => r.data).catch(() => []),
     enabled: !!user,
   });
 
-  const { data: accessData } = useQuery({
-    queryKey: ["my-course-access"],
-    queryFn: () => api.get("/courses/my-access/").then(r => r.data),
-    enabled: !!user,
-  });
-
-  const approvedSet = new Set(accessData?.approved_courses || []);
   const isAdmin = user?.is_superuser;
 
-  // For built-in courses, use custom override data if it exists
+  // Built-in courses — use custom override data if admin has customised them
   const builtInList = Object.entries(COURSES).map(([id, course]) => {
     const override = customCourses.find(c => c.course_id === id);
     return {
       id,
-      title: override?.title || course.title,
-      icon: override?.icon || course.icon,
-      color: override?.color || course.color,
-      light: course.light,
-      level: override?.level || course.level,
-      duration: override?.duration || course.duration,
-      desc: override?.description || course.desc,
-      skills: override?.skills?.length ? override.skills : course.skills,
-      modules: override?.modules?.length ? override.modules : course.modules,
+      title:    override?.title       || course.title,
+      icon:     override?.icon        || course.icon,
+      color:    override?.color       || course.color,
+      light:    course.light,
+      level:    override?.level       || course.level,
+      duration: override?.duration    || course.duration,
+      desc:     override?.description || course.desc,
+      skills:   override?.skills?.length ? override.skills : course.skills,
+      modules:  override?.modules?.length ? override.modules : course.modules,
       isCustom: false,
     };
   });
@@ -51,33 +44,32 @@ export default function AllCourses() {
   const customList = customCourses
     .filter(c => !COURSES[c.course_id])
     .map(c => ({
-      id: c.course_id,
-      title: c.title,
-      icon: c.icon,
-      color: c.color || "#2563EB",
-      light: "#EFF6FF",
-      level: c.level,
+      id:       c.course_id,
+      title:    c.title,
+      icon:     c.icon,
+      color:    c.color || "#2563EB",
+      light:    "#EFF6FF",
+      level:    c.level,
       duration: c.duration,
-      desc: c.description,
-      skills: c.skills || [],
-      modules: c.modules || [],
+      desc:     c.description,
+      skills:   c.skills || [],
+      modules:  c.modules || [],
       isCustom: true,
     }));
 
   const allCourses = [...builtInList, ...customList];
 
-  // Group built-in by category, custom courses in their own section
   const categories = {
     "Programming Languages": ["python-basics", "javascript-advanced", "typescript", "java-basics", "golang", "rust-lang", "kotlin", "cpp", "php", "ruby", "swift"],
-    "Web & Frameworks": ["web-dev", "django-rest"],
-    "Data & Databases": ["data-science", "sql-databases"],
-    "DevOps & Tools": ["git-devops"],
+    "Web & Frameworks":      ["web-dev", "django-rest"],
+    "Data & Databases":      ["data-science", "sql-databases"],
+    "DevOps & Tools":        ["git-devops"],
   };
 
   const renderCard = (c) => {
-    const p = allProgress[c.id] || { done: 0, total: 0, pct: 0, certificate: null };
-    const approved = isAdmin || approvedSet.has(c.id);
-    const totalLessons = c.modules.reduce((s, m) => s + (m.lessons?.length || 0), 0);
+    const p = allProgress[c.id] || { done: 0, total: 0, pct: 0, certificate: null, approved: false };
+    const approved = isAdmin || p.approved;
+    const totalLessons = p.total || c.modules.reduce((s, m) => s + (m.lessons?.length || 0), 0);
     const earned = !!p.certificate;
 
     return (
@@ -144,25 +136,31 @@ export default function AllCourses() {
         <p>Browse {allCourses.length} courses — start any approved course to begin tracking your progress.</p>
       </div>
 
-      {Object.entries(categories).map(([category, courseIds]) => (
-        <div key={category}>
-          <h2 className="ac-category-title">{category}</h2>
-          <div className="ac-grid">
-            {courseIds.map(id => {
-              const c = allCourses.find(x => x.id === id);
-              return c ? renderCard(c) : null;
-            })}
-          </div>
-        </div>
-      ))}
+      {isLoading ? (
+        <div className="ac-loading">Loading courses…</div>
+      ) : (
+        <>
+          {Object.entries(categories).map(([category, courseIds]) => (
+            <div key={category}>
+              <h2 className="ac-category-title">{category}</h2>
+              <div className="ac-grid">
+                {courseIds.map(id => {
+                  const c = allCourses.find(x => x.id === id);
+                  return c ? renderCard(c) : null;
+                })}
+              </div>
+            </div>
+          ))}
 
-      {customList.length > 0 && (
-        <div>
-          <h2 className="ac-category-title">Custom Courses</h2>
-          <div className="ac-grid">
-            {customList.map(c => renderCard(c))}
-          </div>
-        </div>
+          {customList.length > 0 && (
+            <div>
+              <h2 className="ac-category-title">Custom Courses</h2>
+              <div className="ac-grid">
+                {customList.map(c => renderCard(c))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

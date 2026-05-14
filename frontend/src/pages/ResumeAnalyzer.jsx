@@ -16,6 +16,14 @@ export default function ResumeAnalyzer() {
     queryFn: () => api.get("/resume/").then(r => r.data),
   });
 
+  const { data: accessData, isLoading: accessLoading } = useQuery({
+    queryKey: ["my-course-access"],
+    queryFn: () => api.get("/courses/my-access/").then(r => r.data).catch(() => ({ approved_courses: [] })),
+  });
+
+  const approvedSet = new Set(accessData?.approved_courses || []);
+  const accessReady = !accessLoading && accessData !== undefined;
+
   const analyze = async () => {
     if (!selectedId) return;
     setLoading(true);
@@ -144,9 +152,17 @@ export default function ResumeAnalyzer() {
                       ))}
                       {gap.missing.length > 5 && <span className="ra-gap-more">+{gap.missing.length - 5} more</span>}
                     </div>
-                    <Link to={`/prep/course/${gap.courseId}`} className="ra-gap-btn" style={{ background: gap.color }}>
-                      Start Learning →
-                    </Link>
+                    {!accessReady ? (
+                      <div className="ra-gap-btn-loading">Checking access…</div>
+                    ) : approvedSet.has(gap.courseId) ? (
+                      <Link to={`/prep/course/${gap.courseId}`} className="ra-gap-btn" style={{ background: gap.color }}>
+                        Start Learning →
+                      </Link>
+                    ) : (
+                      <div className="ra-gap-locked">
+                        🔒 Not Approved — <Link to="/prep/courses">Contact Admin</Link>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -72,16 +72,36 @@ export default function Search() {
     onSuccess: (_, job) => setSavedIds((prev) => new Set([...prev, job.id])),
   });
 
-  const handleResumeChange = async (e) => {
+  const handleResumeChange = (e) => {
     const id = e.target.value;
     setForm((f) => ({ ...f, resume_id: id, query: "" }));
     setResumeSkills([]);
     if (!id) return;
-    try {
-      const { data } = await api.get(`/jobs/resume-query/${id}/`);
-      setForm((f) => ({ ...f, resume_id: id, query: data.query }));
-      setResumeSkills(data.skills || []);
-    } catch {}
+    const resume = resumes.find(r => String(r.id) === String(id));
+    if (!resume) return;
+    setResumeSkills(resume.skills || []);
+    // Build a smart query from resume skills/titles
+    const skills = (resume.skills || []).map(s => s.toLowerCase());
+    const titles = (resume.job_titles || []).map(t => t.toLowerCase());
+    const ROLE_MAP = [
+      (["react", "javascript", "typescript", "vue", "angular"], "frontend developer"),
+      (["django", "flask", "fastapi", "spring boot", "node.js"], "backend developer"),
+      (["javascript", "java", "python", "sql"], "software developer"),
+      (["machine learning", "tensorflow", "pytorch", "scikit-learn"], "machine learning engineer"),
+      (["pandas", "numpy", "matplotlib"], "data analyst"),
+      (["docker", "kubernetes", "aws", "terraform"], "devops engineer"),
+      (["android", "kotlin", "swift", "flutter"], "mobile developer"),
+      (["sql", "postgresql", "mysql", "mongodb"], "database developer"),
+    ];
+    let query = "";
+    for (const [roleSkills, roleName] of ROLE_MAP) {
+      if (roleSkills.some(s => skills.includes(s))) { query = roleName; break; }
+    }
+    if (!query) {
+      const nonGeneric = titles.filter(t => !["intern", "trainee", "associate"].includes(t));
+      query = nonGeneric[0] || (skills[0] ? `${skills[0]} developer` : titles[0] || "");
+    }
+    setForm((f) => ({ ...f, resume_id: id, query }));
   };
 
   const handleSubmit = (e) => {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import api from "../lib/api";
 import "./AdminCourses.css";
 
@@ -466,7 +466,6 @@ function EditCourseModal({ course, onClose, onUpdated, notify, updateCourse }) {
 }
 
 export default function AdminCourses() {
-  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [approving, setApproving] = useState(null);
@@ -476,13 +475,29 @@ export default function AdminCourses() {
   const [editingLearningPath, setEditingLearningPath] = useState(null);
   const [activeTab, setActiveTab] = useState("access");
 
+  const notify = (msg) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: () => api.get("/auth/admin/users/").then(r => r.data),
+  });
+
+  const { data: customCourses = [], refetch: refetchCustom } = useQuery({
+    queryKey: ["custom-courses"],
+    queryFn: () => api.get("/courses/custom/").then(r => r.data),
+  });
+
+  const { data: accessData, refetch: refetchAccess } = useQuery({
+    queryKey: ["admin-course-access", selectedUser?.id],
+    queryFn: () => api.get(`/courses/admin/${selectedUser.id}/access/`).then(r => r.data),
+    enabled: !!selectedUser,
+  });
+
   const openLPModal = (course) => {
-    // For built-in courses, find or scaffold an override record
     const existing = customCourses.find(cc => cc.course_id === course.id);
     if (existing) {
       setEditingLearningPath(existing);
     } else {
-      // Scaffold a temporary object — LP modal will create it on save
       setEditingLearningPath({
         id: null,
         course_id: course.id,
@@ -503,24 +518,6 @@ export default function AdminCourses() {
       });
     }
   };
-
-  const notify = (msg) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
-
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ["admin-users"],
-    queryFn: () => api.get("/auth/admin/users/").then(r => r.data),
-  });
-
-  const { data: customCourses = [], refetch: refetchCustom } = useQuery({
-    queryKey: ["custom-courses"],
-    queryFn: () => api.get("/courses/custom/").then(r => r.data),
-  });
-
-  const { data: accessData, refetch: refetchAccess } = useQuery({
-    queryKey: ["admin-course-access", selectedUser?.id],
-    queryFn: () => api.get(`/courses/admin/${selectedUser.id}/access/`).then(r => r.data),
-    enabled: !!selectedUser,
-  });
 
   const approvedCourses = new Set(accessData?.approved_courses || []);
 

@@ -118,11 +118,13 @@ def all_progress(request):
         return Response({"error": "Prep Hub access denied. Contact admin."}, status=403)
 
     if request.user.is_superuser:
-        approved = set(VALID_COURSES)
+        approved = set(VALID_COURSES) | set(CustomCourse.objects.values_list("course_id", flat=True))
     else:
         approved = set(CourseAccess.objects.filter(user=request.user).values_list("course_id", flat=True))
 
     result = {}
+
+    # Built-in courses
     for course_id in VALID_COURSES:
         progress = CourseProgress.objects.filter(user=request.user, course_id=course_id).first()
         cert = CourseCertificate.objects.filter(user=request.user, course_id=course_id).first()
@@ -135,6 +137,24 @@ def all_progress(request):
             "certificate": CourseCertificateSerializer(cert).data if cert else None,
             "approved": course_id in approved,
         }
+
+    # Custom courses
+    for cc in CustomCourse.objects.all():
+        course_id = cc.course_id
+        if course_id in result:
+            continue  # already handled as built-in override
+        progress = CourseProgress.objects.filter(user=request.user, course_id=course_id).first()
+        cert = CourseCertificate.objects.filter(user=request.user, course_id=course_id).first()
+        total = sum(len(m.get("lessons", [])) for m in cc.modules)
+        done = sum(1 for v in (progress.completed if progress else {}).values() if v)
+        result[course_id] = {
+            "completed": progress.completed if progress else {},
+            "done": done, "total": total,
+            "pct": round((done / total) * 100) if total else 0,
+            "certificate": CourseCertificateSerializer(cert).data if cert else None,
+            "approved": course_id in approved,
+        }
+
     return Response(result)
 
 

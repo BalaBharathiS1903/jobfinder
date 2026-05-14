@@ -101,3 +101,21 @@
 .ra-btn-prep:hover { background: #6D28D9; }
 .ra-gap-btn { display: block; width: 100%; padding: 0.6rem; color: #fff; text-align: center; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 700; margin-top: 0.75rem; transition: opacity 0.2s; }
 .ra-gap-btn:hover { opacity: 0.9; }
+
+.ra-gap-locked {
+  display: block; width: 100%; padding: 0.6rem;
+  background: #F3F4F6; color: #6B7280;
+  text-align: center; border-radius: 6px;
+  font-size: 0.8rem; font-weight: 600;
+  margin-top: 0.75rem; border: 1px solid #E5E7EB;
+}
+.ra-gap-locked a { color: #2563EB; font-weight: 700; text-decoration: none; }
+.ra-gap-locked a:hover { text-decoration: underline; }
+
+.ra-gap-btn-loading {
+  display: block; width: 100%; padding: 0.6rem;
+  background: #F9FAFB; color: #9CA3AF;
+  text-align: center; border-radius: 6px;
+  font-size: 0.78rem; margin-top: 0.75rem;
+  border: 1px dashed #E5E7EB;
+}

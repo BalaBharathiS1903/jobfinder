@@ -844,13 +844,6 @@ const TYPE_META = {
 };
 function LessonItem({ lesson, lessonKey, done, meta, isActive, courseColor, courseId, modTitle, dbLinks, showVideo, setShowVideo, youtube, onToggle, onExpand }) {
 
-  // Auto-mark complete as soon as the lesson is opened
-  useEffect(() => {
-    if (isActive && !done) {
-      onToggle(lessonKey);
-    }
-  }, [isActive]);
-
   return (
     <div className={`lp-lesson-wrap ${done ? "done" : ""} ${isActive ? "active" : ""}`}>
       <div className="lp-lesson" onClick={onExpand}>
@@ -903,6 +896,24 @@ function LessonItem({ lesson, lessonKey, done, meta, isActive, courseColor, cour
                 allowFullScreen />
             </div>
           )}
+          {/* Task completion button */}
+          <div className="lp-task-row">
+            {done ? (
+              <div className="lp-task-done">
+                <span className="lp-task-check">✓</span>
+                <span>Lesson completed</span>
+                <button className="lp-task-undo" onClick={() => onToggle(lessonKey)}>Undo</button>
+              </div>
+            ) : (
+              <button
+                className="lp-task-complete-btn"
+                style={{ background: courseColor }}
+                onClick={() => onToggle(lessonKey)}
+              >
+                ✓ Mark as Complete
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -980,13 +991,14 @@ export default function LearningPath() {
 
   const toggleModule = (mi) => setOpenModules(p => ({ ...p, [mi]: !p[mi] }));
 
+  if (loading) return <div className="lp-page"><p className="lp-loading">Loading course…</p></div>;
+
   if (!course) return (
     <div className="lp-page">
-      <p className="lp-not-found">Course not found. <Link to="/prep">← Back to Prep Hub</Link></p>
+      <Link to="/prep" className="lp-back">← Back to Prep Hub</Link>
+      <p className="lp-not-found">Course not found. <Link to="/prep/courses">Browse all courses →</Link></p>
     </div>
   );
-
-  if (loading) return <div className="lp-page"><p className="lp-loading">Loading course…</p></div>;
 
   const totalLessons = course.modules.reduce((s, m) => s + m.lessons.length, 0);
   const doneCount    = Object.values(completed).filter(Boolean).length;

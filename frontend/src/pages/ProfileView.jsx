@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../lib/api";
 import { fmtDate } from "../lib/date";
@@ -44,7 +44,7 @@ export default function ProfileView() {
     }
   };
 
-  if (profileLoading || activityLoading) return <div className="gp-loading"><div className="gp-spinner" /><p>Loading your profile…</p></div>;
+  if (profileLoading) return <div className="gp-loading"><div className="gp-spinner" /><p>Loading your profile…</p></div>;
 
   const initials = profile?.full_name
     ? profile.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
@@ -115,7 +115,10 @@ export default function ProfileView() {
             <div className="gp-sidebar-section">
               <h4>Top Skills</h4>
               <div className="gp-tag-wrap">
-                {profile.skills.slice(0, 5).map(s => <span key={s} className="gp-tag">{s}</span>)}
+                {profile.skills.slice(0, 5).map((s, i) => {
+                  const name = typeof s === "object" ? s.name : s;
+                  return <span key={i} className="gp-tag">{name}</span>;
+                })}
               </div>
             </div>
           )}
@@ -285,7 +288,15 @@ export default function ProfileView() {
                 <div className="gp-content-section">
                   <h3><span className="gp-section-icon">⚡</span> Skills</h3>
                   <div className="gp-all-skills">
-                    {profile.skills.map(s => <span key={s} className="gp-skill-pill">{s}</span>)}
+                    {profile.skills.map((s, i) => {
+                      const name = typeof s === "object" ? s.name : s;
+                      const level = typeof s === "object" ? s.level : null;
+                      return (
+                        <span key={i} className="gp-skill-pill">
+                          {name}{level ? <em style={{fontSize:"0.7rem",opacity:0.7,marginLeft:"0.3rem"}}>{level}</em> : null}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -323,7 +334,12 @@ export default function ProfileView() {
             </>
           )}
 
-          {activeTab === "activity" && activity && (
+          {activeTab === "activity" && (
+            activityLoading ? (
+              <div className="gp-loading" style={{padding:"3rem",textAlign:"center"}}><div className="gp-spinner" /><p>Loading activity…</p></div>
+            ) : !activity ? (
+              <p style={{padding:"2rem",color:"var(--muted)",textAlign:"center"}}>No activity data available.</p>
+            ) : (
             <>
               {/* Activity Stats */}
               <div className="gp-content-section">
@@ -401,7 +417,7 @@ export default function ProfileView() {
                 </div>
               )}
             </>
-          )}
+          ))}
         </main>
       </div>
     </div>

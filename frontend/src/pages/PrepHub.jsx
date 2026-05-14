@@ -101,30 +101,30 @@ export default function PrepHub() {
     return { missing, matched, matchPct };
   };
 
-  // Approved custom courses (not overrides of built-ins)
-  const approvedCustom = customCourses
-    .filter(c => !COURSES[c.course_id] && (isAdmin || approvedSet.has(c.course_id)))
-    .map(c => ({
-      id: c.course_id,
-      course: {
-        title: c.title, icon: c.icon,
-        color: c.color || "#2563EB", light: "#EFF6FF",
-        level: c.level, duration: c.duration,
-        desc: c.description, skills: c.skills || [],
-        modules: c.modules || [],
-      },
-      rec: getRecommendation(c.course_id, c.skills || []),
-      isCustom: true,
-    }))
-    .filter(({ rec }) => rec && rec.matched.length > 0);
+  // All approved courses — sorted by resume match score (highest first)
+  // Courses with no skills still show if approved
+  const allApprovedCourses = [
+    ...Object.entries(COURSES).map(([id, course]) => {
+      const rec = getRecommendation(id, course.skills);
+      return { id, course, rec, isCustom: false };
+    }),
+    ...customCourses
+      .filter(c => !COURSES[c.course_id])
+      .map(c => {
+        const course = {
+          title: c.title, icon: c.icon,
+          color: c.color || "#2563EB", light: "#EFF6FF",
+          level: c.level, duration: c.duration,
+          desc: c.description, skills: c.skills || [],
+          modules: c.modules || [],
+        };
+        return { id: c.course_id, course, rec: getRecommendation(c.course_id, c.skills || []), isCustom: true };
+      }),
+  ]
+    .filter(({ id }) => isAdmin || approvedSet.has(id))
+    .sort((a, b) => (b.rec?.matchPct ?? 0) - (a.rec?.matchPct ?? 0));
 
-  // Built-in courses matched to resume
-  const matchedBuiltIn = Object.entries(COURSES)
-    .map(([id, course]) => ({ id, course, rec: getRecommendation(id, course.skills), isCustom: false }))
-    .filter(({ rec }) => rec && rec.matched.length > 0)
-    .sort((a, b) => b.rec.matchPct - a.rec.matchPct);
-
-  const matchedCourses = [...matchedBuiltIn, ...approvedCustom];
+  const matchedCourses = allApprovedCourses;
 
   return (
     <div className="ph-page">
@@ -232,28 +232,22 @@ export default function PrepHub() {
         ))}
       </div>
 
-      {/* Matched Courses */}
+      {/* Approved Courses */}
       <div className="ph-section-label ph-section-label-row" style={{ marginTop: "2.5rem" }}>
-        <span>RECOMMENDED COURSES — BASED ON YOUR RESUME</span>
+        <span>APPROVED COURSES</span>
         <Link to="/prep/courses" className="ph-all-courses-btn">View All Courses →</Link>
       </div>
 
-      {!hasResume ? (
+      {matchedCourses.length === 0 ? (
         <div className="ph-resume-hint">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-          <span>
-            <Link to="/resumes">Upload your resume</Link> to see courses matched to your skills.
-          </span>
-        </div>
-      ) : matchedCourses.length === 0 ? (
-        <div className="ph-skills-covered" style={{ display: "inline-block", marginBottom: "1rem" }}>
-          No courses match your resume skills yet. <Link to="/prep/courses">Browse all courses →</Link>
+          <span>No courses approved yet. Contact your admin to get access.</span>
         </div>
       ) : (
         <>
-          <p className="ph-section-sub">
-            Courses ranked by skill match — learn topics relevant to your resume.
-          </p>
+          {hasResume && (
+            <p className="ph-section-sub">Courses sorted by resume skill match — approved by your admin.</p>
+          )}
           <div className="ph-courses-grid">
             {matchedCourses.map(({ id, course, rec }) => (
               <div key={id} className="ph-course-card ph-course-recommended"
@@ -272,30 +266,28 @@ export default function PrepHub() {
                 <h3>{course.title}</h3>
                 <p>{course.desc}</p>
 
-                <div className="ph-skill-gap">
-                  <div className="ph-gap-bar-wrap">
-                    <div className="ph-gap-bar">
-                      <div className="ph-gap-fill" style={{ width: `${rec.matchPct}%`, background: course.color }} />
+                {rec && rec.matched.length > 0 && (
+                  <div className="ph-skill-gap">
+                    <div className="ph-gap-bar-wrap">
+                      <div className="ph-gap-bar">
+                        <div className="ph-gap-fill" style={{ width: `${rec.matchPct}%`, background: course.color }} />
+                      </div>
+                      <span className="ph-gap-pct">{rec.matchPct}% match</span>
                     </div>
-                    <span className="ph-gap-pct">{rec.matchPct}% match</span>
+                    <div className="ph-missing-skills">
+                      <span className="ph-missing-label">Matched skills:</span>
+                      {rec.matched.slice(0, 4).map(s => (
+                        <span key={s} className="ph-missing-tag">{s}</span>
+                      ))}
+                      {rec.matched.length > 4 && <span className="ph-missing-more">+{rec.matched.length - 4}</span>}
+                    </div>
                   </div>
-                  <div className="ph-missing-skills">
-                    <span className="ph-missing-label">Matched skills:</span>
-                    {rec.matched.slice(0, 4).map(s => (
-                      <span key={s} className="ph-missing-tag">{s}</span>
-                    ))}
-                    {rec.matched.length > 4 && <span className="ph-missing-more">+{rec.matched.length - 4}</span>}
-                  </div>
-                </div>
+                )}
 
                 <div className="ph-course-actions">
-                  {(isAdmin || approvedSet.has(id)) ? (
-                    <Link to={`/prep/course/${id}`} className="ph-btn-start" style={{ background: course.color }}>
-                      Start Learning →
-                    </Link>
-                  ) : (
-                    <span className="ph-btn-locked">🔒 Not Approved</span>
-                  )}
+                  <Link to={`/prep/course/${id}`} className="ph-btn-start" style={{ background: course.color }}>
+                    Start Learning →
+                  </Link>
                 </div>
               </div>
             ))}

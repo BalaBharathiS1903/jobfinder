@@ -8,9 +8,12 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 _secret = os.getenv("SECRET_KEY")
-if not _secret and not os.getenv("DEBUG", "True") == "True":
-    raise RuntimeError("SECRET_KEY environment variable is not set.")
-SECRET_KEY = _secret or "django-insecure-fallback-dev-only"
+if not _secret:
+    if os.getenv("DEBUG", "True") != "True":
+        raise RuntimeError("SECRET_KEY environment variable must be set in production.")
+    import warnings
+    warnings.warn("SECRET_KEY not set — using insecure dev fallback. Set it in .env.", stacklevel=1)
+SECRET_KEY = _secret or "django-insecure-dev-only-do-not-use-in-production-replace-me"
 DEBUG = os.getenv("DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -92,7 +95,7 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "AUTH_COOKIE": "access",
     "AUTH_COOKIE_REFRESH": "refresh",
-    "AUTH_COOKIE_SECURE": False,  # Set True in production (HTTPS)
+    "AUTH_COOKIE_SECURE": not DEBUG,
     "AUTH_COOKIE_HTTP_ONLY": True,
     "AUTH_COOKIE_SAMESITE": "Lax",
 }
@@ -106,6 +109,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

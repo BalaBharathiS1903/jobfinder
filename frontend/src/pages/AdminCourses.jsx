@@ -671,10 +671,8 @@ export default function AdminCourses() {
               <>
                 <div className="ac2-user-bar">
                   <div className="ac2-user-bar-avatar">{selectedUser.username[0].toUpperCase()}</div>
-                  <div><strong>{selectedUser.username}</strong><span>{selectedUser.email}</span></div>
-                  <div className="ac2-bar-stats">
-                    <span className="ac2-approved-count">{approvedCourses.size} / {allCourses.length} approved</span>
-                  </div>
+                  <div className="ac2-user-bar-info"><strong>{selectedUser.username}</strong><span>{selectedUser.email}</span></div>
+                  <span className="ac2-approved-count">{approvedCourses.size} / {allCourses.length} approved</span>
                   <div className="ac2-bar-actions">
                     <button className="ac2-btn ac2-btn-success" onClick={approveAll} disabled={approving === "all"}>
                       {approving === "all" ? "Approving…" : "✓ Approve All"}
@@ -725,7 +723,10 @@ export default function AdminCourses() {
                 return (
                   <div key={c.id} className="ac2-course-list-card">
                     <span className="ac2-course-icon">{c.icon}</span>
-                    <span className="ac2-course-list-name">{c.label}</span>
+                    <span className="ac2-course-list-name">
+                      <span>{c.label}</span>
+                      <span className="ac2-builtin-tag">{hasCustomOverride ? "Customized" : "Built-in"}</span>
+                    </span>
                     <div className="ac2-course-actions">
                       <Link to={`/prep/course/${c.id}`} className="ac2-view-btn" title="View Learning Path">👁 View</Link>
                       <button className="ac2-lp-edit-btn" onClick={() => openLPModal(c)} title="Edit Links & YouTube">🔗 Links</button>
@@ -752,9 +753,6 @@ export default function AdminCourses() {
                         ✎
                       </button>
                     </div>
-                    <span className="ac2-builtin-tag">
-                      {hasCustomOverride ? "Customized" : "Built-in"}
-                    </span>
                   </div>
                 );
               })}
@@ -785,6 +783,7 @@ export default function AdminCourses() {
                           {c.skills.length > 4 && <span className="ac2-skill-tag">+{c.skills.length - 4}</span>}
                         </div>
                       )}
+                      <span className="ac2-custom-tag">Custom</span>
                     </div>
                     <div className="ac2-course-actions">
                       <Link to={`/prep/course/${c.course_id}`} className="ac2-view-btn" title="View Learning Path">👁 View</Link>
@@ -792,7 +791,6 @@ export default function AdminCourses() {
                       <button className="ac2-edit-btn" onClick={() => setEditingCourse(c)}>✎</button>
                       <button className="ac2-delete-btn" onClick={() => deleteCourse(c.id, c.title)}>🗑</button>
                     </div>
-                    <span className="ac2-custom-tag">Custom</span>
                   </div>
                 ))}
               </div>

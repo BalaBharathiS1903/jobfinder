@@ -29,23 +29,27 @@ export default function AllCourses() {
   const approvedSet = new Set(accessData?.approved_courses || []);
   const isAdmin = user?.is_superuser;
 
-  // Merge built-in + custom courses into one list
-  const builtInList = Object.entries(COURSES).map(([id, course]) => ({
-    id,
-    title: course.title,
-    icon: course.icon,
-    color: course.color,
-    light: course.light,
-    level: course.level,
-    duration: course.duration,
-    desc: course.desc,
-    skills: course.skills,
-    modules: course.modules,
-    isCustom: false,
-  }));
+  // For built-in courses, use custom override data if it exists
+  const builtInList = Object.entries(COURSES).map(([id, course]) => {
+    const override = customCourses.find(c => c.course_id === id);
+    return {
+      id,
+      title: override?.title || course.title,
+      icon: override?.icon || course.icon,
+      color: override?.color || course.color,
+      light: course.light,
+      level: override?.level || course.level,
+      duration: override?.duration || course.duration,
+      desc: override?.description || course.desc,
+      skills: override?.skills?.length ? override.skills : course.skills,
+      modules: override?.modules?.length ? override.modules : course.modules,
+      isCustom: false,
+    };
+  });
 
+  // Pure custom courses (not overrides of built-ins)
   const customList = customCourses
-    .filter(c => !COURSES[c.course_id]) // exclude overrides of built-ins
+    .filter(c => !COURSES[c.course_id])
     .map(c => ({
       id: c.course_id,
       title: c.title,

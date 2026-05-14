@@ -1,11 +1,6 @@
 from rest_framework import serializers
-from .models import JobSearch, SavedJob
+from .models import SavedJob
 
-class JobSearchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = JobSearch
-        fields = ("id", "query", "location", "results", "searched_at")
-        read_only_fields = fields
 
 class SavedJobSerializer(serializers.ModelSerializer):
     class Meta:

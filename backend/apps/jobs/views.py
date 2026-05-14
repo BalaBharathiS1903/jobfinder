@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import JobSearch, SavedJob
-from .serializers import JobSearchSerializer, SavedJobSerializer
+from .serializers import SavedJobSerializer
 from .linkedin import fetch_jobs
 from .matcher import rank_jobs
 from .trust import analyze_jobs_trust
@@ -11,29 +11,26 @@ from apps.resume.models import Resume
 from apps.profile.models import UserProfile
 
 
+ROLE_MAP = [
+    (["react", "javascript", "typescript", "vue", "angular"], "frontend developer"),
+    (["django", "flask", "fastapi", "spring", "spring boot", "node.js"], "backend developer"),
+    (["javascript", "java", "python", "sql"], "software developer"),
+    (["machine learning", "tensorflow", "pytorch", "scikit-learn"], "machine learning engineer"),
+    (["pandas", "numpy", "matplotlib"], "data analyst"),
+    (["docker", "kubernetes", "aws", "terraform"], "devops engineer"),
+    (["android", "kotlin", "swift", "flutter"], "mobile developer"),
+    (["sql", "postgresql", "mysql", "mongodb"], "database developer"),
+]
+
+
 def _resume_query_from_resume(resume):
     skills = [s.lower() for s in (resume.skills or [])]
     titles = [t.lower() for t in (resume.job_titles or [])]
-
-    ROLE_MAP = [
-        (["react", "javascript", "typescript", "vue", "angular"], "frontend developer"),
-        (["django", "flask", "fastapi", "spring", "spring boot", "node.js"], "backend developer"),
-        (["javascript", "java", "python", "sql"], "software developer"),
-        (["machine learning", "tensorflow", "pytorch", "scikit-learn"], "machine learning engineer"),
-        (["pandas", "numpy", "matplotlib"], "data analyst"),
-        (["docker", "kubernetes", "aws", "terraform"], "devops engineer"),
-        (["android", "kotlin", "swift", "flutter"], "mobile developer"),
-        (["sql", "postgresql", "mysql", "mongodb"], "database developer"),
-    ]
-    query = None
     for role_skills, role_name in ROLE_MAP:
         if any(skill in skills for skill in role_skills):
-            query = role_name
-            break
-    if not query:
-        non_generic = [t for t in titles if t not in ("intern", "trainee", "associate")]
-        query = non_generic[0] if non_generic else (f"{skills[0]} developer" if skills else (titles[0] if titles else ""))
-    return query
+            return role_name
+    non_generic = [t for t in titles if t not in ("intern", "trainee", "associate")]
+    return non_generic[0] if non_generic else (f"{skills[0]} developer" if skills else (titles[0] if titles else ""))
 
 
 @api_view(["POST"])
@@ -135,57 +132,6 @@ def auto_search(request):
         "skills_used": used_skills,
     })
 
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def resume_search_query(request, pk):
-    try:
-        resume = Resume.objects.get(pk=pk, user=request.user)
-    except Resume.DoesNotExist:
-        return Response(status=404)
-
-    skills = [s.lower() for s in (resume.skills or [])]
-    titles = [t.lower() for t in (resume.job_titles or [])]
-
-    # Build a smart query (same logic as auto_search) for the search box
-    ROLE_MAP = [
-        (["react", "javascript", "typescript", "vue", "angular"], "frontend developer"),
-        (["django", "flask", "fastapi", "spring", "spring boot", "node.js"], "backend developer"),
-        (["javascript", "java", "python", "sql"], "software developer"),
-        (["machine learning", "tensorflow", "pytorch", "scikit-learn"], "machine learning engineer"),
-        (["pandas", "numpy", "matplotlib"], "data analyst"),
-        (["docker", "kubernetes", "aws", "terraform"], "devops engineer"),
-        (["android", "kotlin", "swift", "flutter"], "mobile developer"),
-        (["sql", "postgresql", "mysql", "mongodb"], "database developer"),
-    ]
-    query = None
-    for role_skills, role_name in ROLE_MAP:
-        if any(s in skills for s in role_skills):
-            query = role_name
-            break
-    if not query:
-        non_generic = [t for t in titles if t not in ("intern", "trainee", "associate")]
-        query = non_generic[0] if non_generic else (f"{skills[0]} developer" if skills else (titles[0] if titles else ""))
-
-    return Response({"query": query, "skills": resume.skills, "titles": resume.job_titles})
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def search_history(request):
-    searches = JobSearch.objects.filter(user=request.user).order_by("-searched_at")[:20]
-    return Response(JobSearchSerializer(searches, many=True).data)
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def job_detail(request, pk):
-    searches = JobSearch.objects.filter(user=request.user)
-    for s in searches:
-        for job in s.results:
-            if str(job.get("id")) == str(pk):
-                return Response(job)
-    return Response(status=404)
 
 
 class SavedJobListCreateView(generics.ListCreateAPIView):

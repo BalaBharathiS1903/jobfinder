@@ -14,7 +14,8 @@ class User(AbstractUser):
 
 
 class PasswordResetToken(models.Model):
-    user  = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reset_tokens")
+    """Kept for migration history. Not actively used — reset flow is email-only."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reset_tokens")
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     used = models.BooleanField(default=False)

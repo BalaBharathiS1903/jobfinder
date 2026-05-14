@@ -18,6 +18,8 @@ env/
 media/
 staticfiles/
 .env
+*.log
+server.log
 
 # IDE
 .vscode/

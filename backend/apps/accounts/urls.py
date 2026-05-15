@@ -4,7 +4,7 @@ from .views import (
     forgot_password_view, reset_password_view, change_password_view,
     my_activity,
     admin_users_list, admin_create_user, admin_user_detail,
-    admin_user_update, admin_user_delete,
+    admin_bulk_create_users, admin_user_update, admin_user_delete,
 )
 
 urlpatterns = [
@@ -20,6 +20,7 @@ urlpatterns = [
     # admin
     path("admin/users/",                    admin_users_list),
     path("admin/users/create/",             admin_create_user),
+    path("admin/users/bulk-create/",        admin_bulk_create_users),
     path("admin/users/<int:pk>/",           admin_user_update),
     path("admin/users/<int:pk>/detail/",    admin_user_detail),
     path("admin/users/<int:pk>/delete/",    admin_user_delete),

@@ -17,6 +17,7 @@ const Icon = {
   eye:     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
   edit:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>,
   close:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  upload:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
 };
 
 function CreateUserModal({ onClose, onCreated, notify }) {
@@ -77,12 +78,102 @@ function CreateUserModal({ onClose, onCreated, notify }) {
   );
 }
 
+function BulkCreateModal({ onClose, onImported, notify }) {
+  const [file, setFile] = useState(null);
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) return;
+    setLoading(true);
+    setResult(null);
+    const body = new FormData();
+    body.append("file", file);
+    try {
+      const res = await api.post("/auth/admin/users/bulk-create/", body, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setResult(res.data);
+      onImported(res.data.created || []);
+      notify(`Imported ${res.data.created_count} user${res.data.created_count === 1 ? "" : "s"}.`);
+    } catch (err) {
+      notify(err.response?.data?.error || "Bulk import failed.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="adm-modal-overlay" onClick={onClose}>
+      <div className="adm-modal adm-modal-wide" onClick={(e) => e.stopPropagation()}>
+        <div className="adm-modal-header">
+          <h2>Bulk Register Users</h2>
+          <button className="adm-modal-close" onClick={onClose}>{Icon.close}</button>
+        </div>
+        <form onSubmit={handleSubmit} className="adm-create-form">
+          <div className="adm-bulk-help">
+            Upload `.xlsx` or `.csv` with columns: <strong>username</strong>, <strong>email</strong>, optional <strong>password</strong>, <strong>has_prep_access</strong>, <strong>resume_upload_limit</strong>, <strong>job_search_limit</strong>.
+          </div>
+          <div className="adm-field">
+            <label>User details file</label>
+            <input type="file" accept=".xlsx,.csv" onChange={(e) => setFile(e.target.files?.[0] || null)} required />
+          </div>
+          <div className="adm-modal-actions">
+            <button type="button" className="adm-btn btn-warn" onClick={onClose}>Close</button>
+            <button type="submit" className="adm-btn btn-success" disabled={loading || !file}>
+              {loading ? "Importing..." : "Import Users"}
+            </button>
+          </div>
+        </form>
+
+        {result && (
+          <div className="adm-bulk-result">
+            <div className="adm-bulk-summary">
+              <span>{result.created_count} created</span>
+              <span>{result.skipped_count} skipped</span>
+            </div>
+            {result.created?.length > 0 && (
+              <div className="adm-bulk-section">
+                <h3>Created Users</h3>
+                <div className="adm-bulk-list">
+                  {result.created.map((u) => (
+                    <div key={u.id} className="adm-bulk-row">
+                      <strong>{u.username}</strong>
+                      <span>{u.email}</span>
+                      {u.password && <code>Password: {u.password}</code>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {result.skipped?.length > 0 && (
+              <div className="adm-bulk-section">
+                <h3>Skipped Rows</h3>
+                <div className="adm-bulk-list">
+                  {result.skipped.map((s, i) => (
+                    <div key={i} className="adm-bulk-row skipped">
+                      <strong>Row {s.row}</strong>
+                      <span>{s.email || "No email"} - {s.reason}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState({ msg: "", type: "success" });
   const [showCreate, setShowCreate] = useState(false);
+  const [showBulkCreate, setShowBulkCreate] = useState(false);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -140,6 +231,13 @@ export default function AdminDashboard() {
           notify={notify}
         />
       )}
+      {showBulkCreate && (
+        <BulkCreateModal
+          onClose={() => setShowBulkCreate(false)}
+          onImported={(created) => qc.setQueryData(["admin-users"], (old = []) => [...created, ...old])}
+          notify={notify}
+        />
+      )}
 
       <div className="adm-header">
         <span className="adm-header-icon">{Icon.shield}</span>
@@ -150,6 +248,9 @@ export default function AdminDashboard() {
         <div className="adm-header-actions">
           <button className="adm-create-btn" onClick={() => setShowCreate(true)}>
             <span className="btn-icon">{Icon.plus}</span> Create User
+          </button>
+          <button className="adm-bulk-btn" onClick={() => setShowBulkCreate(true)}>
+            <span className="btn-icon">{Icon.upload}</span> Bulk Register
           </button>
           <Link to="/admin-courses" className="adm-courses-btn">
             <span className="btn-icon">{Icon.book}</span> Manage Courses

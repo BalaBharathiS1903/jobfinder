@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { COURSES } from "./LearningPath";
+import { COURSES } from "../lib/courses";
 import api from "../lib/api";
 import "./Certificate.css";
 

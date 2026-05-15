@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
-import { COURSES } from "./LearningPath";
+import { COURSES } from "../lib/courses";
 import api from "../lib/api";
 import "./PrepHub.css";
 

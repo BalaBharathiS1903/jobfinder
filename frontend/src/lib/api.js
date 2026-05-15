@@ -2,6 +2,8 @@ import axios from "axios";
 
 const api = axios.create({ baseURL: "/api", withCredentials: true });
 
+let refreshRequest = null;
+
 api.interceptors.response.use(
   (res) => res,
   async (err) => {
@@ -9,7 +11,12 @@ api.interceptors.response.use(
     if (err.response?.status === 401 && !original._retry) {
       original._retry = true;
       try {
-        await axios.post("/api/auth/refresh/", {}, { withCredentials: true });
+        refreshRequest ||= axios
+          .post("/api/auth/refresh/", {}, { withCredentials: true })
+          .finally(() => {
+            refreshRequest = null;
+          });
+        await refreshRequest;
         original.withCredentials = true;
         return api(original);
       } catch {

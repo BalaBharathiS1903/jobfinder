@@ -7,6 +7,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.db import IntegrityError
 from .serializers import RegisterSerializer, UserSerializer
 
 
@@ -64,7 +65,7 @@ def refresh_view(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def logout_view(request):
     resp = Response({"detail": "Logged out."})
     resp.delete_cookie("access")
@@ -215,6 +216,121 @@ def admin_create_user(request):
         user = serializer.save()
         return Response(UserSerializer(user).data, status=201)
     return Response(serializer.errors, status=400)
+
+
+def _truthy(value):
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "active", "granted"}
+
+
+def _read_bulk_user_rows(uploaded_file):
+    name = uploaded_file.name.lower()
+    if name.endswith(".csv"):
+        import csv
+        import io
+        text = uploaded_file.read().decode("utf-8-sig")
+        return list(csv.DictReader(io.StringIO(text)))
+
+    if name.endswith(".xlsx"):
+        try:
+            from openpyxl import load_workbook
+        except ImportError:
+            raise ValueError("Excel support is not installed. Run pip install -r requirements.txt.")
+        workbook = load_workbook(uploaded_file, read_only=True, data_only=True)
+        sheet = workbook.active
+        rows = list(sheet.iter_rows(values_only=True))
+        if not rows:
+            return []
+        headers = [str(h or "").strip() for h in rows[0]]
+        return [
+            {headers[i]: value for i, value in enumerate(row) if i < len(headers)}
+            for row in rows[1:]
+            if any(value not in (None, "") for value in row)
+        ]
+
+    raise ValueError("Upload a .xlsx or .csv file.")
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def admin_bulk_create_users(request):
+    if not request.user.is_superuser:
+        return Response({"error": "Forbidden."}, status=403)
+
+    uploaded_file = request.FILES.get("file")
+    if not uploaded_file:
+        return Response({"error": "No file uploaded."}, status=400)
+
+    try:
+        rows = _read_bulk_user_rows(uploaded_file)
+    except ValueError as exc:
+        return Response({"error": str(exc)}, status=400)
+
+    from django.contrib.auth import get_user_model
+    from django.utils.crypto import get_random_string
+
+    User = get_user_model()
+    created = []
+    skipped = []
+
+    for index, raw in enumerate(rows, start=2):
+        row = {str(k or "").strip().lower().replace(" ", "_"): v for k, v in raw.items()}
+        email = str(row.get("email") or "").strip().lower()
+        username = str(row.get("username") or row.get("name") or "").strip()
+        password = str(row.get("password") or "").strip()
+
+        if not email:
+            skipped.append({"row": index, "reason": "Missing email."})
+            continue
+        try:
+            validate_email(email)
+        except ValidationError:
+            skipped.append({"row": index, "email": email, "reason": "Invalid email."})
+            continue
+        if User.objects.filter(email__iexact=email).exists():
+            skipped.append({"row": index, "email": email, "reason": "Email already exists."})
+            continue
+
+        if not username:
+            username = email.split("@")[0]
+        base_username = username[:140]
+        username = base_username
+        suffix = 1
+        while User.objects.filter(username__iexact=username).exists():
+            username = f"{base_username[:135]}{suffix}"
+            suffix += 1
+
+        generated_password = False
+        if not password:
+            password = get_random_string(12)
+            generated_password = True
+
+        try:
+            user = User.objects.create_user(username=username, email=email, password=password)
+        except (IntegrityError, ValueError) as exc:
+            skipped.append({"row": index, "email": email, "reason": str(exc)})
+            continue
+
+        for field in ("has_prep_access", "is_active"):
+            if field in row and row[field] not in (None, ""):
+                setattr(user, field, _truthy(row[field]))
+        for field in ("resume_upload_limit", "job_search_limit"):
+            if field in row and row[field] not in (None, ""):
+                try:
+                    setattr(user, field, max(0, int(row[field])))
+                except (TypeError, ValueError):
+                    pass
+        user.save()
+
+        item = UserSerializer(user).data
+        item["password"] = password if generated_password else ""
+        created.append(item)
+
+    return Response({
+        "created_count": len(created),
+        "skipped_count": len(skipped),
+        "created": created,
+        "skipped": skipped,
+    }, status=201)
 
 
 @api_view(["GET"])

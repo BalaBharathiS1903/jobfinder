@@ -1,6 +1,6 @@
 # VDart Academy — Career Platform
 
-**Current Project Version:** `v2.6`  
+**Current Project Version:** `v2.8`  
 *(The root `VERSION` file stores the current release number. Bump it on every project update.)*
 
 A full-stack career platform built with Django + React. Upload your resume, match jobs by skill, build ATS-friendly resumes, prep for interviews with IQ tests and mock interviews, and earn course certificates.
@@ -82,6 +82,7 @@ Get free API keys:
 - **User Detail View** — full profile, resumes, job searches, saved jobs, course progress
 - **Polished UI** — Fixed table alignment with proper column spacing and consistent formatting
 - **Create User** — admin can create new user accounts
+- **Bulk Register Users** — admin can upload `.xlsx` or `.csv` user lists with `username`, `email`, optional `password`, `has_prep_access`, `resume_upload_limit`, and `job_search_limit`
 - **Protected Superadmin** — superadmin accounts cannot be modified or deleted
 
 ### Resume
@@ -292,6 +293,28 @@ resume_project/
 | v2.4 | Resume PDF preview now loads through a Blob URL to avoid browser iframe host and frame-policy blocking |
 | v2.5 | Resume Builder Fill Details redesigned with a profile-style editor and live profile summary panel |
 | v2.6 | Resume Builder Fill Details updated to match the Manual Profile layout with summary card, stats, tabs, and section forms |
+| v2.7 | Auth refresh hardened so parallel 401 responses share one refresh request and logout clears expired cookies |
+| v2.8 | Admin bulk user registration from XLSX/CSV files · Course data moved out of LearningPath page to remove Vite Fast Refresh warning |
+
+---
+
+## Admin Bulk Registration
+
+Admins can bulk-register users from `/admin-dashboard` using **Bulk Register**.
+
+Supported file types: `.xlsx`, `.csv`
+
+Required columns:
+```csv
+username,email
+```
+
+Optional columns:
+```csv
+password,has_prep_access,is_active,resume_upload_limit,job_search_limit
+```
+
+If `password` is blank, the system generates a temporary password and shows it in the import result.
 
 ---
 

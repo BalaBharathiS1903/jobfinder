@@ -33,6 +33,20 @@
   border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem;
 }
 .rb-card h3 { font-size: 0.95rem; font-weight: 800; color: var(--dark); margin: 0 0 1.25rem; }
+.rb-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.rb-card-head h3 { margin: 0 0 0.25rem; }
+.rb-card-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
 
 /* Templates */
 .rb-templates { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
@@ -211,6 +225,248 @@
 .rb-btn-add-icon { font-size: 1rem; }
 
 /* Profile photo upload */
+.rb-builder-profile-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+.rb-builder-profile-main {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-width: 0;
+}
+.rb-builder-photo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+.rb-builder-photo,
+.rb-builder-avatar {
+  width: 98px;
+  height: 98px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  box-shadow: 0 0 0 1px var(--border);
+}
+.rb-builder-photo {
+  object-fit: cover;
+}
+.rb-builder-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  color: #fff;
+  font-size: 2.8rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+.rb-builder-photo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.85rem;
+  background: #fff;
+  color: var(--dark);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rb-builder-photo-btn:hover { background: #f6f8fa; }
+.rb-builder-profile-info {
+  min-width: 0;
+}
+.rb-builder-profile-info h2 {
+  margin: 0 0 0.2rem;
+  color: var(--dark);
+  font-size: 1.1rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.rb-builder-profile-info p {
+  margin: 0 0 0.45rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+.rb-builder-profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1.2rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+.rb-builder-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(78px, 1fr));
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.rb-builder-stats div {
+  padding: 0.85rem 0.65rem;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  min-width: 78px;
+}
+.rb-builder-stats div:last-child { border-right: none; }
+.rb-builder-stats strong {
+  display: block;
+  color: var(--primary);
+  font-size: 1.12rem;
+  line-height: 1;
+  margin-bottom: 0.45rem;
+}
+.rb-builder-stats span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.rb-builder-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.55rem;
+  margin-bottom: 1rem;
+}
+.rb-builder-tab {
+  padding: 0.45rem 0.85rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.rb-builder-tab:hover,
+.rb-builder-tab.active {
+  background: #eaeef2;
+  color: var(--dark);
+  font-weight: 700;
+}
+.rb-profile-editor-card { padding: 0; overflow: hidden; }
+.rb-profile-editor-card .rb-card-head {
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--border);
+  background: #f6f8fa;
+}
+.rb-profile-editor {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 0;
+}
+.rb-profile-preview {
+  padding: 1.5rem;
+  border-right: 1px solid var(--border);
+  background: #fff;
+}
+.rb-profile-photo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+.rb-profile-photo,
+.rb-profile-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  box-shadow: 0 0 0 1px var(--border);
+}
+.rb-profile-photo {
+  object-fit: cover;
+}
+.rb-profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  color: #fff;
+  font-size: 3rem;
+  font-weight: 800;
+}
+.rb-profile-preview h2 {
+  margin: 0 0 0.15rem;
+  color: var(--dark);
+  font-size: 1.35rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.rb-profile-role {
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+.rb-profile-summary {
+  margin: 0 0 1rem;
+  color: var(--dark);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+.rb-profile-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+.rb-profile-mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.rb-profile-mini-stats div {
+  padding: 0.7rem 0.45rem;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  background: #f6f8fa;
+}
+.rb-profile-mini-stats div:last-child { border-right: none; }
+.rb-profile-mini-stats strong {
+  display: block;
+  color: var(--primary);
+  font-size: 1rem;
+}
+.rb-profile-mini-stats span {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.rb-profile-form {
+  padding: 1.5rem;
+  min-width: 0;
+}
+.rb-profile-form .rb-grid2 { margin-bottom: 1rem; }
 .rb-photo-row { display: flex; gap: 1.5rem; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; }
 .rb-photo-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .rb-photo-img {
@@ -262,6 +518,37 @@
 }
 
 @media (max-width: 640px) {
+  .rb-builder-profile-card,
+  .rb-builder-profile-main {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .rb-builder-stats {
+    width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .rb-builder-stats div:nth-child(2) {
+    border-right: none;
+  }
+  .rb-builder-stats div:nth-child(-n+2) {
+    border-bottom: 1px solid var(--border);
+  }
+  .rb-profile-editor {
+    grid-template-columns: 1fr;
+  }
+  .rb-profile-preview {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .rb-profile-photo,
+  .rb-profile-avatar {
+    width: 120px;
+    height: 120px;
+    font-size: 2.4rem;
+  }
+  .rb-profile-mini-stats {
+    max-width: 360px;
+  }
   .rb-profile-sync {
     align-items: stretch;
     flex-direction: column;

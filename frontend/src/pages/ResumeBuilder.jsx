@@ -12,6 +12,16 @@ const TEMPLATES = [
   { id: "creative", name: "Creative", desc: "Bold header with sidebar for skills",            color: "#7C3AED" },
 ];
 
+const BUILDER_TABS = [
+  { id: "personal", label: "Personal" },
+  { id: "skills", label: "Skills" },
+  { id: "experience", label: "Experience" },
+  { id: "education", label: "Education" },
+  { id: "certifications", label: "Certifications" },
+  { id: "projects", label: "Projects" },
+  { id: "custom", label: "Custom Sections" },
+];
+
 const normalizeUrl = (value) => {
   const trimmed = (value || "").trim();
   if (!trimmed) return "";
@@ -36,6 +46,7 @@ export default function ResumeBuilder() {
   const [saveModal, setSaveModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
+  const [builderTab, setBuilderTab] = useState("personal");
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -306,17 +317,15 @@ export default function ResumeBuilder() {
       {/* ── Step 2 ── */}
       {step === 2 && (
         <div>
-          {/* Personal */}
-          <div className="rb-card">
-            <h3>Personal Information</h3>
-            <div className="rb-photo-row">
-              <div className="rb-photo-wrap">
+          <div className="rb-builder-profile-card">
+            <div className="rb-builder-profile-main">
+              <div className="rb-builder-photo-wrap">
                 {data.photo
-                  ? <img src={data.photo} alt="Profile" className="rb-photo-img" />
-                  : <div className="rb-photo-placeholder">{data.name ? data.name.slice(0,2).toUpperCase() : "📷"}</div>
+                  ? <img src={data.photo} alt="Profile" className="rb-builder-photo" />
+                  : <div className="rb-builder-avatar">{data.name ? data.name.slice(0,2).toUpperCase() : "BA"}</div>
                 }
-                <label className="rb-photo-btn">
-                  {data.photo ? "Change" : "Upload Photo"}
+                <label className="rb-builder-photo-btn">
+                  {data.photo ? "Change Photo" : "Add Photo"}
                   <input type="file" accept="image/*" hidden onChange={e => {
                     const file = e.target.files?.[0]; if (!file) return;
                     const reader = new FileReader();
@@ -326,32 +335,62 @@ export default function ResumeBuilder() {
                 </label>
                 {data.photo && <button className="rb-photo-remove" onClick={() => set("photo", "")}>Remove</button>}
               </div>
-              <div className="rb-grid2" style={{ flex: 1 }}>
-                <RF label="Full Name" value={data.name}     onChange={v => set("name", v)}     ph="John Doe" />
-                <RF label="Headline"  value={data.headline} onChange={v => set("headline", v)} ph="Software Engineer" />
-                <RF label="Email"     value={data.email}    onChange={v => set("email", v)}    ph="john@email.com" />
-                <RF label="Phone"     value={data.phone}    onChange={v => set("phone", v)}    ph="+91 9999999999" />
-                <RF label="Location"  value={data.location} onChange={v => set("location", v)} ph="Chennai, India" />
-                <RF label="Website"   value={data.website}  onChange={v => set("website", v)}  ph="https://yourportfolio.com" />
-                <RF label="LinkedIn"  value={data.linkedin} onChange={v => set("linkedin", v)} ph="linkedin.com/in/username" />
-                <RF label="GitHub"    value={data.github}   onChange={v => set("github", v)}   ph="github.com/username" />
-                <RF label="LeetCode"  value={data.leetcode} onChange={v => set("leetcode", v)} ph="leetcode.com/u/username" />
+              <div className="rb-builder-profile-info">
+                <h2>{data.name || "Your Name"}</h2>
+                <p>{data.headline || "Professional Headline"}</p>
+                <div className="rb-builder-profile-meta">
+                  {data.email && <span>{data.email}</span>}
+                  {data.phone && <span>{data.phone}</span>}
+                  {data.location && <span>{data.location}</span>}
+                </div>
               </div>
             </div>
-            <RF label="Professional Summary" value={data.summary} onChange={v => set("summary", v)} ph="Brief professional summary…" area rows={4} />
-            <div className="rb-profile-sync">
-              <div>
-                <strong>My Profile sync</strong>
-                <span>Save these filled details to your profile so you can reuse them for job matches and future resumes.</span>
-              </div>
-              <button className="rb-btn-outline" onClick={saveToProfile} disabled={profileSaving}>
-                {profileSaving ? "Saving..." : "Save to My Profile"}
-              </button>
+            <div className="rb-builder-stats">
+              <div><strong>{data.skills?.length || 0}</strong><span>Skills</span></div>
+              <div><strong>{data.experience?.length || 0}</strong><span>Experience</span></div>
+              <div><strong>{data.certifications?.length || 0}</strong><span>Certifications</span></div>
+              <div><strong>{data.projects?.length || 0}</strong><span>Projects</span></div>
             </div>
           </div>
 
+          <div className="rb-builder-tabs">
+            {BUILDER_TABS.map(t => (
+              <button key={t.id} className={`rb-builder-tab ${builderTab === t.id ? "active" : ""}`} onClick={() => setBuilderTab(t.id)}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Personal */}
+          {builderTab === "personal" && (
+            <div className="rb-card">
+              <h3>Personal Information</h3>
+                <div className="rb-grid2">
+                  <RF label="Full Name" value={data.name}     onChange={v => set("name", v)}     ph="John Doe" />
+                  <RF label="Headline"  value={data.headline} onChange={v => set("headline", v)} ph="Software Engineer" />
+                  <RF label="Email"     value={data.email}    onChange={v => set("email", v)}    ph="john@email.com" />
+                  <RF label="Phone"     value={data.phone}    onChange={v => set("phone", v)}    ph="+91 9999999999" />
+                  <RF label="Location"  value={data.location} onChange={v => set("location", v)} ph="Chennai, India" />
+                  <RF label="Website"   value={data.website}  onChange={v => set("website", v)}  ph="https://yourportfolio.com" />
+                  <RF label="LinkedIn"  value={data.linkedin} onChange={v => set("linkedin", v)} ph="linkedin.com/in/username" />
+                  <RF label="GitHub"    value={data.github}   onChange={v => set("github", v)}   ph="github.com/username" />
+                  <RF label="LeetCode"  value={data.leetcode} onChange={v => set("leetcode", v)} ph="leetcode.com/u/username" />
+                </div>
+                <RF label="Professional Summary" value={data.summary} onChange={v => set("summary", v)} ph="Brief professional summary…" area rows={4} />
+              <div className="rb-profile-sync">
+                <div>
+                  <strong>My Profile sync</strong>
+                  <span>Save these filled details to your profile so you can reuse them for job matches and future resumes.</span>
+                </div>
+                <button className="rb-btn-outline" onClick={saveToProfile} disabled={profileSaving}>
+                  {profileSaving ? "Saving..." : "Save to My Profile"}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Projects */}
-          <div className="rb-card">
+          {builderTab === "projects" && <div className="rb-card">
             <h3>Projects</h3>
             {data.projects.length === 0 ? (
               <div className="rb-empty-state">
@@ -394,10 +433,10 @@ export default function ResumeBuilder() {
                 <AddBtn onClick={() => addArr("projects",{name:"",tech:"",url:"",github:"",description:""})} label="Add Another Project" icon="🛠️" />
               </>
             )}
-          </div>
+          </div>}
 
           {/* Work Experience */}
-          <div className="rb-card">
+          {builderTab === "experience" && <div className="rb-card">
             <h3>Work Experience</h3>
             {data.experience.length === 0 ? (
               <div className="rb-empty-state">
@@ -440,10 +479,10 @@ export default function ResumeBuilder() {
                 <AddBtn onClick={() => addArr("experience",{title:"",company:"",start:"",end:"",description:""})} label="Add Another Experience" icon="💼" />
               </>
             )}
-          </div>
+          </div>}
 
           {/* Education */}
-          <div className="rb-card">
+          {builderTab === "education" && <div className="rb-card">
             <h3>Education</h3>
             {data.education.length === 0 ? (
               <div className="rb-empty-state">
@@ -485,10 +524,10 @@ export default function ResumeBuilder() {
                 <AddBtn onClick={() => addArr("education",{degree:"",institution:"",start:"",end:""})} label="Add Another Education" icon="🎓" />
               </>
             )}
-          </div>
+          </div>}
 
           {/* Certifications */}
-          <div className="rb-card">
+          {builderTab === "certifications" && <div className="rb-card">
             <h3>Certifications</h3>
             {data.certifications.length === 0 ? (
               <div className="rb-empty-state">
@@ -530,10 +569,10 @@ export default function ResumeBuilder() {
                 <AddBtn onClick={() => addArr("certifications",{name:"",issuer:"",date:"",url:""})} label="Add Another Certification" icon="🏅" />
               </>
             )}
-          </div>
+          </div>}
 
           {/* Skills */}
-          <div className="rb-card">
+          {builderTab === "skills" && <div className="rb-card">
             <h3>Skills</h3>
             {kwBanner && (
               <div className="rb-kw-banner">
@@ -542,34 +581,50 @@ export default function ResumeBuilder() {
               </div>
             )}
             <SkillSelector skills={data.skills.filter(Boolean)} onChange={v => set("skills", v)} />
-          </div>
+          </div>}
 
           {/* Custom Sections */}
-          {customSections.map((sec, si) => (
-            <div key={si} className="rb-card">
-              <div className="rb-custom-header">
-                <input
-                  className="rb-custom-title-input"
-                  value={sec.title}
-                  onChange={e => setCustomSections(p => p.map((s, idx) => idx === si ? { ...s, title: e.target.value } : s))}
-                  placeholder="Section title (e.g. Achievements, Hobbies)"
-                />
-                <button className="rb-btn-remove" onClick={() => setCustomSections(p => p.filter((_, idx) => idx !== si))}>Remove Section</button>
-              </div>
-              <textarea
-                className="rb-custom-body"
-                rows={5}
-                value={sec.content}
-                onChange={e => setCustomSections(p => p.map((s, idx) => idx === si ? { ...s, content: e.target.value } : s))}
-                placeholder="Enter content for this section… (one item per line)"
-              />
-            </div>
-          ))}
+          {builderTab === "custom" && (
+            <>
+              {customSections.map((sec, si) => (
+                <div key={si} className="rb-card">
+                  <div className="rb-custom-header">
+                    <input
+                      className="rb-custom-title-input"
+                      value={sec.title}
+                      onChange={e => setCustomSections(p => p.map((s, idx) => idx === si ? { ...s, title: e.target.value } : s))}
+                      placeholder="Section title (e.g. Achievements, Hobbies)"
+                    />
+                    <button className="rb-btn-remove" onClick={() => setCustomSections(p => p.filter((_, idx) => idx !== si))}>Remove Section</button>
+                  </div>
+                  <textarea
+                    className="rb-custom-body"
+                    rows={5}
+                    value={sec.content}
+                    onChange={e => setCustomSections(p => p.map((s, idx) => idx === si ? { ...s, content: e.target.value } : s))}
+                    placeholder="Enter content for this section… (one item per line)"
+                  />
+                </div>
+              ))}
 
-          {/* Add Custom Section */}
-          <button className="rb-btn-add-section" onClick={() => setCustomSections(p => [...p, { title: "", content: "" }])}>
-            <span>&#43;</span> Add Custom Section
-          </button>
+              {customSections.length === 0 && (
+                <div className="rb-card">
+                  <div className="rb-empty-state">
+                    <span className="rb-empty-icon">＋</span>
+                    <p className="rb-empty-title">No custom sections added</p>
+                    <p className="rb-empty-sub">Add achievements, hobbies, publications or any resume section you need.</p>
+                    <button className="rb-empty-btn" onClick={() => setCustomSections(p => [...p, { title: "", content: "" }])}>+ Add Custom Section</button>
+                  </div>
+                </div>
+              )}
+
+              {customSections.length > 0 && (
+                <button className="rb-btn-add-section" onClick={() => setCustomSections(p => [...p, { title: "", content: "" }])}>
+                  <span>&#43;</span> Add Custom Section
+                </button>
+              )}
+            </>
+          )}
 
           <div className="rb-nav-btns">
             <button className="rb-btn-outline" onClick={() => setStep(1)}>← Back</button>

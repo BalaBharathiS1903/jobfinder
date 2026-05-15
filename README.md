@@ -1,6 +1,6 @@
 # VDart Academy — Career Platform
 
-**Current Project Version:** `v2.4`  
+**Current Project Version:** `v2.6`  
 *(The root `VERSION` file stores the current release number. Bump it on every project update.)*
 
 A full-stack career platform built with Django + React. Upload your resume, match jobs by skill, build ATS-friendly resumes, prep for interviews with IQ tests and mock interviews, and earn course certificates.
@@ -290,6 +290,8 @@ resume_project/
 | v2.2 | Profile photo display fixed on all profile views · Removed profile debug logging · README updated with current verification commands and Gemini setup |
 | v2.3 | Resume PDF preview fixed by using same-origin media URLs and allowing same-origin PDF frames in Django |
 | v2.4 | Resume PDF preview now loads through a Blob URL to avoid browser iframe host and frame-policy blocking |
+| v2.5 | Resume Builder Fill Details redesigned with a profile-style editor and live profile summary panel |
+| v2.6 | Resume Builder Fill Details updated to match the Manual Profile layout with summary card, stats, tabs, and section forms |
 
 ---
 

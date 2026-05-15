@@ -61,7 +61,11 @@ export default function ProfileView() {
         {/* ── LEFT SIDEBAR ── */}
         <aside className="gp-sidebar">
           <div className="gp-avatar-wrap">
-            <div className="gp-avatar">{initials}</div>
+            {profile?.photo ? (
+              <img className="gp-avatar" src={profile.photo} alt="Profile" />
+            ) : (
+              <div className="gp-avatar">{initials}</div>
+            )}
           </div>
 
           <h1 className="gp-name">{profile?.full_name || "User"}</h1>

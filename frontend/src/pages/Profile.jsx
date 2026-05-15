@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../lib/api";
 import { fmtDate } from "../lib/date";
+import { sameOriginMediaUrl } from "../lib/media";
 import "./Profile.css";
 
 export default function Profile() {
@@ -10,7 +11,17 @@ export default function Profile() {
   const navigate = useNavigate();
   const [showPDF, setShowPDF] = useState(false);
   const [showSelector, setShowSelector] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState("");
+  const [pdfPreviewError, setPdfPreviewError] = useState("");
 
+
+  // Fetch user profile (for photo and personal info)
+  const { data: profile, isLoading: loadingProfile, isError: errorProfile } = useQuery({
+    queryKey: ["myprofile"],
+    queryFn: () => api.get("/profile/").then(r => r.data),
+  });
+
+  // Fetch resume (for resume-specific info)
   const { data: resume, isLoading, isError } = useQuery({
     queryKey: ["resume", id],
     queryFn: () => api.get(`/resume/${id}/`).then((r) => r.data),
@@ -21,14 +32,51 @@ export default function Profile() {
     queryFn: () => api.get("/resume/").then(r => r.data),
   });
 
-  if (isLoading) return <div className="gp-loading"><div className="gp-spinner" /><p>Analyzing resume…</p></div>;
+  const isPDF = resume?.filename?.toLowerCase().endsWith(".pdf");
+  const resumeFileUrl = sameOriginMediaUrl(resume?.file_url);
+
+  useEffect(() => {
+    if (!showPDF || !resumeFileUrl || !isPDF) {
+      setPdfPreviewUrl("");
+      setPdfPreviewError("");
+      return undefined;
+    }
+
+    let objectUrl = "";
+    let cancelled = false;
+    setPdfPreviewUrl("");
+    setPdfPreviewError("");
+
+    fetch(resumeFileUrl, { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error(`PDF request failed with ${res.status}`);
+        return res.blob();
+      })
+      .then((blob) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setPdfPreviewUrl(objectUrl);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPdfPreviewError("PDF preview failed. Use Open to view the resume in a new tab.");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [showPDF, resumeFileUrl, isPDF]);
+
+  if (loadingProfile || isLoading) return <div className="gp-loading"><div className="gp-spinner" /><p>Loading profile…</p></div>;
+  if (errorProfile) return <div className="gp-loading"><p>Profile not found.</p></div>;
   if (isError)   return <div className="gp-loading"><p>Resume not found.</p></div>;
 
-  const initials = resume.name
-    ? resume.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
-    : "?";
 
-  const isPDF = resume.filename?.toLowerCase().endsWith(".pdf");
+  const initials = profile?.full_name
+    ? profile.full_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
+    : "?";
 
   const handleResumeChange = (newId) => { setShowSelector(false); navigate(`/resumes/${newId}/profile`); };
 
@@ -85,21 +133,27 @@ export default function Profile() {
 
         {/* ── LEFT SIDEBAR ── */}
         <aside className="gp-sidebar">
+
           <div className="gp-avatar-wrap">
-            <div className="gp-avatar">{initials}</div>
+            {profile?.photo ? (
+              <img className="gp-avatar" src={profile.photo} alt="Profile" />
+            ) : (
+              <div className="gp-avatar">{initials}</div>
+            )}
           </div>
 
-          <h1 className="gp-name">{resume.name || "Unknown Candidate"}</h1>
-          {resume.job_titles?.[0] && <p className="gp-username">@{resume.job_titles[0]}</p>}
 
-          {resume.summary && <p className="gp-bio">{resume.summary}</p>}
+          <h1 className="gp-name">{profile?.full_name || "Unknown Candidate"}</h1>
+          {profile?.headline && <p className="gp-username">@{profile.headline}</p>}
+
+          {profile?.summary && <p className="gp-bio">{profile.summary}</p>}
 
           <div className="gp-sidebar-actions">
             <button className="gp-btn-primary" onClick={openInBuilder}>✏️ Edit in Builder</button>
             {allResumes.length > 1 && (
               <button className="gp-btn-secondary" onClick={() => setShowSelector(true)}>🔄 Switch Resume</button>
             )}
-            {isPDF && resume.file_url && (
+            {isPDF && resumeFileUrl && (
               <button className="gp-btn-secondary" onClick={() => setShowPDF(v => !v)}>
                 {showPDF ? "✕ Hide PDF" : "📄 View PDF"}
               </button>
@@ -124,16 +178,16 @@ export default function Profile() {
           </div>
 
           <div className="gp-sidebar-meta">
-            {resume.email && (
+            {profile?.email && (
               <div className="gp-meta-row">
                 <svg viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25v-8.5C0 2.784.784 2 1.75 2ZM1.5 12.251c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V5.809L8.38 9.397a.75.75 0 0 1-.76 0L1.5 5.809v6.442Zm13-8.181v-.32a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25v.32L8 7.88Z"/></svg>
-                <span>{resume.email}</span>
+                <span>{profile.email}</span>
               </div>
             )}
-            {resume.phone && (
+            {profile?.phone && (
               <div className="gp-meta-row">
                 <svg viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M1.5 1.75v2.5c0 5.523 4.477 10 10 10h2.5a.75.75 0 0 0 .75-.75v-2.5a.75.75 0 0 0-.75-.75h-2.5a.75.75 0 0 0-.75.75v.5a6.5 6.5 0 0 1-6.5-6.5h.5a.75.75 0 0 0 .75-.75v-2.5A.75.75 0 0 0 4.25 1h-2.5a.75.75 0 0 0-.25.75Z"/></svg>
-                <span>{resume.phone}</span>
+                <span>{profile.phone}</span>
               </div>
             )}
             <div className="gp-meta-row">
@@ -168,16 +222,22 @@ export default function Profile() {
         <main className="gp-main">
 
           {/* PDF Viewer */}
-          {showPDF && resume.file_url && (
+          {showPDF && resumeFileUrl && (
             <div className="gp-pdf-wrap">
               <div className="gp-pdf-bar">
                 <span>📄 {resume.filename}</span>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <a href={resume.file_url} target="_blank" rel="noreferrer" className="gp-pdf-open">Open ↗</a>
+                  <a href={resumeFileUrl} target="_blank" rel="noreferrer" className="gp-pdf-open">Open ↗</a>
                   <button className="gp-pdf-close" onClick={() => setShowPDF(false)}>✕ Close</button>
                 </div>
               </div>
-              <iframe src={resume.file_url} title="Resume PDF" className="gp-pdf-frame" />
+              {pdfPreviewUrl ? (
+                <iframe src={pdfPreviewUrl} title="Resume PDF" className="gp-pdf-frame" />
+              ) : (
+                <div className="gp-pdf-fallback">
+                  {pdfPreviewError || "Loading PDF preview..."}
+                </div>
+              )}
             </div>
           )}
 
@@ -185,8 +245,8 @@ export default function Profile() {
           <div className="gp-hi-banner">
             <span className="gp-hi-wave">👋</span>
             <div>
-              <h2>Hi there, I'm {resume.name?.split(" ")[0] || "there"}</h2>
-              {resume.summary && <p>{resume.summary}</p>}
+              <h2>Hi there, I'm {profile?.full_name?.split(" ")[0] || "there"}</h2>
+              {profile?.summary && <p>{profile.summary}</p>}
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 # VDart Academy — Career Platform
 
-**Current Project Version:** `v2.1`  
+**Current Project Version:** `v2.4`  
 *(The root `VERSION` file stores the current release number. Bump it on every project update.)*
 
 A full-stack career platform built with Django + React. Upload your resume, match jobs by skill, build ATS-friendly resumes, prep for interviews with IQ tests and mock interviews, and earn course certificates.
@@ -58,11 +58,14 @@ ADZUNA_APP_ID=your-adzuna-app-id
 ADZUNA_APP_KEY=your-adzuna-app-key
 
 JSEARCH_API_KEY=your-jsearch-rapidapi-key   # optional fallback
+
+GEMINI_API_KEY=your-gemini-api-key          # optional, for admin AI course generation
 ```
 
 Get free API keys:
 - **Adzuna**: https://developer.adzuna.com/signup
 - **JSearch** (optional): https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch
+- **Gemini** (optional): https://aistudio.google.com/app/apikey
 
 ---
 
@@ -74,6 +77,7 @@ Get free API keys:
 - **User Actions** — activate/deactivate, delete, view full profile
 - **Prep Hub Access** — grant or revoke prep hub access per user
 - **Course Approval** — approve/revoke individual courses or approve all at once
+- **AI Course Generation** — generate course modules and lessons from the admin course editor when `GEMINI_API_KEY` is configured
 - **Limits Control** — set resume upload limit and daily job search limit per user
 - **User Detail View** — full profile, resumes, job searches, saved jobs, course progress
 - **Polished UI** — Fixed table alignment with proper column spacing and consistent formatting
@@ -283,6 +287,26 @@ resume_project/
 | v1.9 | Resume Builder save to Resumes · Resume Analyzer skill gap analysis · All Courses page with 16 courses |
 | v2.0 | Admin Dashboard with user management · Per-course approval system · Email authentication · Prep Hub shows resume-matched courses only · Superuser auto-redirect to admin dashboard |
 | v2.1 | Admin Dashboard UI refinements (fixed table alignment & row formatting) · Profile photo persistence (returns full URLs for saved photos) · Improved serializer context handling for media URLs |
+| v2.2 | Profile photo display fixed on all profile views · Removed profile debug logging · README updated with current verification commands and Gemini setup |
+| v2.3 | Resume PDF preview fixed by using same-origin media URLs and allowing same-origin PDF frames in Django |
+| v2.4 | Resume PDF preview now loads through a Blob URL to avoid browser iframe host and frame-policy blocking |
+
+---
+
+## Health Checks
+
+Run these before pushing changes:
+```bash
+cd backend
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test
+
+cd ../frontend
+npm run build
+```
+
+Current status: Django check passes, migrations are up to date, frontend production build passes, and the backend test command currently finds 0 tests.
 
 ---
 

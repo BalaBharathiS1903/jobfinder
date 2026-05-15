@@ -147,12 +147,14 @@ export default function AdminDashboard() {
           <h1>Admin Dashboard</h1>
           <p>Manage users, permissions and limits</p>
         </div>
-        <button className="adm-create-btn" onClick={() => setShowCreate(true)}>
-          <span className="btn-icon">{Icon.plus}</span> Create User
-        </button>
-        <Link to="/admin-courses" className="adm-courses-btn">
-          <span className="btn-icon">{Icon.book}</span> Manage Courses
-        </Link>
+        <div className="adm-header-actions">
+          <button className="adm-create-btn" onClick={() => setShowCreate(true)}>
+            <span className="btn-icon">{Icon.plus}</span> Create User
+          </button>
+          <Link to="/admin-courses" className="adm-courses-btn">
+            <span className="btn-icon">{Icon.book}</span> Manage Courses
+          </Link>
+        </div>
       </div>
 
       <div className="adm-stats">
@@ -202,7 +204,6 @@ export default function AdminDashboard() {
                 <tr key={u.id} className={!u.is_active ? "adm-row-inactive" : ""}>
                   <td className="adm-num">{i + 1}</td>
                   <td className="adm-name">
-                    <span className="adm-avatar">{u.username[0].toUpperCase()}</span>
                     <span>{u.username}</span>
                   </td>
                   <td className="adm-email">{u.email}</td>

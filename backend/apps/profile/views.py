@@ -10,8 +10,15 @@ from .serializers import UserProfileSerializer
 def my_profile(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     if request.method == "GET":
-        return Response(UserProfileSerializer(profile).data)
-    serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+        return Response(UserProfileSerializer(profile, context={'request': request}).data)
+
+    data = request.data.copy()
+    photo = data.get("photo")
+    if isinstance(photo, str) and photo and not photo.startswith("data:"):
+        # Preserve existing photo URL when saving unchanged profile data.
+        data.pop("photo", None)
+
+    serializer = UserProfileSerializer(profile, data=data, partial=True, context={'request': request})
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
@@ -38,7 +45,7 @@ def admin_update_user_profile(request, user_id):
     allowed_fields = {"website", "linkedin", "github", "leetcode"}
     data = {k: v for k, v in request.data.items() if k in allowed_fields}
     
-    serializer = UserProfileSerializer(profile, data=data, partial=True)
+    serializer = UserProfileSerializer(profile, data=data, partial=True, context={'request': request})
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)

@@ -235,7 +235,7 @@ def admin_user_detail(request, pk):
         return Response(status=404)
     profile = None
     try:
-        profile = UserProfileSerializer(target.profile).data
+        profile = UserProfileSerializer(target.profile, context={'request': request}).data
     except UserProfile.DoesNotExist:
         pass
     resumes = ResumeSerializer(Resume.objects.filter(user=target).order_by("-uploaded_at"), many=True).data

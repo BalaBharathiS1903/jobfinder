@@ -6,27 +6,51 @@
 
 /* Header */
 .adm-header {
-  display: flex; align-items: center; gap: 1rem;
-  margin-bottom: 1.75rem;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; margin-bottom: 1.75rem; flex-wrap: wrap;
+}
+.adm-header > div:first-of-type {
+  min-width: 0;
 }
 .adm-header-icon { width: 40px; height: 40px; color: #2563EB; flex-shrink: 0; }
 .adm-header-icon svg { width: 100%; height: 100%; }
 .adm-header h1 { font-size: 1.6rem; font-weight: 800; margin: 0 0 0.2rem; color: var(--dark); }
 .adm-header p  { color: var(--muted); font-size: 0.88rem; margin: 0; }
-.adm-create-btn {
+.adm-header-actions {
   margin-left: auto;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+.adm-courses-btn {
+  color: #1D4ED8; background: #EFF6FF; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.55rem 1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600;
+  border: none; cursor: pointer;
+}
+.adm-courses-btn:hover { background: #DBEAFE; }
+.adm-create-btn,
+.adm-courses-btn {
   display: inline-flex; align-items: center; gap: 0.4rem;
   padding: 0.55rem 1.1rem; border-radius: 8px;
-  background: #2563EB; color: #fff;
   font-size: 0.88rem; font-weight: 600;
   border: none; cursor: pointer;
 }
+.adm-create-btn {
+  background: #2563EB; color: #fff;
+}
 .adm-create-btn:hover { background: #1D4ED8; }
+.adm-courses-btn {
+  color: #1D4ED8; background: #EFF6FF; text-decoration: none;
+}
+.adm-courses-btn:hover { background: #DBEAFE; }
 
 /* Stats */
 .adm-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -46,6 +70,7 @@
 .adm-toolbar {
   display: flex; align-items: center; gap: 1rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 .adm-search-wrap {
   flex: 1; display: flex; align-items: center; gap: 0.5rem;
@@ -66,36 +91,98 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  overflow: hidden;
+  overflow: auto;
+  margin-top: 1rem;
 }
-.adm-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-.adm-table thead tr { background: var(--light); border-bottom: 1px solid var(--border); }
-.adm-table th {
-  padding: 0.75rem 1rem; text-align: left;
-  font-size: 0.72rem; text-transform: uppercase;
-  letter-spacing: 0.07em; color: var(--muted); font-weight: 700;
+.adm-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-size: 0.875rem;
+  table-layout: fixed;
+  min-width: 1200px;
 }
-.adm-table td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.adm-table thead { 
+  background: #F8FAFC;
+  border-bottom: 2px solid #E2E8F0;
+}
+.adm-table th { 
+  padding: 1rem; 
+  text-align: left;
+  font-size: 0.72rem; 
+  text-transform: uppercase;
+  letter-spacing: 0.07em; 
+  font-weight: 700;
+  color: #64748B;
+  white-space: nowrap;
+  border-bottom: 2px solid #E2E8F0;
+}
+.adm-table tbody tr { 
+  background: #fff;
+  border-bottom: 1px solid #E2E8F0;
+}
+.adm-table tbody tr:nth-child(even) { 
+  background: #F8FAFC;
+}
+.adm-table tbody tr:hover { 
+  background: #F1F5F9;
+}
+.adm-table td { 
+  padding: 1rem; 
+  text-align: left;
+  font-size: 0.875rem;
+  color: #1E293B;
+  vertical-align: middle;
+  border-bottom: 1px solid #E2E8F0;
+}
+.adm-num { 
+  color: #64748B; 
+  font-size: 0.8rem; 
+  width: 50px;
+  text-align: center;
+  min-width: 50px;
+}
+.adm-name { 
+  font-weight: 600; 
+  color: #1E293B; 
+  min-width: 150px;
+  max-width: 150px;
+  white-space: normal;
+  word-break: break-word;
+}
+.adm-email { 
+  color: #1E293B; 
+  font-size: 0.875rem; 
+  min-width: 220px;
+  max-width: 220px;
+  white-space: normal;
+  word-break: break-word;
+}
+.adm-date { 
+  color: #64748B; 
+  font-size: 0.82rem; 
+  white-space: nowrap; 
+  min-width: 110px;
+  max-width: 110px;
+}
 .adm-table tbody tr:last-child td { border-bottom: none; }
 .adm-table tbody tr:hover { background: #F8FAFC; }
 .adm-row-inactive { opacity: 0.55; }
 
-.adm-num   { color: var(--muted); font-size: 0.8rem; width: 36px; }
-.adm-name  { font-weight: 600; color: var(--dark); display: flex; align-items: center; gap: 0.6rem; }
 .adm-avatar {
   width: 32px; height: 32px; border-radius: 50%;
   background: #2563EB; color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 0.82rem; font-weight: 700; flex-shrink: 0;
 }
-.adm-email { color: var(--muted); font-size: 0.85rem; }
-.adm-date  { color: var(--muted); font-size: 0.82rem; white-space: nowrap; }
 
 /* Badges */
 .adm-badge {
   display: inline-block;
-  padding: 0.22rem 0.7rem; border-radius: 20px;
-  font-size: 0.74rem; font-weight: 700;
+  padding: 0.3rem 0.8rem; 
+  border-radius: 20px;
+  font-size: 0.72rem; 
+  font-weight: 700;
+  white-space: nowrap;
 }
 .badge-active   { background: #ECFDF5; color: #059669; }
 .badge-inactive { background: #FEF2F2; color: #DC2626; }
@@ -123,21 +210,23 @@
 .adm-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.35rem;
   align-items: center;
-  min-width: 240px;
-}
-.adm-table td:last-child,
-.adm-table th:last-child {
-  min-width: 240px;
+  justify-content: flex-start;
 }
 .adm-btn {
-  display: inline-flex; align-items: center; gap: 0.35rem;
-  padding: 0.32rem 0.8rem; border-radius: 6px;
-  font-size: 0.78rem; font-weight: 600;
-  border: none; cursor: pointer; transition: opacity 0.15s;
+  display: inline-flex; 
+  align-items: center; 
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem; 
+  border-radius: 6px;
+  font-size: 0.75rem; 
+  font-weight: 600;
+  border: none; 
+  cursor: pointer; 
+  transition: opacity 0.15s;
   white-space: nowrap;
-  min-width: 5rem;
+  min-width: auto;
 }
 .adm-btn:hover { opacity: 0.82; }
 .btn-success { background: #ECFDF5; color: #059669; }
@@ -233,6 +322,9 @@
   .adm-stats { grid-template-columns: repeat(2, 1fr); }
   .adm-table-wrap { overflow-x: auto; }
 }
+
+/* Always allow horizontal scrolling when table content is wide */
+.adm-table-wrap { overflow-x: auto; }
 
 /* Course Access Grid */
 .adm-course-access-grid {

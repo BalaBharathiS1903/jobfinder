@@ -1,5 +1,8 @@
 # VDart Academy — Career Platform
 
+**Current Project Version:** `v2.1`  
+*(The root `VERSION` file stores the current release number. Bump it on every project update.)*
+
 A full-stack career platform built with Django + React. Upload your resume, match jobs by skill, build ATS-friendly resumes, prep for interviews with IQ tests and mock interviews, and earn course certificates.
 
 ---
@@ -66,13 +69,14 @@ Get free API keys:
 ## Features
 
 ### Admin Dashboard (`/admin-dashboard`)
-- **User Management** — view all users, search by name/email
+- **User Management** — view all users, search by name/email with clean, aligned table layout
 - **User Stats** — total users, active/inactive count, prep access count
 - **User Actions** — activate/deactivate, delete, view full profile
 - **Prep Hub Access** — grant or revoke prep hub access per user
 - **Course Approval** — approve/revoke individual courses or approve all at once
 - **Limits Control** — set resume upload limit and daily job search limit per user
 - **User Detail View** — full profile, resumes, job searches, saved jobs, course progress
+- **Polished UI** — Fixed table alignment with proper column spacing and consistent formatting
 - **Create User** — admin can create new user accounts
 - **Protected Superadmin** — superadmin accounts cannot be modified or deleted
 
@@ -104,7 +108,7 @@ Get free API keys:
 - Manual career profile: personal info, skills (with level), experience, education, certifications, projects, languages, achievements
 - **Professional Headline** with auto-suggestions from skills + experience
 - Social link buttons (LinkedIn, GitHub, Website)
-- **Profile photo** upload
+- **Profile photo** upload with persistence — photo saves and displays across login sessions
 - **Job Matches tab** — find jobs matched against profile skills (no resume needed)
 
 ### Resume Builder
@@ -278,6 +282,7 @@ resume_project/
 | v1.8 | IQ/Skill Test shuffle + pause/resume · Mock Interview MCQ + end validation · Profile photo in profile page |
 | v1.9 | Resume Builder save to Resumes · Resume Analyzer skill gap analysis · All Courses page with 16 courses |
 | v2.0 | Admin Dashboard with user management · Per-course approval system · Email authentication · Prep Hub shows resume-matched courses only · Superuser auto-redirect to admin dashboard |
+| v2.1 | Admin Dashboard UI refinements (fixed table alignment & row formatting) · Profile photo persistence (returns full URLs for saved photos) · Improved serializer context handling for media URLs |
 
 ---
 

@@ -1,3 +1,5 @@
+import { IconMapPin } from "@tabler/icons-react";
+
 const CITIES = {
   in: ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad",
        "Jaipur", "Surat", "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal",
@@ -12,20 +14,22 @@ const CITIES = {
        "Newcastle", "Wollongong", "Hobart", "Remote"],
   ca: ["Toronto", "Montreal", "Vancouver", "Calgary", "Edmonton", "Ottawa", "Winnipeg",
        "Quebec City", "Hamilton", "Kitchener", "Remote"],
-  de: ["Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt", "Stuttgart", "Düsseldorf",
-       "Leipzig", "Dortmund", "Essen", "Remote"],
+  de: ["Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt", "Stuttgart",
+       "Dusseldorf", "Leipzig", "Dortmund", "Essen", "Remote"],
   sg: ["Singapore", "Jurong", "Tampines", "Woodlands", "Ang Mo Kio", "Remote"],
 };
 
 export default function LocationInput({ value, onChange, country }) {
-  const cities = CITIES[country] || CITIES["in"];
+  const cities = CITIES[country] || CITIES.in;
   const suggestions = value.length >= 1
     ? cities.filter((c) => c.toLowerCase().startsWith(value.toLowerCase()) && c.toLowerCase() !== value.toLowerCase())
     : [];
 
   return (
     <div className="location-wrap">
-      <span className="search-icon">📍</span>
+      <span className="field-icon" aria-hidden="true">
+        <IconMapPin size={16} stroke={2} />
+      </span>
       <input
         placeholder="Location (e.g. Chennai)"
         value={value}
@@ -36,7 +40,8 @@ export default function LocationInput({ value, onChange, country }) {
         <ul className="city-dropdown">
           {suggestions.slice(0, 6).map((c) => (
             <li key={c} onMouseDown={() => onChange(c)}>
-              📍 {c}
+              <IconMapPin size={14} stroke={2} aria-hidden="true" />
+              <span>{c}</span>
             </li>
           ))}
         </ul>

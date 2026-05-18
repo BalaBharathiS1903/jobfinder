@@ -120,6 +120,23 @@ def forgot_password_view(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+def validate_default_reset_email_view(request):
+    email = request.data.get("email", "").strip().lower()
+    if not email:
+        return Response({"error": "Email is required."}, status=400)
+    try:
+        validate_email(email)
+    except ValidationError:
+        return Response({"error": "Enter a valid email address."}, status=400)
+
+    from apps.accounts.models import User
+    if not User.objects.filter(email__iexact=email).exists():
+        return Response({"error": "No account found with this email address."}, status=404)
+    return Response({"detail": "Email verified."})
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
 def reset_password_view(request):
     from apps.accounts.models import PasswordResetToken
     token_value = request.data.get("token", "")
@@ -146,6 +163,36 @@ def reset_password_view(request):
     reset_token.used = True
     reset_token.save(update_fields=["used"])
     return Response({"detail": "Password has been updated."})
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def default_password_reset_view(request):
+    from django.contrib.auth import authenticate
+    email = request.data.get("email", "").strip().lower()
+    default_password = request.data.get("default_password", "")
+    new_password = request.data.get("new_password", "")
+
+    if not email or not default_password or not new_password:
+        return Response({"error": "Email, default password, and new password are required."}, status=400)
+    try:
+        validate_email(email)
+    except ValidationError:
+        return Response({"error": "Enter a valid email address."}, status=400)
+    if default_password != "vdart@#12345":
+        return Response({"error": "Default password is incorrect."}, status=400)
+
+    user = authenticate(request, email=email, password=default_password)
+    if not user:
+        return Response({"error": "This account cannot be reset with the default password."}, status=400)
+    try:
+        validate_password(new_password, user=user)
+    except ValidationError as exc:
+        return Response({"error": list(exc.messages)}, status=400)
+
+    user.set_password(new_password)
+    user.save(update_fields=["password"])
+    return Response({"detail": "Password has been updated. You can now sign in with your new password."})
 
 
 @api_view(["POST"])

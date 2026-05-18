@@ -471,9 +471,9 @@ export default function AdminDashboard() {
                     <button
                       className="adm-btn btn-primary"
                       onClick={() => navigate(`/admin-dashboard/user/${u.id}`)}
-                      title="Edit user"
+                      title="View or edit user"
                     >
-                      <span className="btn-icon">{Icon.edit}</span> Edit
+                      <span className="btn-icon">{Icon.edit}</span> View/Edit
                     </button>
                     {!u.is_superuser && (
                       <>

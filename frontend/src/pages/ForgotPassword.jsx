@@ -27,14 +27,10 @@ export default function ForgotPassword() {
     setMessage("");
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/forgot-password/", { email: trimmed });
-      if (data?.reset_token) {
-        navigate(`/reset-password?token=${encodeURIComponent(data.reset_token)}`);
-        return;
-      }
-      setMessage(data?.detail || "If that email exists, a password reset link has been sent.");
+      await api.post("/auth/validate-default-reset-email/", { email: trimmed });
+      navigate(`/reset-password?mode=default&email=${encodeURIComponent(trimmed)}`);
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to request password reset.");
+      setError(err.response?.data?.error || "Failed to validate email.");
     } finally {
       setLoading(false);
     }
@@ -45,7 +41,7 @@ export default function ForgotPassword() {
       <div className="auth-card">
         <img src="/vdart.png" alt="VDart Logo" className="auth-logo" />
         <h2>Forgot Password</h2>
-        <p className="auth-sub">Enter your email and we will send a reset link.</p>
+        <p className="auth-sub">Enter your email first. After validation, you can update your password.</p>
 
         {error && <div className="auth-error">{error}</div>}
         {message && <div className="auth-info">{message}</div>}
@@ -67,7 +63,7 @@ export default function ForgotPassword() {
           </div>
 
           <button type="submit" disabled={loading}>
-            {loading ? "Sending reset link..." : "Send Reset Link"}
+            {loading ? "Validating..." : "Continue"}
           </button>
         </form>
 

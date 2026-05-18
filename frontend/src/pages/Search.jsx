@@ -1,6 +1,24 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import {
+  IconAlertTriangle,
+  IconBookmark,
+  IconBriefcase,
+  IconBuilding,
+  IconCheck,
+  IconClock,
+  IconExternalLink,
+  IconFileText,
+  IconFlag,
+  IconMapPin,
+  IconSearch,
+  IconShieldCheck,
+  IconSparkles,
+  IconTool,
+  IconUpload,
+  IconX,
+} from "@tabler/icons-react";
 import api from "../lib/api";
 import LocationInput from "../components/LocationInput";
 import "./Search.css";
@@ -12,14 +30,30 @@ function timeAgo(dateStr) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "";
     const diff = Math.floor((Date.now() - d) / 1000);
-    if (diff < 60)    return "just now";
-    if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 60) return "just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
     return `${Math.floor(diff / 604800)}w ago`;
   } catch {
     return "";
   }
+}
+
+const COUNTRY_OPTIONS = [
+  ["in", "India"],
+  ["us", "USA"],
+  ["gb", "UK"],
+  ["au", "Australia"],
+  ["ca", "Canada"],
+  ["de", "Germany"],
+  ["sg", "Singapore"],
+];
+
+function TrustIcon({ label }) {
+  if (label === "Verified") return <IconShieldCheck size={14} stroke={2} aria-hidden="true" />;
+  if (label === "Suspicious") return <IconAlertTriangle size={14} stroke={2} aria-hidden="true" />;
+  return <IconX size={14} stroke={2} aria-hidden="true" />;
 }
 
 export default function Search() {
@@ -35,6 +69,7 @@ export default function Search() {
   const [autoError, setAutoError] = useState("");
   const [autoLabel, setAutoLabel] = useState("");
   const [skillsUsed, setSkillsUsed] = useState([]);
+  const [showResumePopup, setShowResumePopup] = useState(false);
 
   const { data: resumes = [] } = useQuery({
     queryKey: ["resumes"],
@@ -43,7 +78,13 @@ export default function Search() {
 
   const searchMutation = useMutation({
     mutationFn: (data) => api.post("/jobs/search/", data).then((r) => r.data),
-    onSuccess: (data) => { setResults(data.results ?? []); setSavedIds(new Set()); setSource("all"); setAutoLabel(""); setSkillsUsed([]); },
+    onSuccess: (data) => {
+      setResults(data.results ?? []);
+      setSavedIds(new Set());
+      setSource("all");
+      setAutoLabel("");
+      setSkillsUsed([]);
+    },
   });
 
   const autoMutation = useMutation({
@@ -66,39 +107,53 @@ export default function Search() {
 
   const saveMutation = useMutation({
     mutationFn: (job) => api.post("/jobs/saved/", {
-      job_id: job.id, title: job.title ?? "", company: job.company ?? "",
-      location: job.location ?? "", url: job.url ?? "",
+      job_id: job.id,
+      title: job.title ?? "",
+      company: job.company ?? "",
+      location: job.location ?? "",
+      url: job.url ?? "",
     }),
     onSuccess: (_, job) => setSavedIds((prev) => new Set([...prev, job.id])),
   });
+
+  const requireResume = () => {
+    if (form.resume_id) return false;
+    setShowResumePopup(true);
+    return true;
+  };
 
   const handleResumeChange = (e) => {
     const id = e.target.value;
     setForm((f) => ({ ...f, resume_id: id, query: "" }));
     setResumeSkills([]);
     if (!id) return;
-    const resume = resumes.find(r => String(r.id) === String(id));
+    setShowResumePopup(false);
+    const resume = resumes.find((r) => String(r.id) === String(id));
     if (!resume) return;
     setResumeSkills(resume.skills || []);
-    // Build a smart query from resume skills/titles
-    const skills = (resume.skills || []).map(s => s.toLowerCase());
-    const titles = (resume.job_titles || []).map(t => t.toLowerCase());
-    const ROLE_MAP = [
-      (["react", "javascript", "typescript", "vue", "angular"], "frontend developer"),
-      (["django", "flask", "fastapi", "spring boot", "node.js"], "backend developer"),
-      (["javascript", "java", "python", "sql"], "software developer"),
-      (["machine learning", "tensorflow", "pytorch", "scikit-learn"], "machine learning engineer"),
-      (["pandas", "numpy", "matplotlib"], "data analyst"),
-      (["docker", "kubernetes", "aws", "terraform"], "devops engineer"),
-      (["android", "kotlin", "swift", "flutter"], "mobile developer"),
-      (["sql", "postgresql", "mysql", "mongodb"], "database developer"),
+
+    const skills = (resume.skills || []).map((s) => s.toLowerCase());
+    const titles = (resume.job_titles || []).map((t) => t.toLowerCase());
+    const roleMap = [
+      [["react", "javascript", "typescript", "vue", "angular"], "frontend developer"],
+      [["django", "flask", "fastapi", "spring boot", "node.js"], "backend developer"],
+      [["javascript", "java", "python", "sql"], "software developer"],
+      [["machine learning", "tensorflow", "pytorch", "scikit-learn"], "machine learning engineer"],
+      [["pandas", "numpy", "matplotlib"], "data analyst"],
+      [["docker", "kubernetes", "aws", "terraform"], "devops engineer"],
+      [["android", "kotlin", "swift", "flutter"], "mobile developer"],
+      [["sql", "postgresql", "mysql", "mongodb"], "database developer"],
     ];
+
     let query = "";
-    for (const [roleSkills, roleName] of ROLE_MAP) {
-      if (roleSkills.some(s => skills.includes(s))) { query = roleName; break; }
+    for (const [roleSkills, roleName] of roleMap) {
+      if (roleSkills.some((s) => skills.includes(s))) {
+        query = roleName;
+        break;
+      }
     }
     if (!query) {
-      const nonGeneric = titles.filter(t => !["intern", "trainee", "associate"].includes(t));
+      const nonGeneric = titles.filter((t) => !["intern", "trainee", "associate"].includes(t));
       query = nonGeneric[0] || (skills[0] ? `${skills[0]} developer` : titles[0] || "");
     }
     setForm((f) => ({ ...f, resume_id: id, query }));
@@ -106,17 +161,14 @@ export default function Search() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (requireResume()) return;
     searchMutation.mutate(form);
   };
 
   const isLoading = searchMutation.isPending || autoMutation.isPending;
 
   const handleAutoSearch = () => {
-    if (!form.resume_id) {
-      setAutoError("Please select a resume first.");
-      setTimeout(() => setAutoError(""), 3000);
-      return;
-    }
+    if (requireResume()) return;
     setAutoError("");
     setAutoLabel("");
     setSkillsUsed([]);
@@ -134,9 +186,9 @@ export default function Search() {
           const d = new Date(iso);
           if (isNaN(d.getTime())) return true;
           const days = (Date.now() - d) / 86400000;
-          if (dateFilter === "today")  return days <= 1;
-          if (dateFilter === "week")   return days <= 7;
-          if (dateFilter === "month")  return days <= 30;
+          if (dateFilter === "today") return days <= 1;
+          if (dateFilter === "week") return days <= 7;
+          if (dateFilter === "month") return days <= 30;
           return true;
         })
     : null;
@@ -145,13 +197,34 @@ export default function Search() {
 
   return (
     <div className="portal">
+      {showResumePopup && (
+        <div className="resume-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="resume-popup-title">
+          <div className="resume-popup">
+            <button className="resume-popup-close" type="button" onClick={() => setShowResumePopup(false)} aria-label="Close">
+              <IconX size={18} stroke={2} />
+            </button>
+            <div className="resume-popup-icon"><IconFileText size={30} stroke={2} /></div>
+            <h2 id="resume-popup-title">Upload a resume first</h2>
+            <p>You need to upload and select a resume before searching jobs. This lets us match jobs to your skills.</p>
+            <div className="resume-popup-actions">
+              <button type="button" className="btn-popup-primary" onClick={() => navigate("/resumes")}>
+                <IconUpload size={16} stroke={2} /> Upload Resume
+              </button>
+              <button type="button" className="btn-popup-secondary" onClick={() => setShowResumePopup(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="portal-hero">
         <h1>Find Your Next Job</h1>
         <p>Auto-match jobs from your resume skills or search manually</p>
 
         <form className="search-bar" onSubmit={handleSubmit}>
           <div className="search-input-wrap">
-            <span className="search-icon">🔍</span>
+            <span className="field-icon" aria-hidden="true"><IconSearch size={16} stroke={2} /></span>
             <input
               placeholder="Job title or keyword"
               value={form.query}
@@ -166,28 +239,21 @@ export default function Search() {
           />
           <select value={form.resume_id} onChange={handleResumeChange}>
             <option value="">Select resume</option>
-            {resumes.map((r) => <option key={r.id} value={r.id}>📄 {r.filename}</option>)}
+            {resumes.map((r) => <option key={r.id} value={r.id}>{r.filename}</option>)}
           </select>
           <select value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })}>
-            <option value="in">🇮🇳 India</option>
-            <option value="us">🇺🇸 USA</option>
-            <option value="gb">🇬🇧 UK</option>
-            <option value="au">🇦🇺 Australia</option>
-            <option value="ca">🇨🇦 Canada</option>
-            <option value="de">🇩🇪 Germany</option>
-            <option value="sg">🇸🇬 Singapore</option>
+            {COUNTRY_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
           <button type="submit" className="btn-search" disabled={isLoading}>
-            {searchMutation.isPending ? <><span className="spinner" /> Searching…</> : "Search"}
+            {searchMutation.isPending ? <><span className="spinner" /> Searching...</> : <><IconSearch size={16} stroke={2} /> Search</>}
           </button>
         </form>
 
-        {/* Auto match button */}
         <div className="auto-row">
           <button className="btn-auto" onClick={handleAutoSearch} disabled={isLoading}>
             {autoMutation.isPending
-              ? <><span className="spinner" /> Matching…</>
-              : "⚡ Auto Match Jobs from Resume"}
+              ? <><span className="spinner" /> Matching...</>
+              : <><IconSparkles size={16} stroke={2} /> Auto Match Jobs from Resume</>}
           </button>
           <span className="auto-hint">Automatically finds jobs matching your resume skills</span>
         </div>
@@ -195,7 +261,7 @@ export default function Search() {
 
         {skillsUsed.length > 0 && (
           <div className="skill-chips" style={{ marginTop: "0.5rem" }}>
-            <span className="chips-label">⚡ Auto matched using:</span>
+            <span className="chips-label"><IconSparkles size={14} stroke={2} /> Auto matched using:</span>
             {skillsUsed.map((s) => (
               <span key={s} className="chip chip-active">{s}</span>
             ))}
@@ -204,18 +270,21 @@ export default function Search() {
 
         {resumeSkills.length > 0 && (
           <div className="skill-chips">
-            <span className="chips-label">Your skills — click to add to search:</span>
+            <span className="chips-label">Your skills - click to add to search:</span>
             {resumeSkills.map((s) => (
               <button
-                key={s} type="button"
+                key={s}
+                type="button"
                 className={`chip ${form.query.toLowerCase().includes(s.toLowerCase()) ? "chip-active" : ""}`}
                 onClick={() => setForm((f) => ({
                   ...f,
                   query: f.query.toLowerCase().includes(s.toLowerCase())
                     ? f.query
-                    : `${f.query} ${s}`.trim()
+                    : `${f.query} ${s}`.trim(),
                 }))}
-              >{s}</button>
+              >
+                {s}
+              </button>
             ))}
           </div>
         )}
@@ -230,9 +299,9 @@ export default function Search() {
           <aside className="portal-sidebar">
             <div className="sidebar-section">
               <h3>Date Posted</h3>
-              {[["all","Any time"],["today","Today"],["week","This week"],["month","This month"]].map(([val, label]) => (
-                <button key={val} className={`filter-btn ${dateFilter === val ? "active" : ""}`}
-                  onClick={() => setDateFilter(val)}>{label}
+              {[["all", "Any time"], ["today", "Today"], ["week", "This week"], ["month", "This month"]].map(([val, label]) => (
+                <button key={val} className={`filter-btn ${dateFilter === val ? "active" : ""}`} onClick={() => setDateFilter(val)}>
+                  {label}
                 </button>
               ))}
             </div>
@@ -240,11 +309,9 @@ export default function Search() {
             <div className="sidebar-section">
               <h3>Trust Filter</h3>
               {["all", "Verified", "Suspicious", "Fake"].map((t) => (
-                <button key={t} className={`filter-btn ${trustFilter === t ? "active" : ""}`}
-                  onClick={() => setTrustFilter(t)}>
-                  {t === "all" ? "All Jobs" :
-                   t === "Verified" ? "✅ Verified" :
-                   t === "Suspicious" ? "⚠️ Suspicious" : "🚫 Fake"}
+                <button key={t} className={`filter-btn icon-filter ${trustFilter === t ? "active" : ""}`} onClick={() => setTrustFilter(t)}>
+                  {t === "all" ? <IconBriefcase size={14} stroke={2} aria-hidden="true" /> : <TrustIcon label={t} />}
+                  <span>{t === "all" ? "All Jobs" : t}</span>
                 </button>
               ))}
             </div>
@@ -253,7 +320,7 @@ export default function Search() {
               <h3>Source</h3>
               {["all", ...sources].map((s) => (
                 <button key={s} className={`filter-btn ${source === s ? "active" : ""}`} onClick={() => setSource(s)}>
-                  {s === "all" ? `All (${results.length})` : `${s} (${results.filter(j => j.source === s).length})`}
+                  {s === "all" ? `All (${results.length})` : `${s} (${results.filter((j) => j.source === s).length})`}
                 </button>
               ))}
             </div>
@@ -263,16 +330,15 @@ export default function Search() {
                 <div className="sidebar-section">
                   <h3>Min Match Score</h3>
                   <div className="score-filter">
-                    <input type="range" min="0" max="80" step="10" value={minScore}
-                      onChange={(e) => setMinScore(Number(e.target.value))} />
+                    <input type="range" min="0" max="80" step="10" value={minScore} onChange={(e) => setMinScore(Number(e.target.value))} />
                     <span className="score-val">{minScore}%+</span>
                   </div>
                 </div>
                 <div className="sidebar-section">
                   <h3>Score Guide</h3>
-                  <div className="score-legend"><span className="legend-dot" style={{ background: "hsl(84,70%,40%)" }} /> 70–100% Strong</div>
-                  <div className="score-legend"><span className="legend-dot" style={{ background: "hsl(48,70%,40%)" }} /> 40–69% Good</div>
-                  <div className="score-legend"><span className="legend-dot" style={{ background: "hsl(12,70%,40%)" }} /> 0–39% Weak</div>
+                  <div className="score-legend"><span className="legend-dot" style={{ background: "hsl(84,70%,40%)" }} /> 70-100% Strong</div>
+                  <div className="score-legend"><span className="legend-dot" style={{ background: "hsl(48,70%,40%)" }} /> 40-69% Good</div>
+                  <div className="score-legend"><span className="legend-dot" style={{ background: "hsl(12,70%,40%)" }} /> 0-39% Weak</div>
                 </div>
               </>
             )}
@@ -283,7 +349,7 @@ export default function Search() {
               <strong>{filtered.length}</strong> job{filtered.length !== 1 ? "s" : ""} found
               {form.location && <> in <em>{form.location}</em></>}
               {autoLabel
-                ? <> — <em>⚡ matched by skills: {autoLabel}</em></>
+                ? <> - <em><IconSparkles size={14} stroke={2} /> matched by skills: {autoLabel}</em></>
                 : form.query && <> for <em>"{form.query}"</em></>}
             </p>
 
@@ -296,9 +362,10 @@ export default function Search() {
                     <div className="job-info">
                       <h2 className="job-title">{job.title}</h2>
                       <p className="job-company">
+                        <IconBuilding size={14} stroke={2} aria-hidden="true" />
                         <span className="company-name">{job.company}</span>
-                        {job.location && <><span className="dot">·</span><span className="job-location">📍 {job.location}</span></>}
-                        {job.posted_at && <><span className="dot">·</span><span className="job-posted">🕐 {timeAgo(job.posted_at)}</span></>}
+                        {job.location && <><span className="dot">.</span><span className="job-location"><IconMapPin size={14} stroke={2} aria-hidden="true" /> {job.location}</span></>}
+                        {job.posted_at && <><span className="dot">.</span><span className="job-posted"><IconClock size={14} stroke={2} aria-hidden="true" /> {timeAgo(job.posted_at)}</span></>}
                       </p>
                     </div>
                     <div className="job-card-right">
@@ -310,55 +377,55 @@ export default function Search() {
                       {job.source && <span className="source-badge">{job.source}</span>}
                       {job.trust_label && (
                         <span className={`trust-badge trust-${job.trust_label.toLowerCase()}`}>
-                          {job.trust_label === "Verified" ? "✅" : job.trust_label === "Suspicious" ? "⚠️" : "🚫"} {job.trust_label}
+                          <TrustIcon label={job.trust_label} /> {job.trust_label}
                         </span>
                       )}
                     </div>
                   </div>
 
                   {job.description && (
-                    <p className="job-desc">{job.description.slice(0, 200)}{job.description.length > 200 ? "…" : ""}</p>
+                    <p className="job-desc">{job.description.slice(0, 200)}{job.description.length > 200 ? "..." : ""}</p>
                   )}
 
                   {job.red_flags?.length > 0 && (
                     <div className="red-flags-row">
-                      <span className="flags-label">🚩 Red flags:</span>
+                      <span className="flags-label"><IconFlag size={14} stroke={2} /> Red flags:</span>
                       {job.red_flags.map((f) => <span key={f} className="flag-tag">{f}</span>)}
                     </div>
                   )}
 
                   {job.matched_skills?.length > 0 && (
                     <div className="skills-row">
-                      <span className="skills-label">✅ Matched:</span>
+                      <span className="skills-label"><IconCheck size={14} stroke={2} /> Matched:</span>
                       {job.matched_skills.map((s) => <span key={s} className="tag tag-match">{s}</span>)}
                     </div>
                   )}
                   {job.missing_skills?.length > 0 && (
                     <div className="skills-row">
-                      <span className="skills-label">❌ Missing:</span>
+                      <span className="skills-label"><IconX size={14} stroke={2} /> Missing:</span>
                       {job.missing_skills.slice(0, 5).map((s) => <span key={s} className="tag tag-miss">{s}</span>)}
                       <button
                         className="btn-build-kw"
                         title="Go to Resume Builder and add these missing skills"
                         onClick={() => navigate("/resume-builder", {
-                          state: { missingSkills: job.missing_skills, jobTitle: job.title }
+                          state: { missingSkills: job.missing_skills, jobTitle: job.title },
                         })}
                       >
-                        🏗️ Build Resume with Keywords
+                        <IconTool size={14} stroke={2} /> Build Resume with Keywords
                       </button>
                     </div>
                   )}
 
                   <div className="job-actions">
                     {job.url
-                      ? <a href={job.url} target="_blank" rel="noreferrer" className="btn-view">View Job ↗</a>
+                      ? <a href={job.url} target="_blank" rel="noreferrer" className="btn-view">View Job <IconExternalLink size={14} stroke={2} /></a>
                       : <span className="btn-view disabled">No link</span>}
                     <button
                       className={`btn-save ${savedIds.has(job.id) ? "saved" : ""}`}
                       onClick={() => !savedIds.has(job.id) && saveMutation.mutate(job)}
                       disabled={savedIds.has(job.id)}
                     >
-                      {savedIds.has(job.id) ? "✓ Saved" : "🔖 Save"}
+                      {savedIds.has(job.id) ? <><IconCheck size={14} stroke={2} /> Saved</> : <><IconBookmark size={14} stroke={2} /> Save</>}
                     </button>
                   </div>
                 </div>
@@ -370,9 +437,9 @@ export default function Search() {
 
       {filtered === null && !isLoading && (
         <div className="portal-empty">
-          <div className="empty-icon">💼</div>
+          <div className="empty-icon"><IconBriefcase size={48} stroke={1.6} /></div>
           <h2>Select your resume to get started</h2>
-          <p>Click <strong>⚡ Auto Match Jobs from Resume</strong> to instantly find jobs matching your skills.</p>
+          <p>Click <strong>Auto Match Jobs from Resume</strong> to instantly find jobs matching your skills.</p>
         </div>
       )}
     </div>

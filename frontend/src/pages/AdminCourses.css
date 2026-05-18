@@ -311,6 +311,21 @@
   background: #EFF6FF; color: #2563EB;
   border: 1px solid #BFDBFE; text-decoration: none; white-space: nowrap;
 }
+
+/* Prevent “larger on click” focus/active styling from sticking */
+.ac2-view-btn:focus,
+.ac2-view-btn:active,
+.ac2-view-btn:visited {
+  transform: none;
+  box-shadow: none;
+  outline: none;
+}
+
+/* Optional: keep a subtle focus indicator without scaling */
+.ac2-view-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35);
+}
+
 .ac2-view-btn:hover { background: #DBEAFE; }
 .ac2-lp-edit-btn {
   font-size: 0.72rem; font-weight: 700;

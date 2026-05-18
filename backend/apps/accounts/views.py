@@ -1,3 +1,5 @@
+import uuid
+
 from rest_framework import generics, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -6,8 +8,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.db import IntegrityError
+from django.contrib.auth.password_validation import validate_password
 from .serializers import RegisterSerializer, UserSerializer
 
 
@@ -83,33 +87,65 @@ def forgot_password_view(request):
         validate_email(email)
     except ValidationError:
         return Response({"error": "Enter a valid email address."}, status=400)
-    from apps.accounts.models import User
-    if not User.objects.filter(email__iexact=email).exists():
-        return Response({"error": "Email not found."}, status=404)
-    return Response({"detail": "Email validated. You can now reset your password."})
+    from apps.accounts.models import PasswordResetToken, User
+
+    detail = "If that email exists, a password reset link has been sent."
+    response_data = {"detail": detail}
+
+    try:
+        user = User.objects.get(email__iexact=email)
+    except User.DoesNotExist:
+        return Response(response_data)
+
+    PasswordResetToken.objects.filter(user=user, used=False).update(used=True)
+    reset_token = PasswordResetToken.objects.create(user=user)
+    reset_url = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password?token={reset_token.token}"
+
+    send_mail(
+        "Reset your JobFinder password",
+        (
+            "Use the link below to reset your password. "
+            "This link expires in 1 hour and can be used once.\n\n"
+            f"{reset_url}"
+        ),
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        fail_silently=True,
+    )
+
+    if settings.DEBUG:
+        response_data.update({"reset_token": str(reset_token.token), "reset_url": reset_url})
+    return Response(response_data)
 
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def reset_password_view(request):
-    from apps.accounts.models import User
-    email = request.data.get("email", "").strip().lower()
+    from apps.accounts.models import PasswordResetToken
+    token_value = request.data.get("token", "")
     new_password = request.data.get("password", "")
-    if not email or not new_password:
-        return Response({"error": "Email and password are required."}, status=400)
+    if not token_value or not new_password:
+        return Response({"error": "Reset token and password are required."}, status=400)
     try:
-        validate_email(email)
-    except ValidationError:
-        return Response({"error": "Enter a valid email address."}, status=400)
-    if len(new_password) < 8:
-        return Response({"error": "Password must be at least 8 characters."}, status=400)
+        parsed_token = uuid.UUID(str(token_value))
+    except (TypeError, ValueError):
+        return Response({"error": "Invalid or expired reset token."}, status=400)
     try:
-        user = User.objects.get(email__iexact=email)
-        user.set_password(new_password)
-        user.save()
-    except User.DoesNotExist:
-        pass
-    return Response({"detail": "If that email exists, the password has been updated."})
+        reset_token = PasswordResetToken.objects.select_related("user").get(token=parsed_token)
+    except PasswordResetToken.DoesNotExist:
+        return Response({"error": "Invalid or expired reset token."}, status=400)
+    if not reset_token.is_valid():
+        return Response({"error": "Invalid or expired reset token."}, status=400)
+    try:
+        validate_password(new_password, user=reset_token.user)
+    except ValidationError as exc:
+        return Response({"error": list(exc.messages)}, status=400)
+
+    reset_token.user.set_password(new_password)
+    reset_token.user.save(update_fields=["password"])
+    reset_token.used = True
+    reset_token.save(update_fields=["used"])
+    return Response({"detail": "Password has been updated."})
 
 
 @api_view(["POST"])
@@ -122,8 +158,10 @@ def change_password_view(request):
     user = request.user
     if not user.check_password(current_password):
         return Response({"error": "Current password is incorrect."}, status=400)
-    if len(new_password) < 8:
-        return Response({"error": "New password must be at least 8 characters."}, status=400)
+    try:
+        validate_password(new_password, user=user)
+    except ValidationError as exc:
+        return Response({"error": list(exc.messages)}, status=400)
     user.set_password(new_password)
     user.save()
     return Response({"detail": "Password changed successfully."})
@@ -220,6 +258,24 @@ def admin_create_user(request):
 
 def _truthy(value):
     return str(value).strip().lower() in {"1", "true", "yes", "y", "active", "granted"}
+
+
+def _coerce_bool(value):
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().lower()
+    if normalized in {"1", "true", "yes", "y", "active", "granted"}:
+        return True
+    if normalized in {"0", "false", "no", "n", "inactive", "disabled", "denied"}:
+        return False
+    raise ValueError("Enter a valid boolean value.")
+
+
+def _coerce_limit(value):
+    try:
+        return max(0, int(value))
+    except (TypeError, ValueError):
+        raise ValueError("Enter a valid non-negative number.")
 
 
 def _normalize_bulk_key(value):
@@ -420,9 +476,18 @@ def admin_user_update(request, pk):
             return Response({"email": "An account with this email already exists."}, status=400)
         target.email = email
 
-    for field in ("is_active", "has_prep_access", "resume_upload_limit", "job_search_limit"):
+    for field in ("is_active", "has_prep_access"):
         if field in request.data:
-            setattr(target, field, request.data[field])
+            try:
+                setattr(target, field, _coerce_bool(request.data[field]))
+            except ValueError as exc:
+                return Response({field: str(exc)}, status=400)
+    for field in ("resume_upload_limit", "job_search_limit"):
+        if field in request.data:
+            try:
+                setattr(target, field, _coerce_limit(request.data[field]))
+            except ValueError as exc:
+                return Response({field: str(exc)}, status=400)
     target.save()
     return Response(UserSerializer(target).data)
 

@@ -9,6 +9,7 @@ export default function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -23,10 +24,15 @@ export default function ForgotPassword() {
       return;
     }
     setError("");
+    setMessage("");
     setLoading(true);
     try {
-      await api.post("/auth/forgot-password/", { email: trimmed });
-      navigate(`/reset-password?email=${encodeURIComponent(trimmed)}`);
+      const { data } = await api.post("/auth/forgot-password/", { email: trimmed });
+      if (data?.reset_token) {
+        navigate(`/reset-password?token=${encodeURIComponent(data.reset_token)}`);
+        return;
+      }
+      setMessage(data?.detail || "If that email exists, a password reset link has been sent.");
     } catch (err) {
       setError(err.response?.data?.error || "Failed to request password reset.");
     } finally {
@@ -39,9 +45,10 @@ export default function ForgotPassword() {
       <div className="auth-card">
         <img src="/vdart.png" alt="VDart Logo" className="auth-logo" />
         <h2>Forgot Password</h2>
-        <p className="auth-sub">Enter your email and reset your password directly on the next page.</p>
+        <p className="auth-sub">Enter your email and we will send a reset link.</p>
 
         {error && <div className="auth-error">{error}</div>}
+        {message && <div className="auth-info">{message}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="auth-field">
@@ -51,16 +58,20 @@ export default function ForgotPassword() {
               placeholder="you@example.com"
               required
               value={email}
-              onChange={(e) => { setEmail(e.target.value); setError(""); }}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setError("");
+                setMessage("");
+              }}
             />
           </div>
 
           <button type="submit" disabled={loading}>
-            {loading ? "Preparing reset…" : "Continue to Reset Page"}
+            {loading ? "Sending reset link..." : "Send Reset Link"}
           </button>
         </form>
 
-        <p><Link to="/login">← Back to Sign In</Link></p>
+        <p><Link to="/login">Back to Sign In</Link></p>
       </div>
     </div>
   );

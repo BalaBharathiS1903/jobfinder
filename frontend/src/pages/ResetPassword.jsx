@@ -3,13 +3,11 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../lib/api";
 import "./Auth.css";
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [form, setForm] = useState({
-    email: searchParams.get("email") || "",
+    token: searchParams.get("token") || "",
     password: "",
     confirm: "",
   });
@@ -27,24 +25,27 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
-    const trimmedEmail = form.email.trim().toLowerCase();
-    if (!trimmedEmail) errs.email = "Email is required.";
-    else if (!emailRegex.test(trimmedEmail)) errs.email = "Enter a valid email address.";
+    const trimmedToken = form.token.trim();
+    if (!trimmedToken) errs.token = "Reset token is required.";
     if (form.password.length < 8) errs.password = "Password must be at least 8 characters.";
     if (form.password !== form.confirm) errs.confirm = "Passwords do not match.";
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
 
     setLoading(true);
     setGeneral("");
     try {
       await api.post("/auth/reset-password/", {
-        email: trimmedEmail,
+        token: trimmedToken,
         password: form.password,
       });
       setDone(true);
       setTimeout(() => navigate("/login"), 3000);
     } catch (err) {
-      setGeneral(err.response?.data?.error || "Reset failed. Please try again.");
+      const apiError = err.response?.data?.error;
+      setGeneral(Array.isArray(apiError) ? apiError.join(" ") : apiError || "Reset failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -55,8 +56,8 @@ export default function ResetPassword() {
       <div className="auth-card">
         <img src="/vdart.png" alt="VDart Logo" className="auth-logo" />
         <div className="auth-success">
-          <p className="success-title">Password Reset!</p>
-          <p className="success-desc">Your password has been updated. Redirecting to login…</p>
+          <p className="success-title">Password Reset</p>
+          <p className="success-desc">Your password has been updated. Redirecting to login...</p>
           <Link to="/login" className="btn-primary">Go to Sign In</Link>
         </div>
       </div>
@@ -68,21 +69,22 @@ export default function ResetPassword() {
       <div className="auth-card">
         <img src="/vdart.png" alt="VDart Logo" className="auth-logo" />
         <h2>Reset Password</h2>
-        <p className="auth-sub">Enter your email and choose a new password.</p>
+        <p className="auth-sub">Paste your reset token and choose a new password.</p>
 
         {general && <div className="auth-error">{general}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="auth-field">
-            <label>Email</label>
+            <label>Reset Token</label>
             <input
-              type="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={(e) => set("email", e.target.value)}
-              className={errors.email ? "input-error" : ""}
+              type="text"
+              placeholder="Token from your reset link"
+              value={form.token}
+              onChange={(e) => set("token", e.target.value)}
+              className={errors.token ? "input-error" : ""}
+              autoComplete="one-time-code"
             />
-            {errors.email && <span className="field-error">{errors.email}</span>}
+            {errors.token && <span className="field-error">{errors.token}</span>}
           </div>
 
           <div className="auth-field">
@@ -93,6 +95,7 @@ export default function ResetPassword() {
               value={form.password}
               onChange={(e) => set("password", e.target.value)}
               className={errors.password ? "input-error" : ""}
+              autoComplete="new-password"
             />
             {errors.password && <span className="field-error">{errors.password}</span>}
           </div>
@@ -105,16 +108,17 @@ export default function ResetPassword() {
               value={form.confirm}
               onChange={(e) => set("confirm", e.target.value)}
               className={errors.confirm ? "input-error" : ""}
+              autoComplete="new-password"
             />
             {errors.confirm && <span className="field-error">{errors.confirm}</span>}
           </div>
 
           <button type="submit" disabled={loading}>
-            {loading ? "Resetting…" : "Reset Password"}
+            {loading ? "Resetting..." : "Reset Password"}
           </button>
         </form>
 
-        <p><Link to="/login">← Back to Sign In</Link></p>
+        <p><Link to="/login">Back to Sign In</Link></p>
       </div>
     </div>
   );

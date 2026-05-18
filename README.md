@@ -1,6 +1,6 @@
 # VDart Academy — Career Platform
 
-**Current Project Version:** `v2.8`  
+**Current Project Version:** `v2.10`  
 *(The root `VERSION` file stores the current release number. Bump it on every project update.)*
 
 A full-stack career platform built with Django + React. Upload your resume, match jobs by skill, build ATS-friendly resumes, prep for interviews with IQ tests and mock interviews, and earn course certificates.
@@ -295,6 +295,8 @@ resume_project/
 | v2.6 | Resume Builder Fill Details updated to match the Manual Profile layout with summary card, stats, tabs, and section forms |
 | v2.7 | Auth refresh hardened so parallel 401 responses share one refresh request and logout clears expired cookies |
 | v2.8 | Admin bulk user registration from XLSX/CSV files · Course data moved out of LearningPath page to remove Vite Fast Refresh warning |
+| v2.9 | Job search limits and activity logging now apply to manual, auto, and profile-based searches · Frontend routes lazy-load to reduce the initial production bundle |
+| v2.10 | Resume upload, bulk user import, and course progress flows hardened for edge cases · Custom-course certificates now render correctly · Added regression tests for resume, admin, jobs, and course APIs |
 
 ---
 
@@ -331,7 +333,7 @@ cd ../frontend
 npm run build
 ```
 
-Current status: Django check passes, migrations are up to date, frontend production build passes, and the backend test command currently finds 0 tests.
+Current status: Django check passes, migrations are up to date, frontend production build passes, and backend API regression tests cover job search, resume, admin bulk import, and course progress flows.
 
 ---
 

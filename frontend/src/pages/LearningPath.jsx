@@ -25,88 +25,66 @@ const YOUTUBE_PLAYLISTS = {
   "swift":               "PLMRqhzcHGw1ZqzYnpIuQAn2rcjhOtbqGX",  // CodeWithChris Swift
 };
 
-const getResourceLinks = (courseId, lessonTitle) => {
-  const slug = lessonTitle.toLowerCase()
-    .replace(/[&/]/g, "-").replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-").replace(/^-|-$/g, "");
+const OFFICIAL_DOCS = {
+  "python-basics":       { label: "Python Docs",     url: "https://docs.python.org/3/tutorial/" },
+  "data-science":        { label: "Pandas Docs",     url: "https://pandas.pydata.org/docs/" },
+  "django-rest":         { label: "Django Docs",     url: "https://docs.djangoproject.com/" },
+  "web-dev":             { label: "React Docs",      url: "https://react.dev/learn" },
+  "javascript-advanced": { label: "MDN JavaScript",  url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" },
+  "sql-databases":       { label: "PostgreSQL Docs", url: "https://www.postgresql.org/docs/" },
+  "git-devops":          { label: "Git Docs",        url: "https://git-scm.com/doc" },
+  "java-basics":         { label: "Java Docs",       url: "https://docs.oracle.com/en/java/" },
+  "typescript":          { label: "TypeScript Docs", url: "https://www.typescriptlang.org/docs/" },
+  "golang":              { label: "Go Docs",         url: "https://go.dev/doc/" },
+  "rust-lang":           { label: "Rust Book",       url: "https://doc.rust-lang.org/book/" },
+  "kotlin":              { label: "Kotlin Docs",     url: "https://kotlinlang.org/docs/home.html" },
+  "cpp":                 { label: "C++ Reference",   url: "https://en.cppreference.com/" },
+  "php":                 { label: "PHP Docs",        url: "https://www.php.net/manual/en/" },
+  "ruby":                { label: "Ruby Docs",       url: "https://ruby-doc.org/" },
+  "swift":               { label: "Swift Docs",      url: "https://developer.apple.com/documentation/swift" },
+};
 
-  const links = [];
+const buildLessonQuery = (courseTitle, lessonTitle) =>
+  encodeURIComponent([courseTitle, lessonTitle].filter(Boolean).join(" "));
 
-  // GeeksforGeeks - corrected URLs
-  const gfgTopics = {
-    "python-basics": "python-programming-language",
-    "data-science": "python-programming-language",
-    "django-rest": "django-tutorial",
-    "javascript-advanced": "javascript",
-    "web-dev": "web-development",
-    "sql-databases": "sql-tutorial",
-    "git-devops": "git-tutorial",
-    "java-basics": "java",
-    "typescript": "typescript",
-    "golang": "golang",
-    "rust-lang": "rust",
-    "kotlin": "kotlin",
-    "cpp": "c-plus-plus",
-    "php": "php",
-    "ruby": "ruby-programming-language",
-    "swift": "swift",
-  };
-  
-  if (gfgTopics[courseId]) {
-    links.push({ 
-      label: "GeeksforGeeks", 
-      url: `https://www.geeksforgeeks.org/${gfgTopics[courseId]}/`, 
-      color: "#2E7D32", 
-      bg: "#E7F3E8" 
-    });
+const getResourceLinks = ({ courseId, courseTitle, lessonTitle, customLinks = [], youtubePlaylist = "" }) => {
+  const query = buildLessonQuery(courseTitle, lessonTitle);
+  const defaults = [
+    {
+      label: "GeeksforGeeks",
+      url: `https://www.geeksforgeeks.org/?s=${query}`,
+      color: "#2E7D32",
+      bg: "#E7F3E8",
+    },
+    {
+      label: "W3Schools",
+      url: `https://www.w3schools.com/search/search.asp?input=${query}&lang=en`,
+      color: "#1565C0",
+      bg: "#E3F2FD",
+    },
+  ];
+
+  if (OFFICIAL_DOCS[courseId]) {
+    defaults.push({ ...OFFICIAL_DOCS[courseId], color: "#E65100", bg: "#FFF3E0" });
   }
 
-  // W3Schools - corrected URLs
-  const w3Topics = {
-    "python-basics": "python",
-    "javascript-advanced": "js",
-    "web-dev": "html",
-    "sql-databases": "sql",
-    "java-basics": "java",
-    "typescript": "typescript",
-    "cpp": "cpp",
-    "php": "php",
-  };
-  
-  if (w3Topics[courseId]) {
-    links.push({ 
-      label: "W3Schools", 
-      url: `https://www.w3schools.com/${w3Topics[courseId]}/`, 
-      color: "#1565C0", 
-      bg: "#E3F2FD" 
-    });
-  }
+  defaults.push({
+    label: "YouTube",
+    url: youtubePlaylist
+      ? `https://www.youtube.com/playlist?list=${youtubePlaylist}`
+      : `https://www.youtube.com/results?search_query=${query}`,
+    color: "#DC2626",
+    bg: "#FEE2E2",
+  });
 
-  // Official Docs
-  const officialDocs = {
-    "python-basics":       { label: "Python Docs",     url: "https://docs.python.org/3/tutorial/" },
-    "data-science":        { label: "Pandas Docs",     url: "https://pandas.pydata.org/docs/" },
-    "django-rest":         { label: "Django Docs",     url: "https://docs.djangoproject.com/" },
-    "web-dev":             { label: "React Docs",      url: "https://react.dev/learn" },
-    "javascript-advanced": { label: "MDN JavaScript",  url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" },
-    "sql-databases":       { label: "PostgreSQL Docs", url: "https://www.postgresql.org/docs/" },
-    "git-devops":          { label: "Git Docs",        url: "https://git-scm.com/doc" },
-    "java-basics":         { label: "Java Docs",       url: "https://docs.oracle.com/en/java/" },
-    "typescript":          { label: "TypeScript Docs", url: "https://www.typescriptlang.org/docs/" },
-    "golang":              { label: "Go Docs",         url: "https://go.dev/doc/" },
-    "rust-lang":           { label: "Rust Book",       url: "https://doc.rust-lang.org/book/" },
-    "kotlin":              { label: "Kotlin Docs",     url: "https://kotlinlang.org/docs/home.html" },
-    "cpp":                 { label: "C++ Reference",   url: "https://en.cppreference.com/" },
-    "php":                 { label: "PHP Docs",        url: "https://www.php.net/manual/en/" },
-    "ruby":                { label: "Ruby Docs",       url: "https://ruby-doc.org/" },
-    "swift":               { label: "Swift Docs",      url: "https://developer.apple.com/documentation/swift" },
-  };
-  
-  if (officialDocs[courseId]) {
-    links.push({ ...officialDocs[courseId], color: "#E65100", bg: "#FFF3E0" });
-  }
+  const defaultLabels = new Set(defaults.map((link) => link.label.toLowerCase()));
+  const extraLinks = (customLinks || []).filter((link) => {
+    const label = String(link?.label || "").trim().toLowerCase();
+    const url = String(link?.url || "").trim();
+    return label && url && !defaultLabels.has(label);
+  });
 
-  return links;
+  return [...defaults, ...extraLinks];
 };
 
 const TYPE_META = {
@@ -114,7 +92,25 @@ const TYPE_META = {
   coding:  { label: "Coding",  color: "#059669", bg: "#ECFDF5" },
   setup:   { label: "Setup",   color: "#D97706", bg: "#FFFBEB" },
 };
-function LessonItem({ lesson, lessonKey, done, meta, isActive, courseColor, courseId, modTitle, dbLinks, showVideo, setShowVideo, youtube, onToggle, onExpand }) {
+
+function countCompletedLessons(modules, completed) {
+  return (modules || []).reduce((count, module, moduleIndex) => {
+    return (
+      count +
+      (module.lessons || []).reduce((lessonCount, _lesson, lessonIndex) => {
+        return lessonCount + (completed?.[`${moduleIndex}-${lessonIndex}`] ? 1 : 0);
+      }, 0)
+    );
+  }, 0);
+}
+function LessonItem({ lesson, lessonKey, done, meta, isActive, courseColor, courseId, courseTitle, modTitle, dbLinks, showVideo, setShowVideo, youtube, onToggle, onExpand }) {
+  const resourceLinks = getResourceLinks({
+    courseId,
+    courseTitle,
+    lessonTitle: lesson.title,
+    customLinks: dbLinks,
+    youtubePlaylist: youtube,
+  });
 
   return (
     <div className={`lp-lesson-wrap ${done ? "done" : ""} ${isActive ? "active" : ""}`}>
@@ -145,7 +141,7 @@ function LessonItem({ lesson, lessonKey, done, meta, isActive, courseColor, cour
             Study the concept and practice the examples.
           </p>
           <div className="lp-content-actions">
-            {(dbLinks || getResourceLinks(courseId, lesson.title)).map((link, idx) => (
+            {resourceLinks.map((link, idx) => (
               <a key={idx} href={link.url} target="_blank" rel="noreferrer"
                 className="lp-ref-btn"
                 style={{ background: link.bg, color: link.color, border: `1px solid ${link.color}33` }}>
@@ -205,6 +201,7 @@ export default function LearningPath() {
   const [openModules, setOpenModules] = useState({ 0: true });
   const [showVideo, setShowVideo] = useState(false);
   const [dbLinks, setDbLinks] = useState(null); // null = use hardcoded
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -249,16 +246,24 @@ export default function LearningPath() {
   }, [courseId, builtIn]);
 
   // Save progress to backend
-  const saveProgress = useCallback((newCompleted) => {
+  const saveProgress = useCallback((newCompleted, previousCompleted) => {
+    setSaveError("");
     api.post(`/courses/progress/${courseId}/`, { completed: newCompleted })
-      .then(r => { if (r.data.certificate) setCertificate(r.data.certificate); })
-      .catch(() => {});
+      .then((r) => {
+        setCompleted(r.data.completed || newCompleted);
+        if (r.data.certificate) setCertificate(r.data.certificate);
+      })
+      .catch((err) => {
+        setCompleted(previousCompleted);
+        setSaveError(err.response?.data?.error || "Failed to save progress.");
+      });
   }, [courseId]);
 
   const toggle = (key) => {
+    const previous = completed;
     const next = { ...completed, [key]: !completed[key] };
     setCompleted(next);
-    saveProgress(next);
+    saveProgress(next, previous);
   };
 
   const toggleModule = (mi) => setOpenModules(p => ({ ...p, [mi]: !p[mi] }));
@@ -267,15 +272,17 @@ export default function LearningPath() {
 
   if (!course) return (
     <div className="lp-page">
+      {saveError && <p className="lp-not-found">{saveError}</p>}
       <Link to="/prep" className="lp-back">← Back to Prep Hub</Link>
       <p className="lp-not-found">Course not found. <Link to="/prep/courses">Browse all courses →</Link></p>
     </div>
   );
 
-  const totalLessons = course.modules.reduce((s, m) => s + m.lessons.length, 0);
-  const doneCount    = Object.values(completed).filter(Boolean).length;
-  const pct          = Math.round((doneCount / totalLessons) * 100);
-  const allDone      = doneCount === totalLessons;
+  const modules = course.modules || [];
+  const totalLessons = modules.reduce((sum, module) => sum + (module.lessons?.length || 0), 0);
+  const doneCount = countCompletedLessons(modules, completed);
+  const pct = totalLessons ? Math.round((doneCount / totalLessons) * 100) : 0;
+  const allDone = totalLessons > 0 && doneCount === totalLessons;
 
   return (
     <div className="lp-page">
@@ -292,7 +299,7 @@ export default function LearningPath() {
               <span className="lp-level">{course.level}</span>
               <span className="lp-dur">{course.duration}</span>
               <span className="lp-dur">{totalLessons} lessons</span>
-              <span className="lp-dur">{course.modules.length} modules</span>
+              <span className="lp-dur">{modules.length} modules</span>
             </div>
             <h1>{course.title}</h1>
             <p>{course.desc}</p>
@@ -315,7 +322,7 @@ export default function LearningPath() {
           </div>
           {allDone
             ? <Link to={`/prep/certificate/${courseId}`} className="lp-btn-cert" style={{ background: course.color }}>Get Certificate</Link>
-            : <p className="lp-ring-hint">{totalLessons - doneCount} lessons left</p>
+            : <p className="lp-ring-hint">{totalLessons ? `${totalLessons - doneCount} lessons left` : "Lessons will appear here once this course is populated."}</p>
           }
         </div>
       </div>
@@ -330,10 +337,14 @@ export default function LearningPath() {
 
       {/* ── Modules ── */}
       <div className="lp-modules">
-        {course.modules.map((mod, mi) => {
-          const modDone  = mod.lessons.filter((_, li) => completed[`${mi}-${li}`]).length;
-          const modTotal = mod.lessons.length;
-          const modPct   = Math.round((modDone / modTotal) * 100);
+        {modules.length === 0 && (
+          <div className="lp-not-found">This course does not have any lessons yet.</div>
+        )}
+        {modules.map((mod, mi) => {
+          const lessons = mod.lessons || [];
+          const modDone  = lessons.filter((_, li) => completed[`${mi}-${li}`]).length;
+          const modTotal = lessons.length;
+          const modPct   = modTotal ? Math.round((modDone / modTotal) * 100) : 0;
           const isOpen   = !!openModules[mi];
 
           return (
@@ -358,7 +369,7 @@ export default function LearningPath() {
               {/* Lessons */}
               {isOpen && (
                 <div className="lp-lessons">
-                  {mod.lessons.map((lesson, li) => {
+                  {lessons.map((lesson, li) => {
                     const key  = `${mi}-${li}`;
                     const done = !!completed[key];
                     const meta = TYPE_META[lesson.type] || TYPE_META.reading;
@@ -374,6 +385,7 @@ export default function LearningPath() {
                         isActive={isActive}
                         courseColor={course.color}
                         courseId={courseId}
+                        courseTitle={course.title}
                         modTitle={mod.title}
                         dbLinks={dbLinks}
                         showVideo={showVideo}

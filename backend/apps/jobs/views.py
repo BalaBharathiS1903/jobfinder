@@ -23,6 +23,42 @@ ROLE_MAP = [
 ]
 
 
+def _enforce_daily_search_limit(user):
+    from django.utils import timezone
+
+    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    daily_count = JobSearch.objects.filter(user=user, searched_at__gte=today_start).count()
+    if daily_count >= user.job_search_limit:
+        return Response(
+            {
+                "error": (
+                    f"Daily job search limit of {user.job_search_limit} reached. "
+                    "Contact admin to increase your limit."
+                )
+            },
+            status=429,
+        )
+    return None
+
+
+def _log_job_search(user, query, location, jobs):
+    JobSearch.objects.create(
+        user=user,
+        query=(query or "")[:255],
+        location=(location or "")[:255],
+        results=[
+            {
+                "id": job.get("id"),
+                "title": job.get("title", ""),
+                "company": job.get("company", ""),
+                "match_score": job.get("match_score"),
+                "trust_label": job.get("trust_label"),
+            }
+            for job in jobs[:20]
+        ],
+    )
+
+
 def _resume_query_from_resume(resume):
     skills = [s.lower() for s in (resume.skills or [])]
     titles = [t.lower() for t in (resume.job_titles or [])]
@@ -51,13 +87,9 @@ def search_jobs(request):
     if not query:
         return Response({"error": "query is required."}, status=400)
 
-    # Enforce job search limit
-    from django.utils import timezone
-    from datetime import timedelta
-    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    daily_count = JobSearch.objects.filter(user=request.user, searched_at__gte=today_start).count()
-    if daily_count >= request.user.job_search_limit:
-        return Response({"error": f"Daily job search limit of {request.user.job_search_limit} reached. Contact admin to increase your limit."}, status=429)
+    limit_error = _enforce_daily_search_limit(request.user)
+    if limit_error:
+        return limit_error
 
     jobs = fetch_jobs(query, location, country)
     jobs = analyze_jobs_trust(jobs)
@@ -69,7 +101,7 @@ def search_jobs(request):
         except Resume.DoesNotExist:
             pass
 
-    JobSearch.objects.create(user=request.user, query=query, location=location, results=[])
+    _log_job_search(request.user, query, location, jobs)
     return Response({"results": jobs})
 
 
@@ -87,6 +119,10 @@ def auto_search(request):
         resume = Resume.objects.get(pk=resume_id, user=request.user)
     except Resume.DoesNotExist:
         return Response(status=404)
+
+    limit_error = _enforce_daily_search_limit(request.user)
+    if limit_error:
+        return limit_error
 
     # Priority-ordered skills — best Adzuna search terms first
     PRIORITY = [
@@ -126,9 +162,11 @@ def auto_search(request):
 
     all_jobs = analyze_jobs_trust(all_jobs)
     ranked   = rank_jobs(all_jobs, resume)
+    query = ", ".join(used_skills)
+    _log_job_search(request.user, query or resume.filename, location, ranked)
     return Response({
         "results":     ranked,
-        "query":       ", ".join(used_skills),
+        "query":       query,
         "skills_used": used_skills,
     })
 
@@ -169,6 +207,10 @@ def profile_search(request):
     if not skill_names and not profile.headline:
         return Response({"error": "Add skills or a headline to your profile first."}, status=400)
 
+    limit_error = _enforce_daily_search_limit(request.user)
+    if limit_error:
+        return limit_error
+
     query_parts = []
     if profile.headline:
         query_parts.append(profile.headline.split("|")[0].strip())
@@ -188,4 +230,5 @@ def profile_search(request):
         scored.append({**job, "match_score": score, "matched_skills": sorted(matched),
                        "missing_skills": sorted(skill_set - matched)})
     scored.sort(key=lambda x: -x["match_score"])
+    _log_job_search(request.user, query, location, scored)
     return Response({"results": scored, "query": query})

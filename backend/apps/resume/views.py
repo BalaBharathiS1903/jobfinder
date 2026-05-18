@@ -9,6 +9,35 @@ from .parser import parse_resume
 MAX_RESUMES = 5
 
 
+def _resume_error(message, status=400):
+    return Response({"error": message}, status=status)
+
+
+def _validate_resume_upload(file):
+    if not file:
+        return "No file provided."
+    allowed = (".pdf", ".docx", ".txt")
+    if not any(file.name.lower().endswith(ext) for ext in allowed):
+        return "Unsupported file type. Use PDF, DOCX or TXT."
+    if file.size > 5 * 1024 * 1024:
+        return "File too large. Maximum size is 5 MB."
+    return None
+
+
+def _parse_resume_payload(file_bytes, filename):
+    parsed = parse_resume(file_bytes, filename)
+    if not (parsed.get("raw_text") or "").strip():
+        raise ValueError(
+            "Could not extract readable text from this file. "
+            "Upload a text-based PDF, DOCX, or TXT resume."
+        )
+    return parsed
+
+
+def _serialize_resume(resume, request, *, status=200):
+    return Response(ResumeSerializer(resume, context={"request": request}).data, status=status)
+
+
 def _save_version(resume):
     ResumeVersion.objects.create(
         resume=resume, version=resume.version, filename=resume.filename,
@@ -39,20 +68,21 @@ class ResumeDetailView(generics.RetrieveDestroyAPIView):
 @permission_classes([IsAuthenticated])
 def upload_resume(request):
     file = request.FILES.get("file")
-    if not file:
-        return Response({"error": "No file provided."}, status=400)
-    allowed = (".pdf", ".docx", ".txt")
-    if not any(file.name.lower().endswith(ext) for ext in allowed):
-        return Response({"error": "Unsupported file type. Use PDF, DOCX or TXT."}, status=400)
-    if file.size > 5 * 1024 * 1024:
-        return Response({"error": "File too large. Maximum size is 5 MB."}, status=400)
+    validation_error = _validate_resume_upload(file)
+    if validation_error:
+        return _resume_error(validation_error)
     if Resume.objects.filter(user=request.user).count() >= request.user.resume_upload_limit:
-        return Response({"error": f"Maximum {request.user.resume_upload_limit} resumes allowed. Delete or replace an existing one."}, status=400)
+        return _resume_error(
+            f"Maximum {request.user.resume_upload_limit} resumes allowed. Delete or replace an existing one."
+        )
     file_bytes = file.read()
     file.seek(0)
-    parsed = parse_resume(file_bytes, file.name)
+    try:
+        parsed = _parse_resume_payload(file_bytes, file.name)
+    except ValueError as exc:
+        return _resume_error(str(exc))
     resume = Resume.objects.create(user=request.user, file=file, filename=file.name, version=1, **parsed)
-    return Response(ResumeSerializer(resume).data, status=201)
+    return _serialize_resume(resume, request, status=201)
 
 
 @api_view(["POST"])
@@ -63,24 +93,23 @@ def replace_resume(request, pk):
     except Resume.DoesNotExist:
         return Response(status=404)
     file = request.FILES.get("file")
-    if not file:
-        return Response({"error": "No file provided."}, status=400)
-    allowed = (".pdf", ".docx", ".txt")
-    if not any(file.name.lower().endswith(ext) for ext in allowed):
-        return Response({"error": "Unsupported file type."}, status=400)
-    if file.size > 5 * 1024 * 1024:
-        return Response({"error": "File too large. Maximum size is 5 MB."}, status=400)
-    _save_version(resume)
+    validation_error = _validate_resume_upload(file)
+    if validation_error:
+        return _resume_error(validation_error)
     file_bytes = file.read()
     file.seek(0)
-    parsed = parse_resume(file_bytes, file.name)
+    try:
+        parsed = _parse_resume_payload(file_bytes, file.name)
+    except ValueError as exc:
+        return _resume_error(str(exc))
+    _save_version(resume)
     resume.file = file
     resume.filename = file.name
     resume.version = resume.version + 1
     for field, value in parsed.items():
         setattr(resume, field, value)
     resume.save()
-    return Response(ResumeSerializer(resume).data)
+    return _serialize_resume(resume, request)
 
 
 @api_view(["POST"])
@@ -90,13 +119,21 @@ def reparse_resume(request, pk):
         resume = Resume.objects.get(pk=pk, user=request.user)
     except Resume.DoesNotExist:
         return Response(status=404)
+    resume.file.open("rb")
+    try:
+        file_bytes = resume.file.read()
+    finally:
+        resume.file.close()
+    try:
+        parsed = _parse_resume_payload(file_bytes, resume.filename)
+    except ValueError as exc:
+        return _resume_error(str(exc))
     _save_version(resume)
-    parsed = parse_resume(resume.file.read(), resume.filename)
     resume.version = resume.version + 1
     for field, value in parsed.items():
         setattr(resume, field, value)
     resume.save()
-    return Response(ResumeSerializer(resume).data)
+    return _serialize_resume(resume, request)
 
 
 @api_view(["POST"])
@@ -128,6 +165,8 @@ def save_from_builder(request):
         projects = []
     if not isinstance(certs, list):
         certs = []
+    if not any([name, email, phone, headline, summary, skills, experience, education, projects, certs]):
+        return _resume_error("Add some resume details before saving.")
 
     replace_id = data.get("replace_id")
 
@@ -179,7 +218,7 @@ def save_from_builder(request):
         try:
             resume = Resume.objects.get(pk=replace_id, user=request.user)
         except Resume.DoesNotExist:
-            return Response({"error": "Resume not found."}, status=404)
+            return _resume_error("Resume not found.", status=404)
         _save_version(resume)
         resume.file     = file_obj
         resume.filename = filename
@@ -187,12 +226,14 @@ def save_from_builder(request):
         for k, v in fields.items():
             setattr(resume, k, v)
         resume.save()
-        return Response(ResumeSerializer(resume).data)
+        return _serialize_resume(resume, request)
 
     if Resume.objects.filter(user=request.user).count() >= request.user.resume_upload_limit:
-        return Response({"error": f"Maximum {request.user.resume_upload_limit} resumes allowed. Delete or replace one first."}, status=400)
+        return _resume_error(
+            f"Maximum {request.user.resume_upload_limit} resumes allowed. Delete or replace one first."
+        )
 
     resume = Resume.objects.create(
         user=request.user, file=file_obj, filename=filename, version=1, **fields
     )
-    return Response(ResumeSerializer(resume).data, status=201)
+    return _serialize_resume(resume, request, status=201)

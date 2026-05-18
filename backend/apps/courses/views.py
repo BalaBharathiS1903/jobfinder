@@ -21,6 +21,29 @@ COURSE_TOTALS = {
 }
 
 
+def _course_modules_and_total(course_id):
+    custom_course = CustomCourse.objects.filter(course_id=course_id).first()
+    if custom_course:
+        modules = custom_course.modules or []
+        total = sum(len((module or {}).get("lessons", [])) for module in modules if isinstance(module, dict))
+        return custom_course, modules, total
+    return None, None, COURSE_TOTALS.get(course_id, 0)
+
+
+def _valid_lesson_keys(course_id, modules, total):
+    if modules is not None:
+        return {
+            f"{module_index}-{lesson_index}"
+            for module_index, module in enumerate(modules)
+            for lesson_index, _lesson in enumerate((module or {}).get("lessons", []))
+        }
+    return {
+        f"{module_index}-{lesson_index}"
+        for module_index in range(total // 4)
+        for lesson_index in range(4)
+    }
+
+
 def has_course_access(user, course_id):
     if user.is_superuser:
         return True
@@ -49,9 +72,8 @@ def course_progress(request, course_id):
     if not request.user.has_prep_access and not request.user.is_superuser:
         return Response({"error": "Prep Hub access denied. Contact admin."}, status=403)
 
-    # Allow custom courses too
-    is_custom = CustomCourse.objects.filter(course_id=course_id).exists()
-    if course_id not in VALID_COURSES and not is_custom:
+    custom_course, modules, total = _course_modules_and_total(course_id)
+    if course_id not in VALID_COURSES and not custom_course:
         return Response({"error": "Invalid course."}, status=404)
     if not has_course_access(request.user, course_id):
         return Response({"error": "Course not approved. Contact admin."}, status=403)
@@ -69,13 +91,10 @@ def course_progress(request, course_id):
     for key in completed:
         if not _re.match(r'^\d+-\d+$', str(key)):
             return Response({"error": f"Invalid lesson key: {key}"}, status=400)
-
-    # For custom courses, calculate total from stored modules
-    if is_custom:
-        cc = CustomCourse.objects.get(course_id=course_id)
-        total = sum(len(m.get("lessons", [])) for m in cc.modules)
-    else:
-        total = COURSE_TOTALS.get(course_id, 0)
+    valid_keys = _valid_lesson_keys(course_id, modules, total)
+    for key in completed:
+        if key not in valid_keys:
+            return Response({"error": f"Lesson key is out of range for this course: {key}"}, status=400)
 
     done = sum(1 for v in completed.values() if v)
     if done > total and total > 0:

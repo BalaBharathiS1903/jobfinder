@@ -171,6 +171,8 @@ export default function AdminDashboard() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [searchField, setSearchField] = useState("all");
+  const [sortConfig, setSortConfig] = useState({ key: "username", direction: "asc" });
   const [toast, setToast] = useState({ msg: "", type: "success" });
   const [showCreate, setShowCreate] = useState(false);
   const [showBulkCreate, setShowBulkCreate] = useState(false);
@@ -208,10 +210,68 @@ export default function AdminDashboard() {
     if (!isNaN(num) && num >= 0) updateMutation.mutate({ id: u.id, [field]: num });
   };
 
-  const filtered = users.filter((u) =>
-    u.username.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const query = search.trim().toLowerCase();
+  const filtered = users.filter((u) => {
+    if (!query) return true;
+    if (searchField === "username") return u.username.toLowerCase().includes(query);
+    if (searchField === "email") return u.email.toLowerCase().includes(query);
+    return (
+      u.username.toLowerCase().includes(query) ||
+      u.email.toLowerCase().includes(query)
+    );
+  });
+
+  const getSortValue = (user, key) => {
+    switch (key) {
+      case "username":
+        return user.username || "";
+      case "email":
+        return user.email || "";
+      case "date_joined":
+        return new Date(user.date_joined).getTime() || 0;
+      case "status":
+        return user.is_active ? "Active" : "Inactive";
+      case "role":
+        return user.is_superuser ? "Superadmin" : user.is_staff ? "Admin" : "User";
+      case "has_prep_access":
+        return user.has_prep_access ? "Granted" : "Revoked";
+      case "resume_upload_limit":
+        return Number(user.resume_upload_limit) || 0;
+      case "job_search_limit":
+        return Number(user.job_search_limit) || 0;
+      default:
+        return "";
+    }
+  };
+
+  const sortedUsers = [...filtered].sort((a, b) => {
+    const aValue = getSortValue(a, sortConfig.key);
+    const bValue = getSortValue(b, sortConfig.key);
+
+    let result = 0;
+    if (typeof aValue === "number" && typeof bValue === "number") {
+      result = aValue - bValue;
+    } else {
+      result = String(aValue).localeCompare(String(bValue), undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+    }
+
+    return sortConfig.direction === "asc" ? result : -result;
+  });
+
+  const handleSort = (key) => {
+    setSortConfig((current) => ({
+      key,
+      direction: current.key === key && current.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  const getSortArrow = (key) => {
+    if (sortConfig.key !== key) return "↕";
+    return sortConfig.direction === "asc" ? "↑" : "↓";
+  };
 
   const stats = [
     { label: "Total Users",  value: users.length,                              color: "#2563EB", icon: Icon.users },
@@ -270,10 +330,26 @@ export default function AdminDashboard() {
 
       <div className="adm-toolbar">
         <div className="adm-search-wrap">
+          <select
+            className="adm-search-filter"
+            value={searchField}
+            onChange={(e) => setSearchField(e.target.value)}
+            aria-label="Filter search by field"
+          >
+            <option value="all">All</option>
+            <option value="username">Username</option>
+            <option value="email">Email</option>
+          </select>
           <span className="adm-search-icon">{Icon.search}</span>
           <input
             className="adm-search"
-            placeholder="Search by name or email"
+            placeholder={
+              searchField === "username"
+                ? "Search by username"
+                : searchField === "email"
+                  ? "Search by email"
+                  : "Search by username or email"
+            }
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -289,19 +365,59 @@ export default function AdminDashboard() {
             <thead>
               <tr>
                 <th>#</th>
-                <th>User</th>
-                <th>Email</th>
-                <th>Joined</th>
-                <th>Status</th>
-                <th>Role</th>
-                <th>Prep Hub</th>
-                <th>Resume Limit</th>
-                <th>Job Search Limit</th>
+                <th>
+                  <button type="button" className="adm-sort-btn" onClick={() => handleSort("username")}>
+                    <span>User</span>
+                    <span className="adm-sort-arrow">{getSortArrow("username")}</span>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="adm-sort-btn" onClick={() => handleSort("email")}>
+                    <span>Email</span>
+                    <span className="adm-sort-arrow">{getSortArrow("email")}</span>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="adm-sort-btn" onClick={() => handleSort("date_joined")}>
+                    <span>Joined</span>
+                    <span className="adm-sort-arrow">{getSortArrow("date_joined")}</span>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="adm-sort-btn" onClick={() => handleSort("status")}>
+                    <span>Status</span>
+                    <span className="adm-sort-arrow">{getSortArrow("status")}</span>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="adm-sort-btn" onClick={() => handleSort("role")}>
+                    <span>Role</span>
+                    <span className="adm-sort-arrow">{getSortArrow("role")}</span>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="adm-sort-btn" onClick={() => handleSort("has_prep_access")}>
+                    <span>Prep Hub</span>
+                    <span className="adm-sort-arrow">{getSortArrow("has_prep_access")}</span>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="adm-sort-btn" onClick={() => handleSort("resume_upload_limit")}>
+                    <span>Resume Limit</span>
+                    <span className="adm-sort-arrow">{getSortArrow("resume_upload_limit")}</span>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" className="adm-sort-btn" onClick={() => handleSort("job_search_limit")}>
+                    <span>Job Search Limit</span>
+                    <span className="adm-sort-arrow">{getSortArrow("job_search_limit")}</span>
+                  </button>
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((u, i) => (
+              {sortedUsers.map((u, i) => (
                 <tr key={u.id} className={!u.is_active ? "adm-row-inactive" : ""}>
                   <td className="adm-num">{i + 1}</td>
                   <td className="adm-name">

@@ -222,13 +222,30 @@ def _truthy(value):
     return str(value).strip().lower() in {"1", "true", "yes", "y", "active", "granted"}
 
 
+def _normalize_bulk_key(value):
+    return str(value or "").strip().lower().replace(" ", "_")
+
+
+def _normalize_bulk_row(row):
+    return {_normalize_bulk_key(k): v for k, v in row.items()}
+
+
 def _read_bulk_user_rows(uploaded_file):
     name = uploaded_file.name.lower()
     if name.endswith(".csv"):
         import csv
         import io
-        text = uploaded_file.read().decode("utf-8-sig")
-        return list(csv.DictReader(io.StringIO(text)))
+        try:
+            text = uploaded_file.read().decode("utf-8-sig")
+        except UnicodeDecodeError:
+            raise ValueError("CSV files must be UTF-8 encoded.")
+        reader = csv.DictReader(io.StringIO(text))
+        headers = [_normalize_bulk_key(h) for h in (reader.fieldnames or [])]
+        if not headers:
+            return []
+        if "email" not in headers:
+            raise ValueError("The uploaded file must include an email column.")
+        return [_normalize_bulk_row(row) for row in reader]
 
     if name.endswith(".xlsx"):
         try:
@@ -240,7 +257,9 @@ def _read_bulk_user_rows(uploaded_file):
         rows = list(sheet.iter_rows(values_only=True))
         if not rows:
             return []
-        headers = [str(h or "").strip() for h in rows[0]]
+        headers = [_normalize_bulk_key(h) for h in rows[0]]
+        if "email" not in headers:
+            raise ValueError("The uploaded file must include an email column.")
         return [
             {headers[i]: value for i, value in enumerate(row) if i < len(headers)}
             for row in rows[1:]
@@ -273,7 +292,7 @@ def admin_bulk_create_users(request):
     skipped = []
 
     for index, raw in enumerate(rows, start=2):
-        row = {str(k or "").strip().lower().replace(" ", "_"): v for k, v in raw.items()}
+        row = _normalize_bulk_row(raw)
         email = str(row.get("email") or "").strip().lower()
         username = str(row.get("username") or row.get("name") or "").strip()
         password = str(row.get("password") or "").strip()

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import { SKILL_LIST } from "../lib/skills";
+import { useAuth } from "../context/AuthContext";
 import "./ResumeBuilder.css";
 
 const TEMPLATES = [
@@ -50,6 +51,8 @@ export default function ResumeBuilder() {
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const resumeLimit = user?.resume_upload_limit ?? 5;
 
   const [data, setData] = useState(() => {
     if (fromResume) return {
@@ -211,7 +214,7 @@ export default function ResumeBuilder() {
             </div>
 
             {/* At limit — must replace */}
-            {resumes.length >= (resumes[0]?.resume_upload_limit || 5) || replaceId ? (
+            {resumes.length >= resumeLimit || replaceId ? (
               <>
                 <p className="rb-modal-sub">
                   {replaceId

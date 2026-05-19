@@ -237,10 +237,13 @@ export default function Search() {
             onChange={(val) => setForm({ ...form, location: val })}
             country={form.country}
           />
-          <select value={form.resume_id} onChange={handleResumeChange}>
-            <option value="">Select resume</option>
-            {resumes.map((r) => <option key={r.id} value={r.id}>{r.filename}</option>)}
-          </select>
+          <div className="resume-select-wrap">
+            <select value={form.resume_id} onChange={handleResumeChange}>
+              <option value="">Select resume</option>
+              {resumes.map((r) => <option key={r.id} value={r.id}>{r.filename}</option>)}
+            </select>
+            {!form.resume_id && <span className="resume-required-star" aria-hidden="true">*</span>}
+          </div>
           <select value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })}>
             {COUNTRY_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>

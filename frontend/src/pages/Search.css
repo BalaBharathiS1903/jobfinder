@@ -71,6 +71,30 @@
 }
 .search-bar select:focus { border-color: var(--primary); }
 
+.resume-select-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 160px;
+}
+
+.resume-select-wrap select {
+  width: 100%;
+  min-width: 0;
+  padding-right: 2rem;
+}
+
+.resume-required-star {
+  position: absolute;
+  left: 6.95rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #DC2626;
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
 .btn-search {
   padding: 0.7rem 1.5rem;
   background: var(--primary);

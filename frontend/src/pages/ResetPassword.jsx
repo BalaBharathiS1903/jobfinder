@@ -93,13 +93,6 @@ export default function ResetPassword() {
             ? "Use the default password and choose a new password."
             : "Paste your reset token and choose a new password."}
         </p>
-        {isDefaultMode && (
-          <div className="auth-default-password">
-            <span>Default password</span>
-            <code>{DEFAULT_PASSWORD}</code>
-          </div>
-        )}
-
         {general && <div className="auth-error">{general}</div>}
 
         <form onSubmit={handleSubmit}>
@@ -120,10 +113,11 @@ export default function ResetPassword() {
               <div className="auth-field">
                 <label>Default Password</label>
                 <input
-                  type="text"
+                  type="password"
                   value={form.defaultPassword}
                   onChange={(e) => set("defaultPassword", e.target.value)}
                   className={errors.defaultPassword ? "input-error" : ""}
+                  autoComplete="current-password"
                 />
                 {errors.defaultPassword && <span className="field-error">{errors.defaultPassword}</span>}
               </div>

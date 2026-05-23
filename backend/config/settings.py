@@ -13,6 +13,10 @@ IS_TESTING = "test" in sys.argv
 def env_bool(name, default=False):
     return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
 
+
+def env_list(name, default=""):
+    return [item.strip() for item in os.getenv(name, default).split(",") if item.strip()]
+
 _secret = os.getenv("SECRET_KEY")
 if not _secret:
     if os.getenv("DEBUG", "True") != "True":
@@ -21,7 +25,7 @@ if not _secret:
     warnings.warn("SECRET_KEY not set — using insecure dev fallback. Set it in .env.", stacklevel=1)
 SECRET_KEY = _secret or "django-insecure-dev-only-do-not-use-in-production-replace-me"
 DEBUG = env_bool("DEBUG", True)
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -108,9 +112,12 @@ SIMPLE_JWT = {
     "AUTH_COOKIE_SAMESITE": "Lax",
 }
 
-CORS_ALLOWED_ORIGINS = os.getenv(
+CORS_ALLOWED_ORIGINS = env_list(
     "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
-).split(",")
+)
+CSRF_TRUSTED_ORIGINS = env_list(
+    "CSRF_TRUSTED_ORIGINS", ",".join(CORS_ALLOWED_ORIGINS)
+)
 CORS_ALLOW_CREDENTIALS = True
 
 SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", not DEBUG and not IS_TESTING)
@@ -131,6 +138,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@jobfinder.local")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+EXPOSE_DEBUG_RESET_TOKEN = env_bool("EXPOSE_DEBUG_RESET_TOKEN", False)
 
 AUTHENTICATION_BACKENDS = [
     "apps.accounts.backends.EmailBackend",

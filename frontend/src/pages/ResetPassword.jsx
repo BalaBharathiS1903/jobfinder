@@ -3,16 +3,11 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../lib/api";
 import "./Auth.css";
 
-const DEFAULT_PASSWORD = "vdart@#12345";
-
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const isDefaultMode = searchParams.get("mode") === "default";
   const [form, setForm] = useState({
     token: searchParams.get("token") || "",
-    email: searchParams.get("email") || "",
-    defaultPassword: DEFAULT_PASSWORD,
     password: "",
     confirm: "",
   });
@@ -31,11 +26,7 @@ export default function ResetPassword() {
     e.preventDefault();
     const errs = {};
     const trimmedToken = form.token.trim();
-    const trimmedEmail = form.email.trim().toLowerCase();
-    if (isDefaultMode) {
-      if (!trimmedEmail) errs.email = "Email is required.";
-      if (!form.defaultPassword) errs.defaultPassword = "Default password is required.";
-    } else if (!trimmedToken) {
+    if (!trimmedToken) {
       errs.token = "Reset token is required.";
     }
     if (form.password.length < 8) errs.password = "Password must be at least 8 characters.";
@@ -48,18 +39,10 @@ export default function ResetPassword() {
     setLoading(true);
     setGeneral("");
     try {
-      if (isDefaultMode) {
-        await api.post("/auth/default-password-reset/", {
-          email: trimmedEmail,
-          default_password: form.defaultPassword,
-          new_password: form.password,
-        });
-      } else {
-        await api.post("/auth/reset-password/", {
-          token: trimmedToken,
-          password: form.password,
-        });
-      }
+      await api.post("/auth/reset-password/", {
+        token: trimmedToken,
+        password: form.password,
+      });
       setDone(true);
       setTimeout(() => navigate("/login"), 3000);
     } catch (err) {
@@ -88,54 +71,22 @@ export default function ResetPassword() {
       <div className="auth-card">
         <img src="/vdart.png" alt="VDart Logo" className="auth-logo" />
         <h2>Reset Password</h2>
-        <p className="auth-sub">
-          {isDefaultMode
-            ? "Use the default password and choose a new password."
-            : "Paste your reset token and choose a new password."}
-        </p>
+        <p className="auth-sub">Paste your reset token and choose a new password.</p>
         {general && <div className="auth-error">{general}</div>}
 
         <form onSubmit={handleSubmit}>
-          {isDefaultMode ? (
-            <>
-              <div className="auth-field">
-                <label>Email</label>
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={form.email}
-                  onChange={(e) => set("email", e.target.value)}
-                  className={errors.email ? "input-error" : ""}
-                />
-                {errors.email && <span className="field-error">{errors.email}</span>}
-              </div>
-
-              <div className="auth-field">
-                <label>Default Password</label>
-                <input
-                  type="password"
-                  value={form.defaultPassword}
-                  onChange={(e) => set("defaultPassword", e.target.value)}
-                  className={errors.defaultPassword ? "input-error" : ""}
-                  autoComplete="current-password"
-                />
-                {errors.defaultPassword && <span className="field-error">{errors.defaultPassword}</span>}
-              </div>
-            </>
-          ) : (
-            <div className="auth-field">
-              <label>Reset Token</label>
-              <input
-                type="text"
-                placeholder="Token from your reset link"
-                value={form.token}
-                onChange={(e) => set("token", e.target.value)}
-                className={errors.token ? "input-error" : ""}
-                autoComplete="one-time-code"
-              />
-              {errors.token && <span className="field-error">{errors.token}</span>}
-            </div>
-          )}
+          <div className="auth-field">
+            <label>Reset Token</label>
+            <input
+              type="text"
+              placeholder="Token from your reset link"
+              value={form.token}
+              onChange={(e) => set("token", e.target.value)}
+              className={errors.token ? "input-error" : ""}
+              autoComplete="one-time-code"
+            />
+            {errors.token && <span className="field-error">{errors.token}</span>}
+          </div>
 
           <div className="auth-field">
             <label>New Password</label>

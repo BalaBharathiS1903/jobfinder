@@ -11,11 +11,12 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const dropRef = useRef();
+  const isAdmin = !!user?.is_superuser;
 
   const { data: resumes = [] } = useQuery({
     queryKey: ["resumes"],
     queryFn: () => api.get("/resume/").then((r) => r.data),
-    enabled: !!user,
+    enabled: !!user && !isAdmin,
   });
 
   const latestResume = resumes[0];
@@ -50,22 +51,22 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to={user?.is_superuser ? "/admin-dashboard" : (user ? "/home" : "/login")} className="navbar-brand">
+      <Link to={user ? "/home" : "/login"} className="navbar-brand">
         <Logo size={36} />
       </Link>
       <div className="navbar-links">
         {user ? (
           <>
-            <Link to={user?.is_superuser ? "/admin-dashboard" : "/home"} className="nav-icon-link">{NavIcon.home} Home</Link>
-            {user?.is_superuser && <Link to="/admin-dashboard" className="nav-icon-link">{NavIcon.shield} Admin</Link>}
-            {user?.is_superuser && <Link to="/admin-courses" className="nav-icon-link">{NavIcon.book} Courses</Link>}
-            {!user?.is_superuser && <Link to="/resumes" className="nav-icon-link">{NavIcon.file} Resumes</Link>}
-            {!user?.is_superuser && <Link to="/search" className="nav-icon-link">{NavIcon.search} Search Jobs</Link>}
-            {!user?.is_superuser && <Link to="/saved" className="nav-icon-link">{NavIcon.bookmark} Saved Jobs</Link>}
-            {!user?.is_superuser && <Link to="/resume-analyzer" className="nav-icon-link">{NavIcon.chart} Resume Analyzer</Link>}
-            {!user?.is_superuser && <Link to="/resume-builder" className="nav-icon-link">{NavIcon.edit} Resume Builder</Link>}
-            {!user?.is_superuser && <Link to="/profile" className="nav-icon-link">{NavIcon.user} My Profile</Link>}
-            {!user?.is_superuser && <Link to="/prep" className="nav-icon-link">{NavIcon.book} Prep Hub</Link>}
+            <Link to="/home" className="nav-icon-link">{NavIcon.home} Home</Link>
+            {isAdmin && <Link to="/admin-dashboard" className="nav-icon-link">{NavIcon.shield} Admin</Link>}
+            {isAdmin && <Link to="/admin-courses" className="nav-icon-link">{NavIcon.book} Courses</Link>}
+            {!isAdmin && <Link to="/resumes" className="nav-icon-link">{NavIcon.file} Resumes</Link>}
+            {!isAdmin && <Link to="/search" className="nav-icon-link">{NavIcon.search} Search Jobs</Link>}
+            {!isAdmin && <Link to="/saved" className="nav-icon-link">{NavIcon.bookmark} Saved Jobs</Link>}
+            {!isAdmin && <Link to="/resume-analyzer" className="nav-icon-link">{NavIcon.chart} Resume Analyzer</Link>}
+            {!isAdmin && <Link to="/resume-builder" className="nav-icon-link">{NavIcon.edit} Resume Builder</Link>}
+            {!isAdmin && <Link to="/profile" className="nav-icon-link">{NavIcon.user} My Profile</Link>}
+            {!isAdmin && <Link to="/prep" className="nav-icon-link">{NavIcon.book} Prep Hub</Link>}
 
             {/* User avatar dropdown */}
             <div className="nav-user-wrap" ref={dropRef}>
@@ -89,7 +90,7 @@ export default function Navbar() {
                   <div className="drop-divider" />
 
                   {/* Resume info */}
-                  {latestResume && (
+                  {!isAdmin && latestResume && (
                     <>
                       <div className="drop-resume-info">
                         <span className="drop-label">Latest Resume</span>
@@ -114,14 +115,30 @@ export default function Navbar() {
 
                   {/* Quick links */}
                   <div className="drop-links">
-                    {latestResume && (
+                    {isAdmin ? (
+                      <>
+                        <Link to="/home" className="drop-link" onClick={() => setOpen(false)}>
+                          {NavIcon.home} Home
+                        </Link>
+                        <Link to="/admin-dashboard" className="drop-link" onClick={() => setOpen(false)}>
+                          {NavIcon.shield} Admin Dashboard
+                        </Link>
+                        <Link to="/admin-courses" className="drop-link" onClick={() => setOpen(false)}>
+                          {NavIcon.book} Manage Courses
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        {latestResume && (
                       <Link to={`/resumes/${latestResume.id}/profile`} className="drop-link" onClick={() => setOpen(false)}>
                         {NavIcon.user} View Candidate Profile
                       </Link>
+                        )}
+                        <Link to="/resumes" className="drop-link" onClick={() => setOpen(false)}>{NavIcon.file} My Resumes</Link>
+                        <Link to="/search" className="drop-link" onClick={() => setOpen(false)}>{NavIcon.search} Search Jobs</Link>
+                        <Link to="/saved" className="drop-link" onClick={() => setOpen(false)}>{NavIcon.bookmark} Saved Jobs</Link>
+                      </>
                     )}
-                    <Link to="/resumes" className="drop-link" onClick={() => setOpen(false)}>{NavIcon.file} My Resumes</Link>
-                    <Link to="/search" className="drop-link" onClick={() => setOpen(false)}>{NavIcon.search} Search Jobs</Link>
-                    <Link to="/saved" className="drop-link" onClick={() => setOpen(false)}>{NavIcon.bookmark} Saved Jobs</Link>
                   </div>
 
                   <div className="drop-divider" />

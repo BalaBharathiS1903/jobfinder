@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../lib/api";
@@ -176,6 +176,8 @@ export default function AdminDashboard() {
   const [toast, setToast] = useState({ msg: "", type: "success" });
   const [showCreate, setShowCreate] = useState(false);
   const [showBulkCreate, setShowBulkCreate] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const selectAllRef = useRef(null);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -200,9 +202,23 @@ export default function AdminDashboard() {
     mutationFn: (id) => api.delete(`/auth/admin/users/${id}/delete/`),
     onSuccess: (_, id) => {
       qc.setQueryData(["admin-users"], (old) => old.filter((u) => u.id !== id));
+      setSelectedIds((old) => old.filter((selectedId) => selectedId !== id));
       notify("User deleted.");
     },
     onError: (err) => notify(err.response?.data?.error || "Delete failed.", "error"),
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (userIds) => api.post("/auth/admin/users/bulk-delete/", { user_ids: userIds }).then((r) => r.data),
+    onSuccess: (data) => {
+      qc.setQueryData(["admin-users"], (old) =>
+        old.filter((u) => !data.deleted_ids.includes(u.id))
+      );
+      setSelectedIds([]);
+      const skippedNote = data.skipped_count ? ` ${data.skipped_count} skipped.` : "";
+      notify(`${data.deleted_count} user${data.deleted_count === 1 ? "" : "s"} deleted.${skippedNote}`);
+    },
+    onError: (err) => notify(err.response?.data?.error || "Bulk delete failed.", "error"),
   });
 
   const handleLimitChange = (u, field, value) => {
@@ -280,6 +296,43 @@ export default function AdminDashboard() {
     { label: "Prep Access",  value: users.filter((u) => u.has_prep_access).length, color: "#7C3AED", icon: Icon.book },
   ];
 
+  const selectableVisibleIds = sortedUsers
+    .filter((u) => !u.is_superuser)
+    .map((u) => u.id);
+  const selectedVisibleCount = selectableVisibleIds.filter((id) => selectedIds.includes(id)).length;
+  const allVisibleSelected = selectableVisibleIds.length > 0 && selectedVisibleCount === selectableVisibleIds.length;
+  const hasPartialVisibleSelection = selectedVisibleCount > 0 && !allVisibleSelected;
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = hasPartialVisibleSelection;
+    }
+  }, [hasPartialVisibleSelection]);
+
+  const toggleSelected = (userId) => {
+    setSelectedIds((old) =>
+      old.includes(userId) ? old.filter((id) => id !== userId) : [...old, userId]
+    );
+  };
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((old) => {
+      if (allVisibleSelected) {
+        return old.filter((id) => !selectableVisibleIds.includes(id));
+      }
+      return [...new Set([...old, ...selectableVisibleIds])];
+    });
+  };
+
+  const clearSelection = () => setSelectedIds([]);
+
+  const handleBulkDelete = () => {
+    if (!selectedIds.length) return;
+    const label = `${selectedIds.length} user${selectedIds.length === 1 ? "" : "s"}`;
+    if (!window.confirm(`Delete ${label}? This action cannot be undone.`)) return;
+    bulkDeleteMutation.mutate(selectedIds);
+  };
+
   return (
     <div className="adm-page">
       {toast.msg && <div className={`adm-toast adm-toast-${toast.type}`}>{toast.msg}</div>}
@@ -355,15 +408,101 @@ export default function AdminDashboard() {
           />
         </div>
         <span className="adm-count">{filtered.length} user{filtered.length !== 1 ? "s" : ""}</span>
+        <div className="adm-bulk-actions">
+          <span className={`adm-selection-count ${selectedIds.length ? "is-active" : ""}`}>
+            {selectedIds.length} selected
+          </span>
+          <button
+            type="button"
+            className="adm-btn btn-primary"
+            onClick={toggleSelectAllVisible}
+            disabled={!selectableVisibleIds.length}
+          >
+            {allVisibleSelected ? "Unselect Visible" : "Select Visible"}
+          </button>
+          <button
+            type="button"
+            className="adm-btn btn-warn"
+            onClick={clearSelection}
+            disabled={!selectedIds.length}
+          >
+            Clear
+          </button>
+          <button
+            type="button"
+            className="adm-btn btn-danger"
+            onClick={handleBulkDelete}
+            disabled={!selectedIds.length || bulkDeleteMutation.isPending}
+          >
+            <span className="btn-icon">{Icon.trash}</span>
+            {bulkDeleteMutation.isPending ? "Deleting..." : "Delete Selected"}
+          </button>
+        </div>
       </div>
+
+      {selectedIds.length > 0 && (
+        <div className="adm-selection-banner">
+          <div className="adm-selection-copy">
+            <strong>{selectedIds.length} user{selectedIds.length === 1 ? "" : "s"} selected</strong>
+            <span>Bulk actions only affect selected non-superadmin accounts.</span>
+          </div>
+          <div className="adm-selection-actions">
+            <button type="button" className="adm-btn btn-warn" onClick={clearSelection}>
+              Clear Selection
+            </button>
+            <button
+              type="button"
+              className="adm-btn btn-danger"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteMutation.isPending}
+            >
+              <span className="btn-icon">{Icon.trash}</span>
+              {bulkDeleteMutation.isPending ? "Deleting..." : "Delete Selected"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="adm-loading">Loading users...</div>
+      ) : sortedUsers.length === 0 ? (
+        <div className="adm-empty-state">
+          <span className="adm-empty-icon">{Icon.users}</span>
+          <h3>No users found</h3>
+          <p>
+            {query
+              ? "Try a different username or email search, or clear the current filter."
+              : "Users will appear here once accounts are created."}
+          </p>
+          {query && (
+            <button
+              type="button"
+              className="adm-btn btn-primary"
+              onClick={() => {
+                setSearch("");
+                setSearchField("all");
+              }}
+            >
+              Clear Search
+            </button>
+          )}
+        </div>
       ) : (
         <div className="adm-table-wrap">
           <table className="adm-table">
             <thead>
               <tr>
+                <th>
+                  <input
+                    ref={selectAllRef}
+                    type="checkbox"
+                    className="adm-checkbox"
+                    checked={allVisibleSelected}
+                    onChange={toggleSelectAllVisible}
+                    disabled={!selectableVisibleIds.length}
+                    aria-label="Select all visible users"
+                  />
+                </th>
                 <th>#</th>
                 <th>
                   <button type="button" className="adm-sort-btn" onClick={() => handleSort("username")}>
@@ -418,7 +557,26 @@ export default function AdminDashboard() {
             </thead>
             <tbody>
               {sortedUsers.map((u, i) => (
-                <tr key={u.id} className={!u.is_active ? "adm-row-inactive" : ""}>
+                <tr
+                  key={u.id}
+                  className={[
+                    !u.is_active ? "adm-row-inactive" : "",
+                    selectedIds.includes(u.id) ? "adm-row-selected" : "",
+                  ].filter(Boolean).join(" ")}
+                >
+                  <td className="adm-select-cell">
+                    {!u.is_superuser ? (
+                      <input
+                        type="checkbox"
+                        className="adm-checkbox"
+                        checked={selectedIds.includes(u.id)}
+                        onChange={() => toggleSelected(u.id)}
+                        aria-label={`Select ${u.username}`}
+                      />
+                    ) : (
+                      <span className="adm-protected">—</span>
+                    )}
+                  </td>
                   <td className="adm-num">{i + 1}</td>
                   <td className="adm-name">
                     <span>{u.username}</span>

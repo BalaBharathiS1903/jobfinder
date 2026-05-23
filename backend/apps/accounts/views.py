@@ -12,6 +12,7 @@ from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.db import IntegrityError
 from django.contrib.auth.password_validation import validate_password
+from django.middleware.csrf import get_token
 from .serializers import RegisterSerializer, UserSerializer
 
 
@@ -25,6 +26,10 @@ class MeView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+    def retrieve(self, request, *args, **kwargs):
+        get_token(request)
+        return super().retrieve(request, *args, **kwargs)
 
 
 def _set_auth_cookies(response, access, refresh):
@@ -43,11 +48,8 @@ def login_view(request):
     if not user:
         return Response({"error": "Invalid credentials."}, status=401)
     refresh = RefreshToken.for_user(user)
-    resp = Response({
-        "detail": "Login successful.",
-        "access": str(refresh.access_token),
-        "refresh": str(refresh),
-    })
+    get_token(request)
+    resp = Response({"detail": "Login successful."})
     _set_auth_cookies(resp, str(refresh.access_token), str(refresh))
     return resp
 
@@ -55,13 +57,14 @@ def login_view(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def refresh_view(request):
-    token = request.COOKIES.get("refresh") or request.data.get("refresh", "")
+    token = request.COOKIES.get("refresh")
     if not token:
         return Response({"error": "No refresh token."}, status=401)
     try:
         refresh = RefreshToken(token)
         access = str(refresh.access_token)
-        resp = Response({"detail": "Refreshed.", "access": access})
+        get_token(request)
+        resp = Response({"detail": "Refreshed."})
         _set_auth_cookies(resp, access, str(refresh))
         return resp
     except TokenError:
@@ -113,7 +116,7 @@ def forgot_password_view(request):
         fail_silently=True,
     )
 
-    if settings.DEBUG:
+    if settings.DEBUG and settings.EXPOSE_DEBUG_RESET_TOKEN:
         response_data.update({"reset_token": str(reset_token.token), "reset_url": reset_url})
     return Response(response_data)
 
@@ -121,18 +124,10 @@ def forgot_password_view(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def validate_default_reset_email_view(request):
-    email = request.data.get("email", "").strip().lower()
-    if not email:
-        return Response({"error": "Email is required."}, status=400)
-    try:
-        validate_email(email)
-    except ValidationError:
-        return Response({"error": "Enter a valid email address."}, status=400)
-
-    from apps.accounts.models import User
-    if not User.objects.filter(email__iexact=email).exists():
-        return Response({"error": "No account found with this email address."}, status=404)
-    return Response({"detail": "Email verified."})
+    return Response(
+        {"error": "Default password reset is disabled. Use the email reset flow instead."},
+        status=410,
+    )
 
 
 @api_view(["POST"])
@@ -168,31 +163,10 @@ def reset_password_view(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def default_password_reset_view(request):
-    from django.contrib.auth import authenticate
-    email = request.data.get("email", "").strip().lower()
-    default_password = request.data.get("default_password", "")
-    new_password = request.data.get("new_password", "")
-
-    if not email or not default_password or not new_password:
-        return Response({"error": "Email, default password, and new password are required."}, status=400)
-    try:
-        validate_email(email)
-    except ValidationError:
-        return Response({"error": "Enter a valid email address."}, status=400)
-    if default_password != "vdart@#12345":
-        return Response({"error": "Default password is incorrect."}, status=400)
-
-    user = authenticate(request, email=email, password=default_password)
-    if not user:
-        return Response({"error": "This account cannot be reset with the default password."}, status=400)
-    try:
-        validate_password(new_password, user=user)
-    except ValidationError as exc:
-        return Response({"error": list(exc.messages)}, status=400)
-
-    user.set_password(new_password)
-    user.save(update_fields=["password"])
-    return Response({"detail": "Password has been updated. You can now sign in with your new password."})
+    return Response(
+        {"error": "Default password reset is disabled. Use the email reset flow instead."},
+        status=410,
+    )
 
 
 @api_view(["POST"])
@@ -553,3 +527,57 @@ def admin_user_delete(request, pk):
         return Response({"error": "Cannot delete superadmin accounts."}, status=400)
     target.delete()
     return Response(status=204)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def admin_bulk_delete_users(request):
+    if not request.user.is_superuser:
+        return Response({"error": "Forbidden."}, status=403)
+
+    raw_ids = request.data.get("user_ids")
+    if not isinstance(raw_ids, list) or not raw_ids:
+        return Response({"error": "user_ids must be a non-empty list."}, status=400)
+
+    unique_ids = []
+    seen = set()
+    invalid_ids = []
+    for value in raw_ids:
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            invalid_ids.append(value)
+            continue
+        if parsed not in seen:
+            seen.add(parsed)
+            unique_ids.append(parsed)
+
+    if invalid_ids:
+        return Response({"error": "user_ids must contain only numeric IDs."}, status=400)
+
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    users = {user.id: user for user in User.objects.filter(id__in=unique_ids)}
+    deleted_ids = []
+    skipped = []
+
+    for user_id in unique_ids:
+        target = users.get(user_id)
+        if not target:
+            skipped.append({"id": user_id, "reason": "User not found."})
+            continue
+        if target.is_superuser:
+            skipped.append({"id": user_id, "email": target.email, "reason": "Cannot delete superadmin accounts."})
+            continue
+        target.delete()
+        deleted_ids.append(user_id)
+
+    return Response(
+        {
+            "deleted_count": len(deleted_ids),
+            "deleted_ids": deleted_ids,
+            "skipped_count": len(skipped),
+            "skipped": skipped,
+        }
+    )
